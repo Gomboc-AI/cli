@@ -1,7 +1,5 @@
 # Used by the pull-schema script
 graphql-schema.json
-.gomboc/
-tests/
 
 # Logs
 logs

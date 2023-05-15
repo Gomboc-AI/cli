@@ -1,0 +1,93 @@
+{
+  "__typename": "ScanCfnResultType",
+  "scanMeta": {
+    "__typename": "ScanMeta",
+    "timestamp": "",
+    "scanId": "",
+    "portalUrl": ""
+  },
+  "sideEffectsResult": null,
+  "results": [
+    {
+      "__typename": "CfnScanResult",
+      "filePath": "cli/cfn-tests/templates/001.json",
+      "complianceObservations": [],
+      "violationObservations": [
+        {
+          "__typename": "ViolationObservation",
+          "policyStatement": {
+            "__typename": "MustImplementCapabilityPolicyStatement",
+            "capability": {
+              "__typename": "Capability",
+              "title": "Deletion Protection"
+            }
+          },
+          "trivialRemediation": {
+            "__typename": "Remediation",
+            "id": "",
+            "resolvesWithTransformations": [
+              {
+                "__typename": "CreateTransformation",
+                "logicalResource": {
+                  "__typename": "LogicalResource",
+                  "line": 18,
+                  "name": "DDBTable"
+                },
+                "property": "DeletionProtectionEnabled",
+                "value": "true"
+              }
+            ],
+            "appliesToLogicalResource": {
+              "__typename": "LogicalResource",
+              "line": 18,
+              "name": "DDBTable"
+            }
+          },
+          "nonTrivialRemediation": [],
+          "logicalResource": {
+            "__typename": "LogicalResource",
+            "line": 18,
+            "name": "DDBTable"
+          }
+        },
+        {
+          "__typename": "ViolationObservation",
+          "policyStatement": {
+            "__typename": "MustImplementCapabilityPolicyStatement",
+            "capability": {
+              "__typename": "Capability",
+              "title": "Request Tracing"
+            }
+          },
+          "trivialRemediation": {
+            "__typename": "Remediation",
+            "id": "",
+            "resolvesWithTransformations": [
+              {
+                "__typename": "CreateTransformation",
+                "logicalResource": {
+                  "__typename": "LogicalResource",
+                  "line": 4,
+                  "name": "GraphQLApi"
+                },
+                "property": "XrayEnabled",
+                "value": "true"
+              }
+            ],
+            "appliesToLogicalResource": {
+              "__typename": "LogicalResource",
+              "line": 4,
+              "name": "GraphQLApi"
+            }
+          },
+          "nonTrivialRemediation": [],
+          "logicalResource": {
+            "__typename": "LogicalResource",
+            "line": 4,
+            "name": "GraphQLApi"
+          }
+        }
+      ]
+    }
+  ]
+}

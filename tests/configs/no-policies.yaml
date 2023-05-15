@@ -1,0 +1,7 @@
+policies:
+
+options:
+  search-pattern:
+    - 'cli/cfn-tests/templates/001.json'
+  ignore-pattern:
+    - 'my-private-directory/*'

@@ -128,8 +128,8 @@ export const scanCfn = async (inputs) => {
         cl.log(`Results for ${hl(result.filePath)} ${tick}\n`);
         // Print errors if any
         if (result.error != null) {
-            exitCode = ExitCode.INVALID_TEMPLATE;
-            cl._log(`${chalk.red(`Error`)}: ${hl(result.error)}`);
+            exitCode = ExitCode.TEMPLATE_ERROR;
+            cl.err(ExitCode.TEMPLATE_ERROR, result.error);
             continue;
         }
         // Print violation observations
