@@ -38,6 +38,8 @@ jobs:
       - name: Install globally and test help
         shell: bash
         run: | 
+          npm i
+          npm run build
           npm install -g .
           echo $(gomboc-cfn --help) 
 
