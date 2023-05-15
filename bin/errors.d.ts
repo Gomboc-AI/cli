@@ -1,0 +1,9 @@
+export declare enum ExitCode {
+    SUCCESS = 0,
+    INVALID_CONFIG_FILE = 10,
+    MISSING_SEARCH_PATTERN = 11,
+    NO_TEMPLATES_FOUND = 12,
+    NO_POLICIES_FOUND = 13,
+    SERVER_ERROR = 99,
+    VIOLATIONS_FOUND = 20
+}
