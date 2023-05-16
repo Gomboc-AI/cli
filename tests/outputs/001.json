@@ -10,7 +10,7 @@
   "results": [
     {
       "__typename": "CfnScanResult",
-      "filePath": "tests/templates/001.json",
+      "filePath": "",
       "error": null,
       "complianceObservations": [
         {

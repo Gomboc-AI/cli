@@ -2,14 +2,14 @@ import chalk from 'chalk';
 import { parse } from 'yaml';
 import { glob } from 'glob';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join, extname } from 'path';
 import { Client } from './apiclient/client.js';
 import { ConsoleLogger } from './ConsoleLogger.js';
 import { ExitCode } from './exitCodes.js';
 const hl = chalk.hex('#FFFFA7'); // highlight
 const exclamation = chalk.redBright.bold('!');
-const tick = chalk.green('✔');
-const cross = chalk.red('✖');
+const checkMark = chalk.green('✔');
+const crossMark = chalk.red('✖');
 const formatTitle = (title) => {
     const lineBreak = '--------------------------------------------';
     return `${chalk.gray(lineBreak)}\n${chalk.blue.bold(title)}\n`;
@@ -23,7 +23,7 @@ const readablePolicyStatement = (policyStatement) => {
     return `unknown policy statement for ${capability}`;
 };
 const readableTransformation = (transformation) => {
-    // Get a human readable instruction for Create, Update and Delete transformations
+    // Get a human readable instruction for Create, Update, and Delete transformations
     const at = `At ${transformation.logicalResource.name} (l.${transformation.logicalResource.line})`;
     if (transformation.__typename === 'DeleteTransformation') {
         return `${at}: Delete property "${hl(transformation.property)}"`;
@@ -42,10 +42,12 @@ const readableTransformation = (transformation) => {
 export const scanCfn = async (inputs) => {
     let exitCode = ExitCode.SUCCESS;
     const cl = new ConsoleLogger(inputs.output !== 'text');
-    cl.log(formatTitle('Initializing Gomboc.ai CloudFormation'));
+    cl.log(formatTitle('Running Gomboc.ai for CloudFormation'));
     const CONFIG_FILE_PATH = inputs.config.toLowerCase();
-    if (!CONFIG_FILE_PATH.endsWith('.yaml') && !CONFIG_FILE_PATH.endsWith('.yml')) {
-        cl.err(ExitCode.INVALID_CONFIG_FILE, `Config filepath must have a YAML extension`);
+    const configExtension = extname(CONFIG_FILE_PATH);
+    const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml'];
+    if (!VALID_CONFIG_EXTENSIONS.includes(configExtension)) {
+        cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`);
         return ExitCode.INVALID_CONFIG_FILE;
     }
     let configData;
@@ -57,7 +59,7 @@ export const scanCfn = async (inputs) => {
         cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`);
         return ExitCode.INVALID_CONFIG_FILE;
     }
-    cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${tick}\n`);
+    cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${checkMark}\n`);
     const scanOptions = configData['options'];
     // Read and print match patterns
     const searchPattern = scanOptions['search-pattern'];
@@ -75,9 +77,9 @@ export const scanCfn = async (inputs) => {
         return ExitCode.NO_TEMPLATES_FOUND;
     }
     else {
-        cl._log(`Cloudformation templates: ${hl(templateCount)} ${tick}`);
+        cl._log(`Cloudformation templates: ${hl(templateCount)} ${checkMark}`);
         for (const template of templateFiles) {
-            cl.__log(`${tick} ${hl(template)}`);
+            cl.__log(`${checkMark} ${hl(template)}`);
         }
         cl._log('');
     }
@@ -99,13 +101,12 @@ export const scanCfn = async (inputs) => {
         cl.err(ExitCode.NO_POLICIES_FOUND, `At least one must-implement policy must be specified`);
         return ExitCode.NO_POLICIES_FOUND;
     }
-    cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${tick}`);
+    cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`);
     mustImplementCapabilities.forEach((capability) => {
         cl.__log(`${exclamation} ${hl(`Must implement ${capability}`)}`);
     });
     cl.log('');
     const policy = { mustImplement: mustImplementCapabilities };
-    cl.log(formatTitle('Running Gomboc.ai CloudFormation'));
     let scan;
     try {
         const client = new Client(inputs.apiUrl, inputs.idToken);
@@ -119,17 +120,17 @@ export const scanCfn = async (inputs) => {
         cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`);
         return ExitCode.SIDE_EFFECTS_FAILED;
     }
-    cl.log(`Successful scan ${tick}\n`);
+    cl.log(`Successful scan ${checkMark}\n`);
     cl._log(`ID: ${hl(scan.scanMeta.scanId)}`);
     cl._log(`Timestamp: ${hl(scan.scanMeta.timestamp)}`);
     cl._log(`URL: ${hl(scan.scanMeta.portalUrl)}`);
     cl._log('');
     for (const result of scan.results) {
-        cl.log(`Results for ${hl(result.filePath)} ${tick}\n`);
-        // Print errors if any
+        cl.log(`Results for ${hl(result.filePath)} ${checkMark}\n`);
         if (result.error != null) {
             exitCode = ExitCode.TEMPLATE_ERROR;
             cl.err(ExitCode.TEMPLATE_ERROR, result.error);
+            cl._log('');
             continue;
         }
         // Print violation observations
@@ -141,13 +142,13 @@ export const scanCfn = async (inputs) => {
                 const policyStatement = readablePolicyStatement(observation.policyStatement);
                 const statement = `l.${resource.line}: Resource ${hl(resource.name)} violates ${hl(policyStatement)}`;
                 if (observation.trivialRemediation != null) {
-                    cl.__log(`${cross} ${statement}. To remediate, do this:`);
+                    cl.__log(`${crossMark} ${statement}. To remediate, do this:`);
                     for (const transformation of observation.trivialRemediation.resolvesWithTransformations) {
                         cl.___log(`↪ ${readableTransformation(transformation)}`);
                     }
                 }
                 else {
-                    cl.__log(`${cross} ${statement}. There is no trivial remediation:`);
+                    cl.__log(`${crossMark} ${statement}. There is no trivial remediation:`);
                     cl.___log(`↪ ${scan.scanMeta.portalUrl}`);
                 }
             });
@@ -160,13 +161,16 @@ export const scanCfn = async (inputs) => {
                 const resource = observation.logicalResource;
                 const policyStatement = readablePolicyStatement(observation.policyStatement);
                 const statement = `l.${resource.line}: Resource ${hl(resource.name)} complies with ${hl(policyStatement)}`;
-                cl.__log(`${tick} ${statement}`);
+                cl.__log(`${checkMark} ${statement}`);
             });
             cl._log('');
         }
     }
     if (inputs.output === 'json') {
         console.log(JSON.stringify(scan, null, 2));
+    }
+    if (exitCode === ExitCode.VIOLATIONS_FOUND) {
+        cl.err(ExitCode.VIOLATIONS_FOUND, `One or more templates had violations`);
     }
     return exitCode;
 };

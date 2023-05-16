@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import { parse } from 'yaml'
 import { glob } from 'glob'
 import { readFileSync } from 'fs'
-import { join } from 'path'
+import { join, extname } from 'path'
 
 import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './apiclient/__generated__/GlobalTypes.js'
 import { Scan_scanCfnTemplateExt } from './apiclient/__generated__/Scan.js'
@@ -19,8 +19,8 @@ import { ExitCode } from './exitCodes.js'
 const hl = chalk.hex('#FFFFA7') // highlight
 
 const exclamation = chalk.redBright.bold('!')
-const tick = chalk.green('✔')
-const cross = chalk.red('✖')
+const checkMark = chalk.green('✔')
+const crossMark = chalk.red('✖')
 
 const formatTitle = (title: string) => {
   const lineBreak = '--------------------------------------------'
@@ -44,7 +44,7 @@ const readablePolicyStatement = (policyStatement: Scan_scanCfnTemplateExt_result
 }
 
 const readableTransformation = (transformation: CreateTransformationFragment | UpdateTransformationFragment | DeleteTransformationFragment): String => {
-  // Get a human readable instruction for Create, Update and Delete transformations
+  // Get a human readable instruction for Create, Update, and Delete transformations
   const at = `At ${transformation.logicalResource.name} (l.${transformation.logicalResource.line})`
   if(transformation.__typename === 'DeleteTransformation'){
     return `${at}: Delete property "${hl(transformation.property)}"`
@@ -64,11 +64,13 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
-  cl.log(formatTitle('Initializing Gomboc.ai CloudFormation'))
+  cl.log(formatTitle('Running Gomboc.ai for CloudFormation'))
 
   const CONFIG_FILE_PATH = inputs.config.toLowerCase()
-  if (!CONFIG_FILE_PATH.endsWith('.yaml') && !CONFIG_FILE_PATH.endsWith('.yml')) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, `Config filepath must have a YAML extension`)
+  const configExtension = extname(CONFIG_FILE_PATH)
+  const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml']
+  if (!VALID_CONFIG_EXTENSIONS.includes(configExtension)) {
+    cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`)
     return ExitCode.INVALID_CONFIG_FILE
   }
 
@@ -80,7 +82,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`)
     return ExitCode.INVALID_CONFIG_FILE
   }
-  cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${tick}\n`)
+  cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${checkMark}\n`)
   
   const scanOptions = configData['options']
 
@@ -99,9 +101,9 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     cl.err(ExitCode.NO_TEMPLATES_FOUND, `Did not find any templates`)
     return ExitCode.NO_TEMPLATES_FOUND 
   } else {
-    cl._log(`Cloudformation templates: ${hl(templateCount)} ${tick}`)
+    cl._log(`Cloudformation templates: ${hl(templateCount)} ${checkMark}`)
     for (const template of templateFiles) {
-      cl.__log(`${tick} ${hl(template)}`)
+      cl.__log(`${checkMark} ${hl(template)}`)
     }
     cl._log('')
   }
@@ -125,15 +127,13 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     return ExitCode.NO_POLICIES_FOUND
   }
 
-  cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${tick}`)
+  cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`)
   mustImplementCapabilities.forEach((capability: string) => {
     cl.__log(`${exclamation} ${hl(`Must implement ${capability}`)}`)
   })
   cl.log('')
 
   const policy: ScanPolicy = { mustImplement: mustImplementCapabilities }
-
-  cl.log(formatTitle('Running Gomboc.ai CloudFormation'))
 
   let scan: Scan_scanCfnTemplateExt
 
@@ -150,18 +150,18 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     return ExitCode.SIDE_EFFECTS_FAILED
   }
 
-  cl.log(`Successful scan ${tick}\n`)
+  cl.log(`Successful scan ${checkMark}\n`)
   cl._log(`ID: ${hl(scan!.scanMeta!.scanId)}`)
   cl._log(`Timestamp: ${hl(scan!.scanMeta!.timestamp)}`)
   cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
   cl._log('')
 
   for (const result of scan!.results) {
-    cl.log(`Results for ${hl(result.filePath)} ${tick}\n`)
-    // Print errors if any
+    cl.log(`Results for ${hl(result.filePath)} ${checkMark}\n`)
     if(result.error != null) {
       exitCode = ExitCode.TEMPLATE_ERROR
       cl.err(ExitCode.TEMPLATE_ERROR, result.error)
+      cl._log('')
       continue
     }
     // Print violation observations
@@ -173,12 +173,12 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
         const policyStatement = readablePolicyStatement(observation.policyStatement)
         const statement = `l.${resource.line}: Resource ${hl(resource.name)} violates ${hl(policyStatement)}`
         if(observation.trivialRemediation != null){
-          cl.__log(`${cross} ${statement}. To remediate, do this:`)
+          cl.__log(`${crossMark} ${statement}. To remediate, do this:`)
           for (const transformation of observation.trivialRemediation.resolvesWithTransformations) {
             cl.___log(`↪ ${readableTransformation(transformation)}`)
           }
         } else {
-          cl.__log(`${cross} ${statement}. There is no trivial remediation:`)
+          cl.__log(`${crossMark} ${statement}. There is no trivial remediation:`)
           cl.___log(`↪ ${scan.scanMeta.portalUrl}`)
         }
       })
@@ -191,7 +191,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
         const resource = observation!.logicalResource
         const policyStatement = readablePolicyStatement(observation!.policyStatement)
         const statement = `l.${resource.line}: Resource ${hl(resource.name)} complies with ${hl(policyStatement)}`
-        cl.__log(`${tick} ${statement}`)
+        cl.__log(`${checkMark} ${statement}`)
       })
       cl._log('')
     }
@@ -199,6 +199,10 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   if(inputs.output === 'json'){
     console.log(JSON.stringify(scan!, null, 2))
+  }
+
+  if(exitCode === ExitCode.VIOLATIONS_FOUND){
+    cl.err(ExitCode.VIOLATIONS_FOUND, `One or more templates had violations`)
   }
 
   return exitCode

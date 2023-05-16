@@ -8,6 +8,7 @@
 ./tests/scripts/wipe-json-property-value.sh "scanId" "$1"
 ./tests/scripts/wipe-json-property-value.sh "portalUrl" "$1"
 ./tests/scripts/wipe-json-property-value.sh "id" "$1"
+./tests/scripts/wipe-json-property-value.sh "filePath" "$1"
 
 if cmp --silent -- "$1" "$2"; then
     echo "Output is the expected"
