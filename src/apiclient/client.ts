@@ -12,16 +12,19 @@ import crossFetch from 'cross-fetch'
 
 export class Client {
     url: string
-    idToken: string
+    idToken?: string
 
-    constructor(url: string, idToken: string) {
+    constructor(url: string, idToken?: string) {
         this.url = url
         this.idToken = idToken
     }
 
-    async scanCfnTemplate(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions): Promise<Scan_scanCfnTemplateExt> {
+    async scanCfnTemplate(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<Scan_scanCfnTemplateExt> {
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
         const authLink = setContext((_: any, { headers }: any) => {
+            if(this.idToken == null) {
+                return { headers: headers }
+            }
             return {
                 headers: {
                 ...headers,
@@ -38,7 +41,8 @@ export class Client {
             templates: templatePayloads,
             policy: policy,
             gitHubOptions: gitHubOptions,
-            gitLabOptions: gitLabOptions
+            gitLabOptions: gitLabOptions,
+            secretAccessKey: secretAccessKey
         }
         const { data } : { data: Scan} = await client.query<Scan, ScanVariables>({
             query: scanCfnQuery,

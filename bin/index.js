@@ -14,7 +14,12 @@ await yargs(hideBin(process.argv))
     .option("id-token", {
     describe: "An authentication ID token",
     type: "string",
-    demandOption: true
+    demandOption: false
+})
+    .option("secret-access-key", {
+    describe: "Required for Gomboc Auth",
+    type: "string",
+    demandOption: false
 })
     .option("api-url", {
     describe: "The URL of the API endpoint",
@@ -50,6 +55,26 @@ await yargs(hideBin(process.argv))
     type: "boolean",
     demandOption: false
 })
+    .option("gh-ref", {
+    describe: "[GitHub] Full ref to the branch -- only for Gomboc Auth",
+    type: "string",
+    demandOption: false
+})
+    .option("gh-repository", {
+    describe: "[GitHub] Full repository name -- only for Gomboc Auth",
+    type: "string",
+    demandOption: false
+})
+    .option("gh-repository-owner", {
+    describe: "[GitHub] Repository owner -- only for Gomboc Auth",
+    type: "string",
+    demandOption: false
+})
+    .option("gh-sha", {
+    describe: "[GitHub] Commit SHA -- only for Gomboc Auth",
+    type: "string",
+    demandOption: false
+})
     .option("gl-access-token", {
     describe: "[GitLab] Access token",
     type: "string",
@@ -68,6 +93,31 @@ await yargs(hideBin(process.argv))
     .option("gl-create-comments-with-code-suggestions", {
     describe: "[GitLab] Create comments with code suggestions -- only for simple remediations",
     type: "boolean",
+    demandOption: false
+})
+    .option("gl-namespace-path", {
+    describe: "[GitLab] The namespace path -- only for Gomboc Auth",
+    type: "string",
+    demandOption: false
+})
+    .option("gl-project-id", {
+    describe: "[GitLab] The project id -- only for Gomboc Auth",
+    type: "string",
+    demandOption: false
+})
+    .option("gl-project-path", {
+    describe: "[GitLab] The project path -- only for Gomboc Auth",
+    type: "string",
+    demandOption: false
+})
+    .option("gl-ref", {
+    describe: "[GitLab] Full ref to the branch -- only for Gomboc Auth",
+    type: "string",
+    demandOption: false
+})
+    .option("gl-sha", {
+    describe: "[GitLab] Commit SHA -- only for Gomboc Auth",
+    type: "string",
     demandOption: false
 })
     .command('run', '\tGomboc.ai CloudFormation CLI', (yargs) => {

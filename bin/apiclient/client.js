@@ -13,9 +13,12 @@ export class Client {
         this.url = url;
         this.idToken = idToken;
     }
-    async scanCfnTemplate(templatePayloads, policy, gitHubOptions, gitLabOptions) {
+    async scanCfnTemplate(templatePayloads, policy, gitHubOptions, gitLabOptions, secretAccessKey) {
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch });
         const authLink = setContext((_, { headers }) => {
+            if (this.idToken == null) {
+                return { headers: headers };
+            }
             return {
                 headers: {
                     ...headers,
@@ -31,7 +34,8 @@ export class Client {
             templates: templatePayloads,
             policy: policy,
             gitHubOptions: gitHubOptions,
-            gitLabOptions: gitLabOptions
+            gitLabOptions: gitLabOptions,
+            secretAccessKey: secretAccessKey
         };
         const { data } = await client.query({
             query: scanCfnQuery,
