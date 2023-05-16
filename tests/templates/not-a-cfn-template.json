@@ -1,0 +1,10 @@
+{
+    "a": "foo",
+    "b": "0.0.4",
+    "c": "bar",
+    "d": "module",
+    "e": "test",
+    "bin": {
+      "something": "foobar"
+    }
+  }
