@@ -71,6 +71,12 @@ jobs:
         run: |
           EXIT_CODE=0
           gomboc-cfn run --config ${{ env.CONFIGS }}/no-policies.yaml --id-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.NO_POLICIES_FOUND }}
+
+      - name: Test config with no templates found
+        run: |
+          EXIT_CODE=0
+          gomboc-cfn run --config ${{ env.CONFIGS }}/no-templates-found.yaml --id-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.NO_TEMPLATES_FOUND }}
 
       - name: Test template with violations (001)
