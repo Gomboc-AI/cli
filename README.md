@@ -56,6 +56,7 @@ The execution will end with one of the following codes
 | 11 | MISSING_SEARCH_PATTERN | Did not provide CloudFormation template search pattern |
 | 12 | NO_TEMPLATES_FOUND | The provided search pattern(s) did not yield any findings |
 | 13 | NO_POLICIES_FOUND | At least one policy must be specified |
+| 14 | TEMPLATE_ERROR | There was an error with a template |
 | 99 | SERVER_ERROR | Something went wrong at the server level |
 | 20 | VIOLATIONS_FOUND | Policy violation(s) found in at least one template |
 | 30 | SIDE_EFFECTS_FAILED | Something went wrong when trying to apply side effects |
