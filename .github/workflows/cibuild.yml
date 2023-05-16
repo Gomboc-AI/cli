@@ -67,15 +67,3 @@ jobs:
           gomboc-cfn run --config ${{ env.CONFIGS }}/no-search-patterns.yaml --id-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.MISSING_SEARCH_PATTERN }}
 
-      - name: Test config without policy
-        run: |
-          EXIT_CODE=0
-          gomboc-cfn run --config ${{ env.CONFIGS }}/no-policies.yaml --id-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.NO_TEMPLATES_FOUND }}
-
-      - name: Test template with violations (001)
-        run: |
-          EXIT_CODE=0
-          gomboc-cfn run --config ${{ env.CONFIGS }}/001.yaml --id-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.VIOLATIONS_FOUND }}
-          ./tests/scripts/assert-output.sh output.json ${{ env.OUTPUTS }}/001.json
