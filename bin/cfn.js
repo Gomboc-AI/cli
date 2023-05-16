@@ -67,12 +67,10 @@ export const scanCfn = async (inputs) => {
         cl.err(ExitCode.MISSING_SEARCH_PATTERN, `At least one search pattern must be specified`);
         return ExitCode.MISSING_SEARCH_PATTERN;
     }
-    console.log(searchPattern);
     // Read and print ignore patterns
     const ignorePattern = scanOptions['ignore-pattern'] ?? [];
     // Look for CloudFormation templates and print results
     const templateFiles = await glob(searchPattern, { ignore: ignorePattern });
-    console.log(templateFiles);
     const templateCount = templateFiles.length;
     if (templateCount === 0) {
         cl.err(ExitCode.NO_TEMPLATES_FOUND, `Did not find any templates`);
