@@ -146,7 +146,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     return ExitCode.SERVER_ERROR
   }
 
-  if(!scan.sideEffectsResult?.success){
+  if(scan.sideEffectsResult?.success===false){
     cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`)
     return ExitCode.SIDE_EFFECTS_FAILED
   }
