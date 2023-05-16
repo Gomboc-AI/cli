@@ -79,12 +79,19 @@ jobs:
           gomboc-cfn run --config ${{ env.CONFIGS }}/no-templates-found.yaml --id-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.NO_TEMPLATES_FOUND }}
 
-      - name: Test single template with violations (001)
+      - name: Test single JSON template with violations (001)
         run: |
           EXIT_CODE=0
           gomboc-cfn run --config ${{ env.CONFIGS }}/001.yaml --id-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.VIOLATIONS_FOUND }}
           ./tests/scripts/assert-output.sh output.json ${{ env.OUTPUTS }}/001.json
+
+      - name: Test single YAML template with violations (002)
+        run: |
+          EXIT_CODE=0
+          gomboc-cfn run --config ${{ env.CONFIGS }}/002.yaml --id-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.VIOLATIONS_FOUND }}
+          ./tests/scripts/assert-output.sh output.json ${{ env.OUTPUTS }}/002.json
 
       - name: Test matching a random json (not a cfn template)
         run: |

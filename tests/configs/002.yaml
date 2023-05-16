@@ -7,7 +7,6 @@ policies:
 
 options:
   search-pattern:
-    - 'tests/templates/compliant-001.json'
-    - 'tests/templates/violations-001.json'
+    - 'tests/templates/violations-002.yml'
   ignore-pattern:
     - 'my-private-directory/*'
