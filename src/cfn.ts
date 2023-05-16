@@ -69,11 +69,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   const CONFIG_FILE_PATH = inputs.config.toLowerCase()
   const configExtension = extname(CONFIG_FILE_PATH)
-<<<<<<< HEAD
   const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml']
-=======
-  const VALID_CONFIG_EXTENSIONS = ['yaml', 'yml']
->>>>>>> 97f15a0 (check extension for config only)
   if (!VALID_CONFIG_EXTENSIONS.includes(configExtension)) {
     cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`)
     return ExitCode.INVALID_CONFIG_FILE
