@@ -16,8 +16,8 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     env:
-      CONFIGS: tests/cfn-tests/configs
-      OUTPUTS: tests/cfn-tests/outputs
+      CONFIGS: tests/configs
+      OUTPUTS: tests/outputs
       SUCCESS: 0
       INVALID_CONFIG_FILE: 10
       MISSING_SEARCH_PATTERN: 11
