@@ -10,8 +10,25 @@
   "results": [
     {
       "__typename": "CfnScanResult",
-      "filePath": "cli/cfn-tests/templates/001.json",
-      "complianceObservations": [],
+      "filePath": "tests/templates/001.json",
+      "error": null,
+      "complianceObservations": [
+        {
+          "__typename": "ComplianceObservation",
+          "logicalResource": {
+            "__typename": "LogicalResource",
+            "line": 4,
+            "name": "GraphQLApi"
+          },
+          "policyStatement": {
+            "__typename": "MustImplementCapabilityPolicyStatement",
+            "capability": {
+              "__typename": "Capability",
+              "title": "API Key Authentication"
+            }
+          }
+        }
+      ],
       "violationObservations": [
         {
           "__typename": "ViolationObservation",
