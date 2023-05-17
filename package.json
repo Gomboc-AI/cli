@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.16.2",
+    "@types/ramda": "^0.29.1",
     "@types/react": "^18.2.0",
     "@types/yargs": "^17.0.24",
     "apollo": "^2.34.0",
@@ -40,6 +41,7 @@
     "graphql": "^16.6.0",
     "graphql-tag": "^2.12.6",
     "minipass": "^5.0.0",
+    "ramda": "^0.29.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "yaml": "^2.2.2",

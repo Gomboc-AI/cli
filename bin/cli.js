@@ -62,11 +62,9 @@ const addGitLabInputs = (inputs, argv) => {
     }
 };
 export const cliCheck = async (argv) => {
-    console.log(argv);
     const inputs = getCommonInputs(argv);
     const cmd1 = argv._[0];
-    if (cmd1 === CommandCode.CHECK) {
-        const service = argv._[1];
+    if (cmd1 === CommandCode.SCAN) {
         // Add client specific inputs
         const client = argv._[2];
         if (client === CommandCode.GITHUB) {
@@ -76,6 +74,7 @@ export const cliCheck = async (argv) => {
             addGitLabInputs(inputs, argv);
         }
         // Add service specific inputs and call scans
+        const service = argv._[1];
         if (service === CommandCode.CLOUDFORMATION) {
             const cfnInputs = inputs;
             // no CloudFormation specific options to add

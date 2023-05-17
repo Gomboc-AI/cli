@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 import { hideBin } from 'yargs/helpers';
 import { cliCheck } from './cli.js';
+import { CommandCode } from './commandCodes.js';
 import yargs from 'yargs';
 const usage = "\nUsage: gomboc [command] <options>";
 const addGitHubOptionsBuilder = (yargs) => {
@@ -10,17 +11,17 @@ const addGitHubOptionsBuilder = (yargs) => {
         demandOption: false
     })
         .option("create-pr", {
-        describe: "Create a Pull Request with remediations -- only for simple remediations",
+        describe: "Create a Pull Request with remediations",
         type: "boolean",
         demandOption: false
     })
         .option("commit-on-current-branch", {
-        describe: "Commit remediations in existing PR -- only for simple remediations",
+        describe: "Commit remediations in existing PR",
         type: "boolean",
         demandOption: false
     })
         .option("create-comments-with-code-suggestions", {
-        describe: "Create comments with code suggestions -- only for simple remediations",
+        describe: "Create comments with code suggestions",
         type: "boolean",
         demandOption: false
     })
@@ -47,17 +48,17 @@ const addGitLabOptionsBuilder = (yargs) => {
         demandOption: false
     })
         .option("create-mr", {
-        describe: "Create a Merge Request with remediations -- only for simple remediations",
+        describe: "Create a Merge Request with remediations",
         type: "boolean",
         demandOption: false
     })
         .option("commit-on-current-branch", {
-        describe: "Commit remediations in existing MR -- only for simple remediations",
+        describe: "Commit remediations in existing MR",
         type: "boolean",
         demandOption: false
     })
         .option("create-comments-with-code-suggestions", {
-        describe: "[GitLab] Create comments with code suggestions -- only for simple remediations",
+        describe: "[GitLab] Create comments with code suggestions",
         type: "boolean",
         demandOption: false
     })
@@ -90,9 +91,9 @@ const addGitLabOptionsBuilder = (yargs) => {
 // Setting CLI command and options
 await yargs(hideBin(process.argv))
     .usage(usage)
-    .command('check', '\tCheck the Gomboc.ai service', (yargs) => {
-    yargs.command('cloudformation', '\tRun for AWS CloudFormation', (yargs) => {
-        yargs.command('github', '\tRun for AWS CloudFormation on GitHub', (yargs) => {
+    .command(CommandCode.SCAN, '\tGomboc.ai scan service', (yargs) => {
+    yargs.command(CommandCode.CLOUDFORMATION, '\tScan CloudFormation templates', (yargs) => {
+        yargs.command(CommandCode.GITHUB, '\tScan CloudFormation templates on GitHub', (yargs) => {
             addGitHubOptionsBuilder(yargs);
             yargs.check(async (argv) => {
                 const scan = await cliCheck(argv);
@@ -101,7 +102,7 @@ await yargs(hideBin(process.argv))
                 return true;
             });
         })
-            .command('gitlab', '\tRun for AWS CloudFormation on GitLab', (yargs) => {
+            .command(CommandCode.GITLAB, '\tScan CloudFormation templates on GitLab', (yargs) => {
             addGitLabOptionsBuilder(yargs);
             yargs.check(async (argv) => {
                 const scan = await cliCheck(argv);
@@ -110,8 +111,8 @@ await yargs(hideBin(process.argv))
                 return true;
             });
         });
-    }).command('terraform', '\tRun for Hashicorp Terraform', (yargs) => {
-        yargs.command('github', '\tRun for Hashicorp Terraform on GitHub', (yargs) => {
+    }).command(CommandCode.TERRAFORM, '\tScan Terraform plan', (yargs) => {
+        yargs.command(CommandCode.GITHUB, '\tScan Terraform plan on GitHub', (yargs) => {
             addGitHubOptionsBuilder(yargs);
             yargs.check(async (argv) => {
                 const scan = await cliCheck(argv);
@@ -120,7 +121,7 @@ await yargs(hideBin(process.argv))
                 return true;
             });
         })
-            .command('gitlab', '\tRun for Hashicorp Terraform on GitLab', (yargs) => {
+            .command(CommandCode.GITLAB, '\tScan Terraform plan on GitLab', (yargs) => {
             addGitLabOptionsBuilder(yargs);
             yargs.check(async (argv) => {
                 const scan = await cliCheck(argv);
@@ -158,12 +159,6 @@ await yargs(hideBin(process.argv))
         default: "text",
         demandOption: false,
         choices: ['text', 'json'],
-    })
-        .check(async (argv) => {
-        const scan = await cliCheck(argv);
-        // scan is the exit code
-        process.exitCode = scan;
-        return true;
     });
 })
     .showHelpOnFail(false)
@@ -253,7 +248,7 @@ await yargs(hideBin(process.argv))
     demandOption: false
   })
   .option("gh-create-pr", {
-    describe: "[GitHub] Create a Pull Request with remediations -- only for simple remediations",
+    describe: "[GitHub] Create a Pull Request with remediations",
     type: "boolean",
     demandOption: false
   })

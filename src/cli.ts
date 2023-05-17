@@ -67,11 +67,9 @@ const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any) => {
 }
 
 export const cliCheck = async (argv?: any): Promise<ExitCode> => {
-  console.log(argv)
   const inputs: ScanCfnInput | ScanTfInput = getCommonInputs(argv)
   const cmd1 = argv._[0]
-  if(cmd1 === CommandCode.CHECK) {
-    const service = argv._[1]
+  if(cmd1 === CommandCode.SCAN) {
     // Add client specific inputs
     const client = argv._[2]
     if(client === CommandCode.GITHUB) {
@@ -79,7 +77,9 @@ export const cliCheck = async (argv?: any): Promise<ExitCode> => {
     } else if(client === CommandCode.GITLAB) {
       addGitLabInputs(inputs, argv)
     }
+
     // Add service specific inputs and call scans
+    const service = argv._[1]
     if(service === CommandCode.CLOUDFORMATION) {
       const cfnInputs = inputs as ScanCfnInput
       // no CloudFormation specific options to add

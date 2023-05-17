@@ -4,17 +4,11 @@ import { glob } from 'glob';
 import { rm, mkdir, readFileSync, writeFile } from 'fs';
 import { dirname, join, extname } from 'path';
 import { zip, COMPRESSION_LEVEL } from 'zip-a-folder';
+import { modifyPath } from 'ramda';
 import { Client } from './apiclient/client.js';
 import { ConsoleLogger } from './ConsoleLogger.js';
 import { ExitCode } from './exitCodes.js';
-const hl = chalk.hex('#FFFFA7'); // highlight
-const exclamation = chalk.redBright.bold('!');
-const checkMark = chalk.green('✔');
-const crossMark = chalk.red('✖');
-const formatTitle = (title) => {
-    const lineBreak = '--------------------------------------------';
-    return `${chalk.gray(lineBreak)}\n${chalk.blue.bold(title)}\n`;
-};
+import { hl, checkMark, crossMark, exclamationMark, formatTitle } from './consoleUtils.js';
 const readablePolicyStatement = (policyStatement) => {
     // Get a human readable policy statement
     const capability = policyStatement.capability.title;
@@ -39,33 +33,6 @@ const readableTransformation = (transformation) => {
         }
     }
     return 'invalid transformation';
-};
-const reSanitize = (value, isSensitive) => {
-    //console.log(`will try value "${value}", isSensitive "${isSensitive}"`)
-    if (value == null || isSensitive == null) {
-        return;
-    }
-    else if (typeof isSensitive == "boolean") {
-        //console.log(`-- is a boolean ${isSensitive}`)
-        if (isSensitive) {
-            console.log(`>>>>>>>>>>>>> Will sanitize`);
-            console.log(value);
-            console.log('');
-            value = '******';
-        }
-    }
-    else if (isSensitive instanceof Array) {
-        //console.log(`-- is an array`)
-        isSensitive.forEach((_, index) => {
-            reSanitize(value[index], isSensitive[index]);
-        });
-    }
-    else if (isSensitive instanceof Object) {
-        //console.log(`-- is an object`)
-        for (const [k, v] of Object.entries(isSensitive)) {
-            reSanitize(value[k], isSensitive[k]);
-        }
-    }
 };
 const findSensitives = (breadcrumbs, isSensitive, sensitives) => {
     if (isSensitive == null) {
@@ -92,7 +59,7 @@ const findSensitives = (breadcrumbs, isSensitive, sensitives) => {
 const sanitizedTfPlanObject = (filePath) => {
     // Gets a Terraform Plan JSON file path and returns a base64 enconded string of the file after removing sensitive data 
     const contents = readFileSync(filePath, 'utf8');
-    const json = JSON.parse(contents);
+    let json = JSON.parse(contents);
     //for (const resource of json['planned_values']['root_module']['resources']) {
     const sensitives = [];
     json['planned_values']['root_module']['resources'].forEach((_, index) => {
@@ -100,20 +67,14 @@ const sanitizedTfPlanObject = (filePath) => {
         // initial bradcrumbs includes the resource index and the property 'values'
         findSensitives([index, 'values'], sensitiveValues, sensitives);
     });
-    if (sensitives.length > 0) {
-        console.log(`Found ${sensitives.length} sensitive values`);
-        for (const breadcrumbs of sensitives) {
-            console.log(`   @${breadcrumbs.join('.')}`);
-        }
+    for (const breadcrumbs of sensitives) {
+        const path = ['planned_values', 'root_module', 'resources', ...breadcrumbs];
+        const newValue = modifyPath(path, () => "<redacted>", json);
+        json = newValue;
     }
-    //TODO for each sensitive in sentives
-    // go to the equivalent path in "values" (instead of "sentiive_values")
-    // and replace the value with """
-    //console.log(JSON.stringify(json))
-    return {};
+    return json;
 };
 export const scanTf = async (inputs) => {
-    console.log(inputs);
     let exitCode = ExitCode.SUCCESS;
     const cl = new ConsoleLogger(inputs.output !== 'text');
     cl.log(formatTitle('Running Gomboc.ai for Terraform'));
@@ -139,13 +100,11 @@ export const scanTf = async (inputs) => {
         return ExitCode.INVALID_PLAN_FILE;
     }
     const tfPlanFilePath = join(inputs.workingDirectory, inputs.plan);
-    // OPTION A: plan file as it is 
-    //const planObjectJsonB64 = readFileSync(tfPlanFilePath, 'base64')
-    // OPTION B: plan file sanitized 
     const tfPlanObject = sanitizedTfPlanObject(tfPlanFilePath);
     const tfPlanObjectJsonStr = JSON.stringify(tfPlanObject);
     const tfPlanObjectJsonB64 = Buffer.from(tfPlanObjectJsonStr).toString("base64");
-    cl._log(`Terraform plan file: ${hl(tfPlanFilePath)} ${checkMark}\n`);
+    cl._log(`Terraform plan file: ${hl(tfPlanFilePath)} ${checkMark}`);
+    cl.__log(`Stripping sensitive values ${exclamationMark}\n`);
     const wip = './wip';
     await mkdir(wip, { recursive: true }, (err) => { });
     // Look for Terraform config files and print results
@@ -194,7 +153,7 @@ export const scanTf = async (inputs) => {
     }
     cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`);
     mustImplementCapabilities.forEach((capability) => {
-        cl.__log(`${exclamation} ${hl(`Must implement ${capability}`)}`);
+        cl.__log(`${exclamationMark} ${hl(`Must implement ${capability}`)}`);
     });
     cl.log('');
     const policy = { mustImplement: mustImplementCapabilities };
@@ -253,6 +212,9 @@ export const scanTf = async (inputs) => {
     }
     if (inputs.output === 'json') {
         console.log(JSON.stringify(scan, null, 2));
+    }
+    if (exitCode === ExitCode.VIOLATIONS_FOUND) {
+        cl.err(ExitCode.VIOLATIONS_FOUND, `One or more templates had violations`);
     }
     return exitCode;
 };

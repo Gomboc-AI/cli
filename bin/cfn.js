@@ -6,14 +6,7 @@ import { join, extname } from 'path';
 import { Client } from './apiclient/client.js';
 import { ConsoleLogger } from './ConsoleLogger.js';
 import { ExitCode } from './exitCodes.js';
-const hl = chalk.hex('#FFFFA7'); // highlight
-const exclamation = chalk.redBright.bold('!');
-const checkMark = chalk.green('✔');
-const crossMark = chalk.red('✖');
-const formatTitle = (title) => {
-    const lineBreak = '--------------------------------------------';
-    return `${chalk.gray(lineBreak)}\n${chalk.blue.bold(title)}\n`;
-};
+import { hl, checkMark, crossMark, exclamationMark, formatTitle } from './consoleUtils.js';
 const readablePolicyStatement = (policyStatement) => {
     // Get a human readable policy statement
     const capability = policyStatement.capability.title;
@@ -103,7 +96,7 @@ export const scanCfn = async (inputs) => {
     }
     cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`);
     mustImplementCapabilities.forEach((capability) => {
-        cl.__log(`${exclamation} ${hl(`Must implement ${capability}`)}`);
+        cl.__log(`${exclamationMark} ${hl(`Must implement ${capability}`)}`);
     });
     cl.log('');
     const policy = { mustImplement: mustImplementCapabilities };

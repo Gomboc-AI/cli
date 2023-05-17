@@ -1,6 +1,6 @@
 export var CommandCode;
 (function (CommandCode) {
-    CommandCode["CHECK"] = "check";
+    CommandCode["SCAN"] = "scan";
     CommandCode["CLOUDFORMATION"] = "cloudformation";
     CommandCode["TERRAFORM"] = "terraform";
     CommandCode["GITHUB"] = "github";

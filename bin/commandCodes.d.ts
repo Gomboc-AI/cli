@@ -1,5 +1,5 @@
 export declare enum CommandCode {
-    CHECK = "check",
+    SCAN = "scan",
     CLOUDFORMATION = "cloudformation",
     TERRAFORM = "terraform",
     GITHUB = "github",
