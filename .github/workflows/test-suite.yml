@@ -58,43 +58,43 @@ jobs:
       - name: Test invalid config file
         run: |
           EXIT_CODE=0
-          gomboc check cloudformation github --config this-file-does-not-exist.exe --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
+          gomboc scan cloudformation github --config this-file-does-not-exist.exe --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.INVALID_CONFIG_FILE }}
 
       - name: Test config without search patterns
         run: |
           EXIT_CODE=0
-          gomboc check cloudformation github --config ${{ env.CONFIGS }}/no-search-patterns.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
+          gomboc scan cloudformation github --config ${{ env.CONFIGS }}/no-search-patterns.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.MISSING_SEARCH_PATTERN }}
 
       - name: Test config without policy
         run: |
           EXIT_CODE=0
-          gomboc check cloudformation github --config ${{ env.CONFIGS }}/no-policies.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
+          gomboc scan cloudformation github --config ${{ env.CONFIGS }}/no-policies.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.NO_POLICIES_FOUND }}
 
       - name: Test config with no templates found
         run: |
           EXIT_CODE=0
-          gomboc check cloudformation github --config ${{ env.CONFIGS }}/no-templates-found.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
+          gomboc scan cloudformation github --config ${{ env.CONFIGS }}/no-templates-found.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.NO_TEMPLATES_FOUND }}
 
       - name: Test single JSON template with violations (001)
         run: |
           EXIT_CODE=0
-          gomboc check cloudformation github --config ${{ env.CONFIGS }}/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
+          gomboc scan cloudformation github --config ${{ env.CONFIGS }}/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.VIOLATIONS_FOUND }}
           ./tests/scripts/assert-output.sh output.json ${{ env.OUTPUTS }}/001.json
 
       - name: Test single YAML template with violations (002)
         run: |
           EXIT_CODE=0
-          gomboc check cloudformation github --config ${{ env.CONFIGS }}/002.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
+          gomboc scan cloudformation github --config ${{ env.CONFIGS }}/002.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.VIOLATIONS_FOUND }}
           ./tests/scripts/assert-output.sh output.json ${{ env.OUTPUTS }}/002.json
 
       - name: Test matching a random json (not a cfn template)
         run: |
           EXIT_CODE=0
-          gomboc check cloudformation github --config ${{ env.CONFIGS }}/match-not-a-cfn-template.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
+          gomboc scan cloudformation github --config ${{ env.CONFIGS }}/match-not-a-cfn-template.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --api-url ${{ env.API_URL }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.TEMPLATE_ERROR }}
