@@ -1,7 +1,7 @@
 import { scanCfn, ScanCfnInput } from "./cfn.js"
 import { scanTf, ScanTfInput } from "./tf.js"
 import { ExitCode } from "./exitCodes.js"
-import { CommandCode } from "./commandCodes.js"
+import { ActionCommand, ServiceCommand, ClientCommand } from "./cliCommands.js"
 
 
 const getCommonInputs = (argv: any): ScanCfnInput | ScanTfInput => {
@@ -71,22 +71,22 @@ const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void =>
 export const cliCheck = async (argv?: any): Promise<ExitCode> => {
   const inputs: ScanCfnInput | ScanTfInput = getCommonInputs(argv)
   const cmd1 = argv._[0]
-  if(cmd1 === CommandCode.SCAN) {
+  if(cmd1 === ActionCommand.SCAN) {
     // Add client specific inputs
     const client = argv._[2]
-    if(client === CommandCode.GITHUB) {
+    if(client === ClientCommand.GITHUB) {
       addGitHubInputs(inputs, argv)
-    } else if(client === CommandCode.GITLAB) {
+    } else if(client === ClientCommand.GITLAB) {
       addGitLabInputs(inputs, argv)
     }
 
     // Add service specific inputs and call scans
     const service = argv._[1]
-    if(service === CommandCode.CLOUDFORMATION) {
+    if(service === ServiceCommand.CLOUDFORMATION) {
       const cfnInputs = inputs as ScanCfnInput
       // no CloudFormation specific options to add
       return await scanCfn(cfnInputs)
-    } else if(service === CommandCode.TERRAFORM) {
+    } else if(service === ServiceCommand.TERRAFORM) {
       const tfInputs = inputs as ScanTfInput
       tfInputs.plan = argv.plan as string
       tfInputs.workingDirectory = argv.workingDirectory as string

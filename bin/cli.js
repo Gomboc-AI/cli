@@ -1,7 +1,7 @@
 import { scanCfn } from "./cfn.js";
 import { scanTf } from "./tf.js";
 import { ExitCode } from "./exitCodes.js";
-import { CommandCode } from "./commandCodes.js";
+import { ActionCommand, ServiceCommand, ClientCommand } from "./cliCommands.js";
 const getCommonInputs = (argv) => {
     return {
         authToken: argv.authToken,
@@ -70,23 +70,23 @@ const addGitLabInputs = (inputs, argv) => {
 export const cliCheck = async (argv) => {
     const inputs = getCommonInputs(argv);
     const cmd1 = argv._[0];
-    if (cmd1 === CommandCode.SCAN) {
+    if (cmd1 === ActionCommand.SCAN) {
         // Add client specific inputs
         const client = argv._[2];
-        if (client === CommandCode.GITHUB) {
+        if (client === ClientCommand.GITHUB) {
             addGitHubInputs(inputs, argv);
         }
-        else if (client === CommandCode.GITLAB) {
+        else if (client === ClientCommand.GITLAB) {
             addGitLabInputs(inputs, argv);
         }
         // Add service specific inputs and call scans
         const service = argv._[1];
-        if (service === CommandCode.CLOUDFORMATION) {
+        if (service === ServiceCommand.CLOUDFORMATION) {
             const cfnInputs = inputs;
             // no CloudFormation specific options to add
             return await scanCfn(cfnInputs);
         }
-        else if (service === CommandCode.TERRAFORM) {
+        else if (service === ServiceCommand.TERRAFORM) {
             const tfInputs = inputs;
             tfInputs.plan = argv.plan;
             tfInputs.workingDirectory = argv.workingDirectory;

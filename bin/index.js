@@ -1,9 +1,8 @@
 #! /usr/bin/env node
 import { hideBin } from 'yargs/helpers';
 import { cliCheck } from './cli.js';
-import { CommandCode } from './commandCodes.js';
+import { ActionCommand, ServiceCommand, ClientCommand } from './cliCommands.js';
 import yargs from 'yargs';
-const usage = "\nUsage: gomboc [command] <options>";
 const addGitHubOptionsBuilder = (yargs) => {
     yargs.option("access-token", {
         describe: "Access token",
@@ -88,45 +87,38 @@ const addGitLabOptionsBuilder = (yargs) => {
         demandOption: false
     });
 };
+const usage = "";
 // Setting CLI command and options
 await yargs(hideBin(process.argv))
-    .usage(usage)
-    .command(CommandCode.SCAN, '\tGomboc.ai scan service', (yargs) => {
-    yargs.command(CommandCode.CLOUDFORMATION, '\tScan CloudFormation templates', (yargs) => {
-        yargs.command(CommandCode.GITHUB, '\tScan CloudFormation templates on GitHub', (yargs) => {
+    .usage('Usage: gomboc scan [service] [client] <options>')
+    .command(ActionCommand.SCAN, '\tGomboc.ai scan service', (yargs) => {
+    yargs.command(ServiceCommand.CLOUDFORMATION, '\tScan CloudFormation templates', (yargs) => {
+        yargs.command(ClientCommand.GITHUB, '\tScan CloudFormation templates on GitHub', (yargs) => {
             addGitHubOptionsBuilder(yargs);
             yargs.check(async (argv) => {
-                const scan = await cliCheck(argv);
-                // scan is the exit code
-                process.exitCode = scan;
+                process.exitCode = await cliCheck(argv);
                 return true;
             });
         })
-            .command(CommandCode.GITLAB, '\tScan CloudFormation templates on GitLab', (yargs) => {
+            .command(ClientCommand.GITLAB, '\tScan CloudFormation templates on GitLab', (yargs) => {
             addGitLabOptionsBuilder(yargs);
             yargs.check(async (argv) => {
-                const scan = await cliCheck(argv);
-                // scan is the exit code
-                process.exitCode = scan;
+                process.exitCode = await cliCheck(argv);
                 return true;
             });
         });
-    }).command(CommandCode.TERRAFORM, '\tScan Terraform plan', (yargs) => {
-        yargs.command(CommandCode.GITHUB, '\tScan Terraform plan on GitHub', (yargs) => {
+    }).command(ServiceCommand.TERRAFORM, '\tScan Terraform plan', (yargs) => {
+        yargs.command(ClientCommand.GITHUB, '\tScan Terraform plan on GitHub', (yargs) => {
             addGitHubOptionsBuilder(yargs);
             yargs.check(async (argv) => {
-                const scan = await cliCheck(argv);
-                // scan is the exit code
-                process.exitCode = scan;
+                process.exitCode = await cliCheck(argv);
                 return true;
             });
         })
-            .command(CommandCode.GITLAB, '\tScan Terraform plan on GitLab', (yargs) => {
+            .command(ClientCommand.GITLAB, '\tScan Terraform plan on GitLab', (yargs) => {
             addGitLabOptionsBuilder(yargs);
             yargs.check(async (argv) => {
-                const scan = await cliCheck(argv);
-                // scan is the exit code
-                process.exitCode = scan;
+                process.exitCode = await cliCheck(argv);
                 return true;
             });
         }).option("working-directory", {
@@ -161,207 +153,10 @@ await yargs(hideBin(process.argv))
         choices: ['text', 'json'],
     });
 })
-    .showHelpOnFail(false)
-    .help(true)
+    .demandCommand()
+    .strict()
     .version()
     .argv;
 const index = async () => {
 };
 export default index;
-/*
-.option("working-directory", {
-    describe: "The root directory for the Terraform configuration",
-    type: "string",
-    default: "",
-  })
-  .option("plan", {
-    describe: "A filepath to a local JSON file describing your Terraform plan (relative to working-directory)",
-    type: "string",
-    demandOption: true,
-  })
-
-  .command(
-    'run <service> <client>',
-    '\tRun Gomboc.ai for a service on a client',
-    (yargs) => {
-      yargs.positional('service', {
-        describe: 'The service to use',
-        type: 'string',
-        choices: ['cloudformation', 'terraform'],
-      })
-      .positional('client', {
-        describe: 'The service to use',
-        type: 'string',
-        choices: ['github', 'gitlab'],
-      })
-      .option("test", {
-        describe: "test internal option",
-        type: "string",
-        demandOption: false
-      })
-      .check(async (argv)=>{
-        const scan = await cliScanCfn(argv)
-        // scan is the exit code
-        process.exitCode = scan as number
-        return true
-      })
-    }
-  )
-
-
-
-
-await yargs(hideBin(process.argv))
-  .usage(usage)
-  .option("config", {
-    describe: "The filepath to the Gomboc.ai config YAML file",
-    type: "string",
-    demandOption: true
-  })
-  .option("id-token", {
-    describe: "An authentication ID token",
-    type: "string",
-    demandOption: false
-  })
-  .option("secret-access-key", {
-    describe: "Required for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .option("api-url", {
-    describe: "The URL of the API endpoint",
-    type: "string",
-    default: "https://scan.gomboc.ai/graphql",
-    hidden: true,
-    demandOption: false
-  })
-  .option("output", {
-    describe: "What format to output",
-    type: "string",
-    default: "text",
-    demandOption: false,
-    choices: ['text', 'json'],
-  })
-  .option("gh-access-token", {
-    describe: "[GitHub] Access token",
-    type: "string",
-    demandOption: false
-  })
-  .option("gh-create-pr", {
-    describe: "[GitHub] Create a Pull Request with remediations",
-    type: "boolean",
-    demandOption: false
-  })
-  .option("gh-commit-on-current-branch", {
-    describe: "[GitHub] Commit remediations in existing PR -- only for simple remediations",
-    type: "boolean",
-    demandOption: false
-  })
-  .option("gh-create-comments-with-code-suggestions", {
-    describe: "[GitHub] Create comments with code suggestions -- only for simple remediations",
-    type: "boolean",
-    demandOption: false
-  })
-  .option("gh-ref", {
-    describe: "[GitHub] Full ref to the branch -- only for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .option("gh-repository", {
-    describe: "[GitHub] Full repository name -- only for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .option("gh-repository-owner", {
-    describe: "[GitHub] Repository owner -- only for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .option("gh-sha", {
-    describe: "[GitHub] Commit SHA -- only for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .option("gl-access-token", {
-    describe: "[GitLab] Access token",
-    type: "string",
-    demandOption: false
-  })
-  .option("gl-create-mr", {
-    describe: "[GitLab] Create a Merge Request with remediations -- only for simple remediations",
-    type: "boolean",
-    demandOption: false
-  })
-  .option("gl-commit-on-current-branch", {
-    describe: "[GitLab] Commit remediations in existing MR -- only for simple remediations",
-    type: "boolean",
-    demandOption: false
-  })
-  .option("gl-create-comments-with-code-suggestions", {
-    describe: "[GitLab] Create comments with code suggestions -- only for simple remediations",
-    type: "boolean",
-    demandOption: false
-  })
-  .option("gl-namespace-path", {
-    describe: "[GitLab] The namespace path -- only for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .option("gl-project-id", {
-    describe: "[GitLab] The project id -- only for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .option("gl-project-path", {
-    describe: "[GitLab] The project path -- only for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .option("gl-ref", {
-    describe: "[GitLab] Full ref to the branch -- only for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .option("gl-sha", {
-    describe: "[GitLab] Commit SHA -- only for Gomboc Auth",
-    type: "string",
-    demandOption: false
-  })
-  .command(
-    'run <service> <client>',
-    '\tRun Gomboc.ai for a service on a client',
-    (yargs) => {
-      yargs.positional('service', {
-        describe: 'The service to use',
-        type: 'string',
-        choices: ['cloudformation', 'terraform'],
-      })
-      .positional('client', {
-        describe: 'The service to use',
-        type: 'string',
-        choices: ['github', 'gitlab'],
-      })
-      .option("test", {
-        describe: "test internal option",
-        type: "string",
-        demandOption: false
-      })
-      .check(async (argv)=>{
-        const scan = await cliScanCfn(argv)
-        // scan is the exit code
-        process.exitCode = scan as number
-        return true
-      })
-    }
-  )
-  .showHelpOnFail(false)
-  .help(true)
-  .version(true)
-  .argv
-
-const index = async () => {
-}
-
-
-export default index
-*/ 
