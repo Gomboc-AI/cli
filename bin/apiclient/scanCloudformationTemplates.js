@@ -7,8 +7,8 @@ export const MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT = gql `
     }
   }
 `;
-export const DELETE_TRANSFORMATION_FRAGMENT = gql `
-  fragment DeleteTransformationFragment on DeleteTransformation {
+export const DELETE_TRANSFORMATION_FRAGMENT_CFN = gql `
+  fragment DeleteTransformationFragmentCfn on DeleteTransformation {
     __typename
     property
     logicalResource {
@@ -17,8 +17,8 @@ export const DELETE_TRANSFORMATION_FRAGMENT = gql `
     }
   }
 `;
-export const UPDATE_TRANSFORMATION_FRAGMENT = gql `
-  fragment UpdateTransformationFragment on UpdateTransformation {
+export const UPDATE_TRANSFORMATION_FRAGMENT_CFN = gql `
+  fragment UpdateTransformationFragmentCfn on UpdateTransformation {
     __typename
     logicalResource {
       line
@@ -28,8 +28,8 @@ export const UPDATE_TRANSFORMATION_FRAGMENT = gql `
     value
   }
 `;
-export const CREATE_TRANSFORMATION_FRAGMENT = gql `
-  fragment CreateTransformationFragment on CreateTransformation {
+export const CREATE_TRANSFORMATION_FRAGMENT_CFN = gql `
+  fragment CreateTransformationFragmentCfn on CreateTransformation {
     __typename
     logicalResource {
       line
@@ -41,9 +41,9 @@ export const CREATE_TRANSFORMATION_FRAGMENT = gql `
 `;
 export const scanCfnQuery = gql ` 
   ${MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT}
-  ${DELETE_TRANSFORMATION_FRAGMENT}
-  ${UPDATE_TRANSFORMATION_FRAGMENT}
-  ${CREATE_TRANSFORMATION_FRAGMENT}
+  ${DELETE_TRANSFORMATION_FRAGMENT_CFN}
+  ${UPDATE_TRANSFORMATION_FRAGMENT_CFN}
+  ${CREATE_TRANSFORMATION_FRAGMENT_CFN}
   query ScanCfnTemplates($templates: [TemplatePayload!]!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions, $secretAccessKey: String) {
     scanCfnTemplateExt( templates: $templates, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions, secretAccessKey: $secretAccessKey) {
       scanMeta {
@@ -73,9 +73,9 @@ export const scanCfnQuery = gql `
           trivialRemediation {
             id
             resolvesWithTransformations {
-              ...CreateTransformationFragment
-              ...UpdateTransformationFragment
-              ...DeleteTransformationFragment
+              ...CreateTransformationFragmentCfn
+              ...UpdateTransformationFragmentCfn
+              ...DeleteTransformationFragmentCfn
             }
             appliesToLogicalResource {
               line

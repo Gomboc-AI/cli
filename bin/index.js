@@ -62,12 +62,12 @@ const addGitLabOptionsBuilder = (yargs) => {
         demandOption: false
     })
         .option("create-comments-with-code-suggestions", {
-        describe: "[GitLab] Create comments with code suggestions",
+        describe: "Create comments with code suggestions",
         type: "boolean",
         demandOption: false
     })
         .option("namespace-path", {
-        describe: "[GitLab] The namespace path -- if auth-token is not supplied",
+        describe: "The namespace path -- if auth-token is not supplied",
         type: "string",
         demandOption: false
     })
