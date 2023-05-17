@@ -14,7 +14,8 @@ const getCommonInputs = (argv: any): ScanCfnInput | ScanTfInput => {
   }
 }
 
-const addGitHubInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any) => {
+const addGitHubInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void => {
+  if(argv.accessToken==null){ return }
   inputs.gitHubOptions = { accessToken: argv.accessToken as string }
   if(argv.createPr) {
     inputs.gitHubOptions.createPR = true
@@ -40,7 +41,8 @@ const addGitHubInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any) => {
   }
 }
 
-const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any) => {
+const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void => {
+  if(argv.accessToken==null){ return }
   inputs.gitHubOptions = { accessToken: argv.accessToken as string }
   if(argv.createPr) {
     inputs.gitHubOptions.createPR = true

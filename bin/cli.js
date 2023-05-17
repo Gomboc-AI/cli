@@ -12,6 +12,9 @@ const getCommonInputs = (argv) => {
     };
 };
 const addGitHubInputs = (inputs, argv) => {
+    if (argv.accessToken == null) {
+        return;
+    }
     inputs.gitHubOptions = { accessToken: argv.accessToken };
     if (argv.createPr) {
         inputs.gitHubOptions.createPR = true;
@@ -37,6 +40,9 @@ const addGitHubInputs = (inputs, argv) => {
     }
 };
 const addGitLabInputs = (inputs, argv) => {
+    if (argv.accessToken == null) {
+        return;
+    }
     inputs.gitHubOptions = { accessToken: argv.accessToken };
     if (argv.createPr) {
         inputs.gitHubOptions.createPR = true;
