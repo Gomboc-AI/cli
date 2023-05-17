@@ -10,9 +10,15 @@ To get started, run:
 gomboc --help
 ```
 
-### About Gomboc.ai's configuration file
+## Cloudformation
 
-It is a YAML file that specifies different parameters for Gomboc.ai's CLI.
+### Configuration file
+
+| Element | Required | Description |
+| --- | --- | --- |
+| <kbd>policies.must-implement</kbd> | REQUIRED | A list of capabilities that will be enforced |
+| <kbd>options.search&#x2011;pattern</kbd> | REQUIRED |  A list of search patterns to the CloudFormation templates (JSON or YAML) |
+| <kbd>options.ignore&#x2011;pattern</kbd> | OPTIONAL |  A list of patterns that will be ignored in the search |
 
 Here's an example for CloudFormation:
 
@@ -34,15 +40,9 @@ options:
     - 'tsconfig.json'
 ```
 
-## Cloudformation
-
-| Element | Required | Description |
-| --- | --- | --- |
-| <kbd>policies.must-implement</kbd> | REQUIRED | A list of capabilities that will be enforced |
-| <kbd>options.search&#x2011;pattern</kbd> | REQUIRED |  A list of search patterns to the CloudFormation templates (JSON or YAML) |
-| <kbd>options.ignore&#x2011;pattern</kbd> | OPTIONAL |  A list of patterns that will be ignored in the search |
-
 ## Terraform
+
+### Configuration file
 
 | Element | Required | Description |
 | --- | --- | --- |
