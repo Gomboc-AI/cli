@@ -1,5 +1,5 @@
 {
-  "name": "@gomboc-ai/cloudformation-cli-dev",
+  "name": "@gomboc-ai/cloudformation-cli",
   "version": "0.0.7",
   "description": "",
   "type": "module",
