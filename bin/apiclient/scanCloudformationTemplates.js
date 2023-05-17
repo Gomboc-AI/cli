@@ -12,7 +12,6 @@ export const DELETE_TRANSFORMATION_FRAGMENT = gql `
     __typename
     property
     logicalResource {
-      filePath
       line
       name
     }
@@ -22,7 +21,6 @@ export const UPDATE_TRANSFORMATION_FRAGMENT = gql `
   fragment UpdateTransformationFragment on UpdateTransformation {
     __typename
     logicalResource {
-      filePath
       line
       name
     }
@@ -34,7 +32,6 @@ export const CREATE_TRANSFORMATION_FRAGMENT = gql `
   fragment CreateTransformationFragment on CreateTransformation {
     __typename
     logicalResource {
-      filePath
       line
       name
     }
