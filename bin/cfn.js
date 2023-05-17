@@ -110,7 +110,7 @@ export const scanCfn = async (inputs) => {
     let scan;
     try {
         const client = new Client(inputs.apiUrl, inputs.idToken);
-        scan = await client.scanCfnTemplate(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey);
+        scan = await client.scanCfnTemplates(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey);
     }
     catch (e) {
         cl.err(ExitCode.SERVER_ERROR, e);

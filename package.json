@@ -1,11 +1,11 @@
 {
   "name": "@gomboc-ai/cloudformation-cli-dev",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "",
   "type": "module",
   "main": "bin/index.js",
   "bin": {
-    "gomboc-cfn": "bin/index.js"
+    "gomboc": "bin/index.js"
   },
   "scripts": {
     "test": "exit 0",
@@ -43,6 +43,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "yaml": "^2.2.2",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "zip-a-folder": "^1.1.5"
   }
 }

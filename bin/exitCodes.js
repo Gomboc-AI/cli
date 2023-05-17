@@ -8,5 +8,8 @@ export var ExitCode;
     ExitCode[ExitCode["TEMPLATE_ERROR"] = 14] = "TEMPLATE_ERROR";
     ExitCode[ExitCode["VIOLATIONS_FOUND"] = 20] = "VIOLATIONS_FOUND";
     ExitCode[ExitCode["SIDE_EFFECTS_FAILED"] = 30] = "SIDE_EFFECTS_FAILED";
+    ExitCode[ExitCode["INVALID_PLAN_FILE"] = 201] = "INVALID_PLAN_FILE";
+    ExitCode[ExitCode["NO_CONFIGURATION_FILES_FOUND"] = 202] = "NO_CONFIGURATION_FILES_FOUND";
+    ExitCode[ExitCode["CLIENT_ERROR"] = 98] = "CLIENT_ERROR";
     ExitCode[ExitCode["SERVER_ERROR"] = 99] = "SERVER_ERROR";
 })(ExitCode || (ExitCode = {}));

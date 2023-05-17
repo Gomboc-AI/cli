@@ -1,5 +1,6 @@
 export interface DeleteTransformationFragment_logicalResource {
     __typename: "LogicalResource";
+    filePath: string | null;
     line: number;
     name: string;
 }

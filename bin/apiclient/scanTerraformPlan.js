@@ -1,57 +1,54 @@
-import gql from 'graphql-tag'
-
-
-export const MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT = gql`
+import gql from 'graphql-tag';
+export const MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT = gql `
   fragment MustImplementCapabilityPolicyStatementFragment on MustImplementCapabilityPolicyStatement {
     __typename
     capability {
       title
     }
   }
-`
-
-export const DELETE_TRANSFORMATION_FRAGMENT = gql`
+`;
+export const DELETE_TRANSFORMATION_FRAGMENT = gql `
   fragment DeleteTransformationFragment on DeleteTransformation {
     __typename
     property
     logicalResource {
+      filePath
       line
       name
     }
   }
-`
-
-export const UPDATE_TRANSFORMATION_FRAGMENT = gql`
+`;
+export const UPDATE_TRANSFORMATION_FRAGMENT = gql `
   fragment UpdateTransformationFragment on UpdateTransformation {
     __typename
     logicalResource {
+      filePath
       line
       name
     }
     property
     value
   }
-`
-
-export const CREATE_TRANSFORMATION_FRAGMENT = gql`
+`;
+export const CREATE_TRANSFORMATION_FRAGMENT = gql `
   fragment CreateTransformationFragment on CreateTransformation {
     __typename
     logicalResource {
+      filePath
       line
       name
     }
     property
     value
   }
-`
-
-export const scanCfnQuery = gql` 
+`;
+export const scanTfQuery = gql ` 
   ${MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT}
   ${DELETE_TRANSFORMATION_FRAGMENT}
   ${UPDATE_TRANSFORMATION_FRAGMENT}
   ${CREATE_TRANSFORMATION_FRAGMENT}
-  query Scan($templates: [TemplatePayload!]!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions, $secretAccessKey: String) {
-    scanCfnTemplateExt( templates: $templates, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions, secretAccessKey: $secretAccessKey) {
+  query ScanTfPlan($plan: String!, $workingDirectory: String!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions) {
+    scanTfPlanExt(plan: $plan, workingDirectory: $workingDirectory, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions) {
       scanMeta {
         timestamp
         scanId
@@ -60,11 +57,10 @@ export const scanCfnQuery = gql`
       sideEffectsResult {
         success
       }
-      results {
-        filePath
-        error
+      result {
         complianceObservations {
           logicalResource {
+            filePath
             line
             name
           }
@@ -84,6 +80,7 @@ export const scanCfnQuery = gql`
               ...DeleteTransformationFragment
             }
             appliesToLogicalResource {
+              filePath
               line
               name
             }
@@ -91,11 +88,13 @@ export const scanCfnQuery = gql`
           nonTrivialRemediation {
             id
             appliesToLogicalResource {
+              filePath
               line
               name
             }
           }
           logicalResource {
+            filePath
             line
             name
           }
@@ -103,4 +102,4 @@ export const scanCfnQuery = gql`
       }
     }
   }
-`
+`;

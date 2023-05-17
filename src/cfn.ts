@@ -5,9 +5,9 @@ import { readFileSync } from 'fs'
 import { join, extname } from 'path'
 
 import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './apiclient/__generated__/GlobalTypes.js'
-import { Scan_scanCfnTemplateExt } from './apiclient/__generated__/Scan.js'
-import { Scan_scanCfnTemplateExt_results_complianceObservations_policyStatement } from './apiclient/__generated__/Scan.js'
-import { Scan_scanCfnTemplateExt_results_violationObservations_policyStatement } from './apiclient/__generated__/Scan.js'
+import { ScanCfnTemplates_scanCfnTemplateExt } from './apiclient/__generated__/ScanCfnTemplates.js'
+import { ScanCfnTemplates_scanCfnTemplateExt_results_complianceObservations_policyStatement } from './apiclient/__generated__/ScanCfnTemplates.js'
+import { ScanCfnTemplates_scanCfnTemplateExt_results_violationObservations_policyStatement } from './apiclient/__generated__/ScanCfnTemplates.js'
 import { CreateTransformationFragment } from './apiclient/__generated__/CreateTransformationFragment.js'
 import { UpdateTransformationFragment } from './apiclient/__generated__/UpdateTransformationFragment.js'
 import { DeleteTransformationFragment } from './apiclient/__generated__/DeleteTransformationFragment.js'
@@ -37,7 +37,7 @@ export interface ScanCfnInput {
   gitLabOptions?: GitLabOptions
 }
 
-const readablePolicyStatement = (policyStatement: Scan_scanCfnTemplateExt_results_complianceObservations_policyStatement | Scan_scanCfnTemplateExt_results_violationObservations_policyStatement): String => {
+const readablePolicyStatement = (policyStatement: ScanCfnTemplates_scanCfnTemplateExt_results_complianceObservations_policyStatement | ScanCfnTemplates_scanCfnTemplateExt_results_violationObservations_policyStatement): String => {
   // Get a human readable policy statement
   const capability = policyStatement.capability.title
   if(policyStatement.__typename === 'MustImplementCapabilityPolicyStatement') { return `Must implement ${capability}` }
@@ -136,11 +136,11 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   const policy: ScanPolicy = { mustImplement: mustImplementCapabilities }
 
-  let scan: Scan_scanCfnTemplateExt
+  let scan: ScanCfnTemplates_scanCfnTemplateExt
 
   try {
     const client = new Client(inputs.apiUrl, inputs.idToken)
-    scan = await client.scanCfnTemplate(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
+    scan = await client.scanCfnTemplates(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e)
     return ExitCode.SERVER_ERROR

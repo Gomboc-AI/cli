@@ -26,8 +26,6 @@ export interface GitLabOptions {
   projectPath?: string | null;
   namespacePath?: string | null;
   projectId?: string | null;
-  ref?: string | null;
-  sha?: string | null;
 }
 
 export interface ScanParameter {
