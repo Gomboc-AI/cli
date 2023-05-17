@@ -29,7 +29,7 @@ const formatTitle = (title: string) => {
 }
 
 export interface ScanTfInput {
-  idToken: string
+  authToken: string
   apiUrl: string
   config: string
   output: string
@@ -235,7 +235,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   let scan: ScanTfPlan_scanTfPlanExt
 
   try {
-    const client = new Client(inputs.apiUrl, inputs.idToken)
+    const client = new Client(inputs.apiUrl, inputs.authToken)
     scan = await client.scanTfPlan(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, policy, inputs.gitHubOptions, inputs.gitLabOptions)
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e)

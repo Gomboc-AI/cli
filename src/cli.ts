@@ -6,7 +6,7 @@ import { CommandCode } from "./commandCodes.js"
 
 const getCommonInputs = (argv: any): ScanCfnInput | ScanTfInput => {
   return {
-      idToken: argv.idToken as string,
+      authToken: argv.authToken as string,
       secretAccessKey: argv.secretAccessKey as string,
       output: argv.output as string,
       apiUrl: process.env.API_URL ?? "https://scan.gomboc.ai/graphql",

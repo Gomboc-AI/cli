@@ -90,10 +90,6 @@ const addGitLabOptionsBuilder = (yargs) => {
 // Setting CLI command and options
 await yargs(hideBin(process.argv))
     .usage(usage)
-    .command('get-github-token', '\tGet an ID Token for GitHub', (yargs) => {
-})
-    .command('get-gitlab-token', '\tGet an ID Token for GitLab', (yargs) => {
-})
     .command('check', '\tCheck the Gomboc.ai service', (yargs) => {
     yargs.command('cloudformation', '\tRun for AWS CloudFormation', (yargs) => {
         yargs.command('github', '\tRun for AWS CloudFormation on GitHub', (yargs) => {
@@ -147,7 +143,7 @@ await yargs(hideBin(process.argv))
         demandOption: true
     })
         .option("auth-token", {
-        describe: "An authentication Auth token",
+        describe: "An authentication auth token",
         type: "string",
         demandOption: false
     })

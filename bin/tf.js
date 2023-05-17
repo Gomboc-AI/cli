@@ -201,7 +201,7 @@ export const scanTf = async (inputs) => {
     cl.log(formatTitle('Running Gomboc.ai Terraform'));
     let scan;
     try {
-        const client = new Client(inputs.apiUrl, inputs.idToken);
+        const client = new Client(inputs.apiUrl, inputs.authToken);
         scan = await client.scanTfPlan(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, policy, inputs.gitHubOptions, inputs.gitLabOptions);
     }
     catch (e) {

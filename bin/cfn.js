@@ -109,7 +109,7 @@ export const scanCfn = async (inputs) => {
     const policy = { mustImplement: mustImplementCapabilities };
     let scan;
     try {
-        const client = new Client(inputs.apiUrl, inputs.idToken);
+        const client = new Client(inputs.apiUrl, inputs.authToken);
         scan = await client.scanCfnTemplates(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey);
     }
     catch (e) {

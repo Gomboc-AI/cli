@@ -14,31 +14,32 @@ import crossFetch from 'cross-fetch'
 
 export class Client {
     url: string
-    idToken?: string
+    authToken?: string
+    client: ApolloClient<any>
 
-    constructor(url: string, idToken?: string) {
+    constructor(url: string, authToken?: string) {
         this.url = url
-        this.idToken = idToken
-    }
-
-    async scanCfnTemplates(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplates_scanCfnTemplateExt> {
+        this.authToken = authToken
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
         const authLink = setContext((_: any, { headers }: any) => {
-            if(this.idToken == null) {
+            if(this.authToken == null) {
                 return { headers: headers }
             }
             return {
                 headers: {
                 ...headers,
-                authorization: `Bearer ${this.idToken}`
+                authorization: `Bearer ${this.authToken}`
                 }
             }
         })
 
-        const client = new ApolloClient({
-        link: authLink.concat(httpLink),
-        cache: new InMemoryCache()
+        this.client = new ApolloClient({
+            link: authLink.concat(httpLink),
+            cache: new InMemoryCache()
         })
+    }
+
+    async scanCfnTemplates(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplates_scanCfnTemplateExt> {
         const scanVariables: ScanCfnTemplatesVariables = {
             templates: templatePayloads,
             policy: policy,
@@ -46,7 +47,7 @@ export class Client {
             gitLabOptions: gitLabOptions,
             secretAccessKey: secretAccessKey
         }
-        const { data } : { data: ScanCfnTemplates} = await client.query<ScanCfnTemplates, ScanCfnTemplatesVariables>({
+        const { data } : { data: ScanCfnTemplates} = await this.client.query<ScanCfnTemplates, ScanCfnTemplatesVariables>({
             query: scanCfnQuery,
             variables: scanVariables
         })
@@ -54,20 +55,6 @@ export class Client {
     }
 
     async scanTfPlan(plan: string, workingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions): Promise<ScanTfPlan_scanTfPlanExt> {
-        const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
-        const authLink = setContext((_: any, { headers }: any) => {
-            return {
-                headers: {
-                ...headers,
-                authorization: `Bearer ${this.idToken}`
-                }
-            }
-        })
-
-        const client = new ApolloClient({
-        link: authLink.concat(httpLink),
-        cache: new InMemoryCache()
-        })
         const scanVariables: ScanTfPlanVariables = {
             plan: plan,
             workingDirectory: workingDirectory,
@@ -75,7 +62,7 @@ export class Client {
             gitHubOptions: gitHubOptions,
             gitLabOptions: gitLabOptions
         }
-        const { data } : { data: ScanTfPlan} = await client.query<ScanTfPlan, ScanTfPlanVariables>({
+        const { data } : { data: ScanTfPlan} = await this.client.query<ScanTfPlan, ScanTfPlanVariables>({
             query: scanTfQuery,
             variables: scanVariables
         })

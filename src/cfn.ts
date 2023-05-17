@@ -28,7 +28,7 @@ const formatTitle = (title: string) => {
 }
 
 export interface ScanCfnInput {
-  idToken?: string
+  authToken?: string
   secretAccessKey?: string
   apiUrl: string
   config: string
@@ -139,7 +139,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   let scan: ScanCfnTemplates_scanCfnTemplateExt
 
   try {
-    const client = new Client(inputs.apiUrl, inputs.idToken)
+    const client = new Client(inputs.apiUrl, inputs.authToken)
     scan = await client.scanCfnTemplates(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e)

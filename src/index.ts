@@ -97,18 +97,6 @@ const addGitLabOptionsBuilder = (yargs: any) => {
 await yargs(hideBin(process.argv))
   .usage(usage)
   .command(
-    'get-github-token',
-    '\tGet an ID Token for GitHub',
-    (yargs) => {
-    }
-  )
-  .command(
-    'get-gitlab-token',
-    '\tGet an ID Token for GitLab',
-    (yargs) => {
-    }
-  )
-  .command(
     'check',
     '\tCheck the Gomboc.ai service',
     (yargs) => {
@@ -188,7 +176,7 @@ await yargs(hideBin(process.argv))
         demandOption: true
       })
       .option("auth-token", {
-        describe: "An authentication Auth token",
+        describe: "An authentication auth token",
         type: "string",
         demandOption: false
       })

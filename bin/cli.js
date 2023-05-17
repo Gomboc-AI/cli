@@ -4,7 +4,7 @@ import { ExitCode } from "./exitCodes.js";
 import { CommandCode } from "./commandCodes.js";
 const getCommonInputs = (argv) => {
     return {
-        idToken: argv.idToken,
+        authToken: argv.authToken,
         secretAccessKey: argv.secretAccessKey,
         output: argv.output,
         apiUrl: process.env.API_URL ?? "https://scan.gomboc.ai/graphql",

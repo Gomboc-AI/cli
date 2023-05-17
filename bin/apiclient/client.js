@@ -9,28 +9,29 @@ import { scanTfQuery } from './scanTerraformPlan.js';
 import crossFetch from 'cross-fetch';
 export class Client {
     url;
-    idToken;
-    constructor(url, idToken) {
+    authToken;
+    client;
+    constructor(url, authToken) {
         this.url = url;
-        this.idToken = idToken;
-    }
-    async scanCfnTemplates(templatePayloads, policy, gitHubOptions, gitLabOptions, secretAccessKey) {
+        this.authToken = authToken;
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch });
         const authLink = setContext((_, { headers }) => {
-            if (this.idToken == null) {
+            if (this.authToken == null) {
                 return { headers: headers };
             }
             return {
                 headers: {
                     ...headers,
-                    authorization: `Bearer ${this.idToken}`
+                    authorization: `Bearer ${this.authToken}`
                 }
             };
         });
-        const client = new ApolloClient({
+        this.client = new ApolloClient({
             link: authLink.concat(httpLink),
             cache: new InMemoryCache()
         });
+    }
+    async scanCfnTemplates(templatePayloads, policy, gitHubOptions, gitLabOptions, secretAccessKey) {
         const scanVariables = {
             templates: templatePayloads,
             policy: policy,
@@ -38,26 +39,13 @@ export class Client {
             gitLabOptions: gitLabOptions,
             secretAccessKey: secretAccessKey
         };
-        const { data } = await client.query({
+        const { data } = await this.client.query({
             query: scanCfnQuery,
             variables: scanVariables
         });
         return data.scanCfnTemplateExt;
     }
     async scanTfPlan(plan, workingDirectory, policy, gitHubOptions, gitLabOptions) {
-        const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch });
-        const authLink = setContext((_, { headers }) => {
-            return {
-                headers: {
-                    ...headers,
-                    authorization: `Bearer ${this.idToken}`
-                }
-            };
-        });
-        const client = new ApolloClient({
-            link: authLink.concat(httpLink),
-            cache: new InMemoryCache()
-        });
         const scanVariables = {
             plan: plan,
             workingDirectory: workingDirectory,
@@ -65,7 +53,7 @@ export class Client {
             gitHubOptions: gitHubOptions,
             gitLabOptions: gitLabOptions
         };
-        const { data } = await client.query({
+        const { data } = await this.client.query({
             query: scanTfQuery,
             variables: scanVariables
         });
