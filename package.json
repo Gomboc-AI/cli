@@ -1,5 +1,5 @@
 {
-  "name": "@gomboc-ai/cloudformation-cli",
+  "name": "@gomboc-ai/cli",
   "version": "0.0.5",
   "description": "",
   "type": "module",
@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Gomboc-AI/cloudformation-cli-dev.git"
+    "url": "git+https://github.com/Gomboc-AI/cli-dev.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Gomboc-AI/cloudformation-cli-dev/issues"
+    "url": "https://github.com/Gomboc-AI/cli-dev/issues"
   },
-  "homepage": "https://github.com/Gomboc-AI/cloudformation-cli-dev#readme",
+  "homepage": "https://github.com/Gomboc-AI/cli-dev#readme",
   "publishConfig": {
     "@Gomboc-AI:registry": "https://npm.pkg.github.com"
   },

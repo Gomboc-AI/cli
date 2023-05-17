@@ -25,17 +25,27 @@ const addGitHubOptionsBuilder = (yargs) => {
         demandOption: false
     })
         .option("ref", {
-        describe: "Full ref to the branch -- only for Gomboc Auth",
+        describe: "Full ref to the branch -- if auth-token is not supplied",
         type: "string",
         demandOption: false
     })
         .option("repository", {
-        describe: "Full repository name -- only for Gomboc Auth",
+        describe: "Full repository name -- if auth-token is not supplied",
         type: "string",
         demandOption: false
     })
         .option("repository-owner", {
-        describe: "Repository owner -- only for Gomboc Auth",
+        describe: "Repository owner -- if auth-token is not supplied",
+        type: "string",
+        demandOption: false
+    })
+        .option("ref", {
+        describe: "Full ref to the branch -- if auth-token is not supplied",
+        type: "string",
+        demandOption: false
+    })
+        .option("sha", {
+        describe: "Commit SHA -- if auth-token is not supplied",
         type: "string",
         demandOption: false
     });
@@ -62,27 +72,27 @@ const addGitLabOptionsBuilder = (yargs) => {
         demandOption: false
     })
         .option("namespace-path", {
-        describe: "[GitLab] The namespace path -- only for Gomboc Auth",
+        describe: "[GitLab] The namespace path -- if auth-token is not supplied",
         type: "string",
         demandOption: false
     })
         .option("project-id", {
-        describe: "The project id -- only for Gomboc Auth",
+        describe: "The project id -- if auth-token is not supplied",
         type: "string",
         demandOption: false
     })
         .option("project-path", {
-        describe: "The project path -- only for Gomboc Auth",
+        describe: "The project path -- if auth-token is not supplied",
         type: "string",
         demandOption: false
     })
         .option("ref", {
-        describe: "Full ref to the branch -- only for Gomboc Auth",
+        describe: "Full ref to the branch -- if auth-token is not supplied",
         type: "string",
         demandOption: false
     })
         .option("sha", {
-        describe: "Commit SHA -- only for Gomboc Auth",
+        describe: "Commit SHA -- if auth-token is not supplied",
         type: "string",
         demandOption: false
     });
