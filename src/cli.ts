@@ -30,41 +30,44 @@ const addGitHubInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void =>
   if(argv.ref) {
     inputs.gitHubOptions.ref = argv.ref as string
   }
+  if(argv.sha) {
+    inputs.gitHubOptions.sha = argv.sha as string
+  }
   if(argv.repository) {
     inputs.gitHubOptions.repository = argv.repository as string
   }
   if(argv.repositoryOwner) {
     inputs.gitHubOptions.repositoryOwner = argv.repositoryOwner as string
-  }
-  if(argv.sha) {
-    inputs.gitHubOptions.sha = argv.sha as string
   }
 }
 
 const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void => {
   if(argv.accessToken==null){ return }
-  inputs.gitHubOptions = { accessToken: argv.accessToken as string }
-  if(argv.createPr) {
-    inputs.gitHubOptions.createPR = true
+  inputs.gitLabOptions = { accessToken: argv.accessToken as string }
+  if(argv.createMr) {
+    inputs.gitLabOptions.createMR = true
   }
   if(argv.commitOnCurrentBranch) {
-    inputs.gitHubOptions.commitOnCurrentBranch = true
+    inputs.gitLabOptions.commitOnCurrentBranch = true
   }
   if(argv.createCommentsWithCodeSuggestions) {
-    inputs.gitHubOptions.createCommentsWithCodeSuggestions = true
+    inputs.gitLabOptions.createCommentsWithCodeSuggestions = true
   }
   // Auth options for Gomboc Auth
   if(argv.ref) {
-    inputs.gitHubOptions.ref = argv.ref as string
-  }
-  if(argv.repository) {
-    inputs.gitHubOptions.repository = argv.repository as string
-  }
-  if(argv.repositoryOwner) {
-    inputs.gitHubOptions.repositoryOwner = argv.repositoryOwner as string
+    inputs.gitLabOptions.ref = argv.ref as string
   }
   if(argv.sha) {
-    inputs.gitHubOptions.sha = argv.sha as string
+    inputs.gitLabOptions.sha = argv.sha as string
+  }
+  if(argv.projectId) {
+    inputs.gitLabOptions.projectId = argv.projectId as string
+  }
+  if(argv.projectPath) {
+    inputs.gitLabOptions.projectPath = argv.projectPath as string
+  }
+  if(argv.namespacePath) {
+    inputs.gitLabOptions.namespacePath = argv.namespacePath as string
   }
 }
 

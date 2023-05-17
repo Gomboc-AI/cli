@@ -29,42 +29,45 @@ const addGitHubInputs = (inputs, argv) => {
     if (argv.ref) {
         inputs.gitHubOptions.ref = argv.ref;
     }
+    if (argv.sha) {
+        inputs.gitHubOptions.sha = argv.sha;
+    }
     if (argv.repository) {
         inputs.gitHubOptions.repository = argv.repository;
     }
     if (argv.repositoryOwner) {
         inputs.gitHubOptions.repositoryOwner = argv.repositoryOwner;
-    }
-    if (argv.sha) {
-        inputs.gitHubOptions.sha = argv.sha;
     }
 };
 const addGitLabInputs = (inputs, argv) => {
     if (argv.accessToken == null) {
         return;
     }
-    inputs.gitHubOptions = { accessToken: argv.accessToken };
-    if (argv.createPr) {
-        inputs.gitHubOptions.createPR = true;
+    inputs.gitLabOptions = { accessToken: argv.accessToken };
+    if (argv.createMr) {
+        inputs.gitLabOptions.createMR = true;
     }
     if (argv.commitOnCurrentBranch) {
-        inputs.gitHubOptions.commitOnCurrentBranch = true;
+        inputs.gitLabOptions.commitOnCurrentBranch = true;
     }
     if (argv.createCommentsWithCodeSuggestions) {
-        inputs.gitHubOptions.createCommentsWithCodeSuggestions = true;
+        inputs.gitLabOptions.createCommentsWithCodeSuggestions = true;
     }
     // Auth options for Gomboc Auth
     if (argv.ref) {
-        inputs.gitHubOptions.ref = argv.ref;
-    }
-    if (argv.repository) {
-        inputs.gitHubOptions.repository = argv.repository;
-    }
-    if (argv.repositoryOwner) {
-        inputs.gitHubOptions.repositoryOwner = argv.repositoryOwner;
+        inputs.gitLabOptions.ref = argv.ref;
     }
     if (argv.sha) {
-        inputs.gitHubOptions.sha = argv.sha;
+        inputs.gitLabOptions.sha = argv.sha;
+    }
+    if (argv.projectId) {
+        inputs.gitLabOptions.projectId = argv.projectId;
+    }
+    if (argv.projectPath) {
+        inputs.gitLabOptions.projectPath = argv.projectPath;
+    }
+    if (argv.namespacePath) {
+        inputs.gitLabOptions.namespacePath = argv.namespacePath;
     }
 };
 export const cliCheck = async (argv) => {

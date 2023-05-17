@@ -35,6 +35,11 @@ const addGitHubOptionsBuilder = (yargs: any) => {
     type: "string",
     demandOption: false
   })
+  .option("sha", {
+    describe: "Commit SHA -- if auth-token is not supplied",
+    type: "string",
+    demandOption: false
+  })
   .option("repository", {
     describe: "Full repository name -- if auth-token is not supplied",
     type: "string",
@@ -42,16 +47,6 @@ const addGitHubOptionsBuilder = (yargs: any) => {
   })
   .option("repository-owner", {
     describe: "Repository owner -- if auth-token is not supplied",
-    type: "string",
-    demandOption: false
-  })
-  .option("ref", {
-    describe: "Full ref to the branch -- if auth-token is not supplied",
-    type: "string",
-    demandOption: false
-  })
-  .option("sha", {
-    describe: "Commit SHA -- if auth-token is not supplied",
     type: "string",
     demandOption: false
   })
