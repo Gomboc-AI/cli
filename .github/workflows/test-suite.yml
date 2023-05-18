@@ -37,7 +37,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install globally and test help
+      - name: Install globally
         shell: bash
         run: | 
           npm i
@@ -97,6 +97,7 @@ jobs:
       - name: Test single JSON template with violations (001)
         run: |
           EXIT_CODE=0
+          gomboc scan cloudformation github --config ${{ env.CONFIGS }}/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }}
           gomboc scan cloudformation github --config ${{ env.CONFIGS }}/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.VIOLATIONS_FOUND }}
           ./tests/scripts/assert-output.sh output.json ${{ env.OUTPUTS }}/001.json
