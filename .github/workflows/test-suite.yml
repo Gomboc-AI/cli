@@ -58,7 +58,13 @@ jobs:
           chmod 755 ./tests/scripts/assert-output.sh
           set -e
       
-      - name: Test invalid config file
+      - name: Test malformed config file
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CONFIGS/malformed-yaml.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.INVALID_CONFIG_FILE }}
+
+      - name: Test non existing config file
         run: |
           EXIT_CODE=0
           gomboc scan cloudformation github --config this-file-does-not-exist.exe --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
