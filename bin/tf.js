@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import { parse } from 'yaml';
 import { glob } from 'glob';
 import { rm, mkdir, readFileSync, writeFile } from 'fs';
 import { dirname, join, extname } from 'path';
@@ -9,6 +8,7 @@ import { Client } from './apiclient/client.js';
 import { ConsoleLogger } from './ConsoleLogger.js';
 import { ExitCode } from './exitCodes.js';
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from './consoleUtils.js';
+import { ConfigParser } from './ConfigParser.js';
 const readablePolicyStatement = (policyStatement) => {
     // Get a human readable policy statement
     const capability = policyStatement.capability.title;
@@ -78,32 +78,45 @@ export const scanTf = async (inputs) => {
     let exitCode = ExitCode.SUCCESS;
     const cl = new ConsoleLogger(inputs.output !== 'text');
     cl.log(formatTitle('Running Gomboc.ai for Terraform'));
-    const CONFIG_FILE_PATH = inputs.config.toLowerCase();
-    const configExtension = extname(CONFIG_FILE_PATH);
-    const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml'];
+    /*
+    const CONFIG_FILE_PATH = inputs.config.toLowerCase()
+    const configExtension = extname(CONFIG_FILE_PATH)
+    const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml']
     if (!VALID_CONFIG_EXTENSIONS.includes(configExtension)) {
-        cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`);
-        return ExitCode.INVALID_CONFIG_FILE;
+      cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`)
+      return ExitCode.INVALID_CONFIG_FILE
     }
-    let configData;
+  
+    let configData
     try {
-        const configFile = readFileSync(CONFIG_FILE_PATH, 'utf8');
-        configData = parse(configFile);
+      const configFile = readFileSync(CONFIG_FILE_PATH, 'utf8')
+      configData = parse(configFile)
+    } catch (e) {
+      cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`)
+      return ExitCode.INVALID_CONFIG_FILE
+    }
+    cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${checkMark}\n`)
+    */
+    cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`);
+    let configParser;
+    let mustImplementCapabilities;
+    try {
+        configParser = new ConfigParser(inputs.config);
+        mustImplementCapabilities = configParser.getMustImplementCapabilities();
     }
     catch (e) {
-        cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`);
+        cl.err(ExitCode.INVALID_CONFIG_FILE, e.message);
         return ExitCode.INVALID_CONFIG_FILE;
     }
-    cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${checkMark}\n`);
+    const tfPlanFilePath = join(inputs.workingDirectory, inputs.plan);
+    cl._log(`Terraform plan file: ${hl(tfPlanFilePath)} ${checkMark}`);
+    const tfPlanObject = sanitizedTfPlanObject(tfPlanFilePath);
+    const tfPlanObjectJsonStr = JSON.stringify(tfPlanObject);
+    const tfPlanObjectJsonB64 = Buffer.from(tfPlanObjectJsonStr).toString("base64");
     if (extname(inputs.plan.toLowerCase()) !== '.json') {
         cl.err(ExitCode.INVALID_PLAN_FILE, `Plan file must have a JSON extension`);
         return ExitCode.INVALID_PLAN_FILE;
     }
-    const tfPlanFilePath = join(inputs.workingDirectory, inputs.plan);
-    const tfPlanObject = sanitizedTfPlanObject(tfPlanFilePath);
-    const tfPlanObjectJsonStr = JSON.stringify(tfPlanObject);
-    const tfPlanObjectJsonB64 = Buffer.from(tfPlanObjectJsonStr).toString("base64");
-    cl._log(`Terraform plan file: ${hl(tfPlanFilePath)} ${checkMark}`);
     cl.__log(`Stripping sensitive values ${exclamationMark}\n`);
     const wip = './wip';
     await mkdir(wip, { recursive: true }, (err) => { });
@@ -141,16 +154,17 @@ export const scanTf = async (inputs) => {
     // cleanup local file created
     await rm(wip, { recursive: true }, (err) => { });
     await rm(zipFile, (err) => { });
-    let policies;
-    let mustImplementCapabilities;
+    /*
+    let policies: any
+    let mustImplementCapabilities: string[]
     try {
-        policies = configData['policies'];
-        mustImplementCapabilities = policies['must-implement'];
+      policies = configData['policies']
+      mustImplementCapabilities = policies['must-implement']
+    } catch (e) {
+      cl.err(ExitCode.NO_POLICIES_FOUND, `At least one must-implement policy must be specified`)
+      return ExitCode.NO_POLICIES_FOUND
     }
-    catch (e) {
-        cl.err(ExitCode.NO_POLICIES_FOUND, `At least one must-implement policy must be specified`);
-        return ExitCode.NO_POLICIES_FOUND;
-    }
+    */
     cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`);
     mustImplementCapabilities.forEach((capability) => {
         cl.__log(`${exclamationMark} ${hl(`Must implement ${capability}`)}`);

@@ -18,6 +18,7 @@ import { Client } from './apiclient/client.js'
 import { ConsoleLogger } from './ConsoleLogger.js'
 import { ExitCode } from './exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from './consoleUtils.js'
+import { ConfigParser } from './ConfigParser.js'
 
 
 export interface ScanTfInput {
@@ -102,6 +103,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
 
   cl.log(formatTitle('Running Gomboc.ai for Terraform'))
 
+  /*
   const CONFIG_FILE_PATH = inputs.config.toLowerCase()
   const configExtension = extname(CONFIG_FILE_PATH)
   const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml']
@@ -119,18 +121,33 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
     return ExitCode.INVALID_CONFIG_FILE
   }
   cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${checkMark}\n`)
+  */
+
+  cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`)
+  
+  let configParser: ConfigParser
+  let mustImplementCapabilities: string[]
+
+  try {
+    configParser = new ConfigParser(inputs.config)
+    mustImplementCapabilities = configParser.getMustImplementCapabilities()
+  } catch (e: any) {
+    cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
+    return ExitCode.INVALID_CONFIG_FILE
+  }
+
+  const tfPlanFilePath = join(inputs.workingDirectory, inputs.plan)
+  cl._log(`Terraform plan file: ${hl(tfPlanFilePath)} ${checkMark}`)
+
+  const tfPlanObject = sanitizedTfPlanObject(tfPlanFilePath)
+  const tfPlanObjectJsonStr = JSON.stringify(tfPlanObject);
+  const tfPlanObjectJsonB64 = Buffer.from(tfPlanObjectJsonStr).toString("base64");
 
   if (extname(inputs.plan.toLowerCase()) !== '.json') {
     cl.err(ExitCode.INVALID_PLAN_FILE, `Plan file must have a JSON extension`)
     return ExitCode.INVALID_PLAN_FILE
   }
 
-  const tfPlanFilePath = join(inputs.workingDirectory, inputs.plan)
-  const tfPlanObject = sanitizedTfPlanObject(tfPlanFilePath)
-  const tfPlanObjectJsonStr = JSON.stringify(tfPlanObject);
-  const tfPlanObjectJsonB64 = Buffer.from(tfPlanObjectJsonStr).toString("base64");
-
-  cl._log(`Terraform plan file: ${hl(tfPlanFilePath)} ${checkMark}`)
   cl.__log(`Stripping sensitive values ${exclamationMark}\n`)
   
   const wip = './wip'
@@ -169,6 +186,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   await rm(zipFile, (err) => {})
 
 
+  /*
   let policies: any
   let mustImplementCapabilities: string[]
   try {
@@ -178,6 +196,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
     cl.err(ExitCode.NO_POLICIES_FOUND, `At least one must-implement policy must be specified`)
     return ExitCode.NO_POLICIES_FOUND
   }
+  */
 
   cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`)
   mustImplementCapabilities.forEach((capability: string) => {

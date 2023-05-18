@@ -2,7 +2,6 @@ export var ExitCode;
 (function (ExitCode) {
     ExitCode[ExitCode["SUCCESS"] = 0] = "SUCCESS";
     ExitCode[ExitCode["INVALID_CONFIG_FILE"] = 10] = "INVALID_CONFIG_FILE";
-    ExitCode[ExitCode["NO_POLICIES_FOUND"] = 13] = "NO_POLICIES_FOUND";
     ExitCode[ExitCode["CAPABILITY_DOES_NOT_EXIST"] = 14] = "CAPABILITY_DOES_NOT_EXIST";
     ExitCode[ExitCode["VIOLATIONS_FOUND"] = 20] = "VIOLATIONS_FOUND";
     ExitCode[ExitCode["SIDE_EFFECTS_FAILED"] = 30] = "SIDE_EFFECTS_FAILED";

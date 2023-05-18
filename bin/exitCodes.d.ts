@@ -1,7 +1,6 @@
 export declare enum ExitCode {
     SUCCESS = 0,
     INVALID_CONFIG_FILE = 10,
-    NO_POLICIES_FOUND = 13,
     CAPABILITY_DOES_NOT_EXIST = 14,
     VIOLATIONS_FOUND = 20,
     SIDE_EFFECTS_FAILED = 30,

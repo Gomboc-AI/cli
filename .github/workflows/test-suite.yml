@@ -16,11 +16,11 @@ jobs:
     name: Test suite
     runs-on: ubuntu-latest
     env:
+      FORCE_COLOR: 3
       CONFIGS: tests/configs
       OUTPUTS: tests/outputs
       SUCCESS: 0
       INVALID_CONFIG_FILE: 10
-      NO_POLICIES_FOUND: 13
       VIOLATIONS_FOUND: 20
       SIDE_EFFECTS_FAILED: 30
       CLIENT_ERROR: 98
@@ -81,7 +81,7 @@ jobs:
         run: |
           EXIT_CODE=0
           gomboc scan cloudformation github --config ${{ env.CONFIGS }}/no-policies.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.NO_POLICIES_FOUND }}
+          ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.INVALID_CONFIG_FILE }}
 
       - name: Test config with non existing capability
         run: |

@@ -1,8 +1,7 @@
 import chalk from 'chalk'
-import { parse } from 'yaml'
 import { glob } from 'glob'
 import { readFileSync } from 'fs'
-import { join, extname } from 'path'
+import { join } from 'path'
 
 import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './apiclient/__generated__/GlobalTypes.js'
 import { ScanCfnTemplate_scanCfnTemplateExt } from './apiclient/__generated__/ScanCfnTemplate.js'
@@ -16,6 +15,7 @@ import { Client } from './apiclient/client.js'
 import { ConsoleLogger } from './ConsoleLogger.js'
 import { ExitCode } from './exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from './consoleUtils.js'
+import { ConfigParser } from './ConfigParser.js'
 
 
 export interface ScanCfnInput {
@@ -58,6 +58,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   cl.log(formatTitle('Running Gomboc.ai for CloudFormation'))
 
+  /*
   const CONFIG_FILE_PATH = inputs.config.toLowerCase()
   const configExtension = extname(CONFIG_FILE_PATH)
   const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml']
@@ -65,7 +66,9 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`)
     return ExitCode.INVALID_CONFIG_FILE
   }
+  */
 
+  /*
   let configData
   try {
     const configFile = readFileSync(CONFIG_FILE_PATH, 'utf8')
@@ -75,8 +78,25 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`)
     return ExitCode.INVALID_CONFIG_FILE
   }
-  cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${checkMark}\n`)
+  */
+
+  cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`)
   
+  let configParser: ConfigParser
+  let mustImplementCapabilities: string[]
+  let searchPatterns: string[]
+  let ignorePatterns: string[]
+
+  try {
+    configParser = new ConfigParser(inputs.config)
+    mustImplementCapabilities = configParser.getMustImplementCapabilities()
+    searchPatterns = configParser.getSearchPatterns()
+    ignorePatterns = configParser.getIgnorePatterns()
+  } catch (e: any) {
+    cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
+    return ExitCode.INVALID_CONFIG_FILE
+  }
+  /*
   const scanOptions = configData['options']
 
   // Read and print match patterns
@@ -87,8 +107,9 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   }
   // Read and print ignore patterns
   const ignorePattern = scanOptions['ignore-pattern'] ?? []
+  */
   // Look for CloudFormation templates and print results
-  const templateFiles = await glob(searchPattern, { ignore: ignorePattern })
+  const templateFiles = await glob(searchPatterns, { ignore: ignorePatterns })
   const templateCount = templateFiles.length
   if(templateCount === 0){
     cl.err(ExitCode.NO_TEMPLATES_FOUND, `Did not find any templates`)
@@ -110,15 +131,20 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     return templatePayload
   })
 
+  /*
   let policies: any
   let mustImplementCapabilities: string[]
   try {
     policies = configData['policies']
+    if(policies == null) { throw new Error(`The config file must specify a ${hl('policies')} property`) }
     mustImplementCapabilities = policies['must-implement']
-  } catch (e) {
-    cl.err(ExitCode.NO_POLICIES_FOUND, `At least one must-implement policy must be specified`)
-    return ExitCode.NO_POLICIES_FOUND
+    if(mustImplementCapabilities == null) { throw new Error(`The ${hl('policies')} must specify a ${hl('must-implement')} property`) }
+    if(mustImplementCapabilities.length == 0) { throw new Error(`The ${hl('must-implement')} must contain at least one Capability`) }
+  } catch (e: any) {
+    cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
+    return ExitCode.INVALID_CONFIG_FILE
   }
+  */
 
   cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`)
   mustImplementCapabilities.forEach((capability: string) => {

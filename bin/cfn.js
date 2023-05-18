@@ -1,12 +1,12 @@
 import chalk from 'chalk';
-import { parse } from 'yaml';
 import { glob } from 'glob';
 import { readFileSync } from 'fs';
-import { join, extname } from 'path';
+import { join } from 'path';
 import { Client } from './apiclient/client.js';
 import { ConsoleLogger } from './ConsoleLogger.js';
 import { ExitCode } from './exitCodes.js';
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from './consoleUtils.js';
+import { ConfigParser } from './ConfigParser.js';
 const readablePolicyStatement = (policyStatement) => {
     // Get a human readable policy statement
     const capability = policyStatement.capability.title;
@@ -36,35 +36,55 @@ export const scanCfn = async (inputs) => {
     let exitCode = ExitCode.SUCCESS;
     const cl = new ConsoleLogger(inputs.output !== 'text');
     cl.log(formatTitle('Running Gomboc.ai for CloudFormation'));
-    const CONFIG_FILE_PATH = inputs.config.toLowerCase();
-    const configExtension = extname(CONFIG_FILE_PATH);
-    const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml'];
+    /*
+    const CONFIG_FILE_PATH = inputs.config.toLowerCase()
+    const configExtension = extname(CONFIG_FILE_PATH)
+    const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml']
     if (!VALID_CONFIG_EXTENSIONS.includes(configExtension)) {
-        cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`);
-        return ExitCode.INVALID_CONFIG_FILE;
+      cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`)
+      return ExitCode.INVALID_CONFIG_FILE
     }
-    let configData;
+    */
+    /*
+    let configData
     try {
-        const configFile = readFileSync(CONFIG_FILE_PATH, 'utf8');
-        configData = parse(configFile);
-        console.log(configData);
+      const configFile = readFileSync(CONFIG_FILE_PATH, 'utf8')
+      configData = parse(configFile)
+      console.log(configData)
+    } catch (e) {
+      cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`)
+      return ExitCode.INVALID_CONFIG_FILE
+    }
+    */
+    cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`);
+    let configParser;
+    let mustImplementCapabilities;
+    let searchPatterns;
+    let ignorePatterns;
+    try {
+        configParser = new ConfigParser(inputs.config);
+        mustImplementCapabilities = configParser.getMustImplementCapabilities();
+        searchPatterns = configParser.getSearchPatterns();
+        ignorePatterns = configParser.getIgnorePatterns();
     }
     catch (e) {
-        cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`);
+        cl.err(ExitCode.INVALID_CONFIG_FILE, e.message);
         return ExitCode.INVALID_CONFIG_FILE;
     }
-    cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${checkMark}\n`);
-    const scanOptions = configData['options'];
+    /*
+    const scanOptions = configData['options']
+  
     // Read and print match patterns
-    const searchPattern = scanOptions['search-pattern'];
+    const searchPattern = scanOptions['search-pattern']
     if (searchPattern == null) {
-        cl.err(ExitCode.MISSING_SEARCH_PATTERN, `At least one search pattern must be specified`);
-        return ExitCode.MISSING_SEARCH_PATTERN;
+      cl.err(ExitCode.MISSING_SEARCH_PATTERN, `At least one search pattern must be specified`)
+      return ExitCode.MISSING_SEARCH_PATTERN
     }
     // Read and print ignore patterns
-    const ignorePattern = scanOptions['ignore-pattern'] ?? [];
+    const ignorePattern = scanOptions['ignore-pattern'] ?? []
+    */
     // Look for CloudFormation templates and print results
-    const templateFiles = await glob(searchPattern, { ignore: ignorePattern });
+    const templateFiles = await glob(searchPatterns, { ignore: ignorePatterns });
     const templateCount = templateFiles.length;
     if (templateCount === 0) {
         cl.err(ExitCode.NO_TEMPLATES_FOUND, `Did not find any templates`);
@@ -85,16 +105,20 @@ export const scanCfn = async (inputs) => {
         };
         return templatePayload;
     });
-    let policies;
-    let mustImplementCapabilities;
+    /*
+    let policies: any
+    let mustImplementCapabilities: string[]
     try {
-        policies = configData['policies'];
-        mustImplementCapabilities = policies['must-implement'];
+      policies = configData['policies']
+      if(policies == null) { throw new Error(`The config file must specify a ${hl('policies')} property`) }
+      mustImplementCapabilities = policies['must-implement']
+      if(mustImplementCapabilities == null) { throw new Error(`The ${hl('policies')} must specify a ${hl('must-implement')} property`) }
+      if(mustImplementCapabilities.length == 0) { throw new Error(`The ${hl('must-implement')} must contain at least one Capability`) }
+    } catch (e: any) {
+      cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
+      return ExitCode.INVALID_CONFIG_FILE
     }
-    catch (e) {
-        cl.err(ExitCode.NO_POLICIES_FOUND, `At least one must-implement policy must be specified`);
-        return ExitCode.NO_POLICIES_FOUND;
-    }
+    */
     cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`);
     mustImplementCapabilities.forEach((capability) => {
         cl.__log(`${exclamationMark} ${hl(`Must implement ${capability}`)}`);
