@@ -17,7 +17,6 @@ import { ExitCode } from './exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from './consoleUtils.js'
 import { ConfigParser } from './ConfigParser.js'
 
-
 export interface ScanCfnInput {
   authToken?: string
   secretAccessKey?: string
@@ -52,8 +51,6 @@ const readableTransformation = (transformation: CreateTransformationFragmentCfn 
 }
 
 export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
-  var pjson = require('./package.json');
-  console.log(pjson)
   let exitCode = ExitCode.SUCCESS
 
   const cl = new ConsoleLogger(inputs.output !== 'text')

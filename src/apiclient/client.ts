@@ -1,3 +1,4 @@
+import crossFetch from 'cross-fetch'
 // @ts-ignore
 import { ApolloClient, InMemoryCache } from "@apollo/client/core/core.cjs"
 // @ts-ignore
@@ -10,7 +11,7 @@ import { ScanCfnTemplate, ScanCfnTemplateVariables, ScanCfnTemplate_scanCfnTempl
 import { scanCfnQuery } from './scanCloudformationTemplate.js'
 import { scanTfQuery } from './scanTerraformPlan.js'
 
-import crossFetch from 'cross-fetch'
+import { CLI_VERSION } from '../cliVersion.js';
 
 export class Client {
     url: string
@@ -22,17 +23,12 @@ export class Client {
         this.authToken = authToken
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
         const authLink = setContext((_: any, { headers }: any) => {
-            if(this.authToken == null) {
-                return { headers: headers }
+            headers['X-GOMBOC-CLI-VERSION'] = CLI_VERSION
+            headers['X-GOMBOC-RUNNER-PATH'] = process.env._
+            if(this.authToken != null) {
+                headers['Authorization'] = `Bearer ${this.authToken}`
             }
-            console.log(process.env.npm_package_version)
-            headers['X-GOMBOC-CLI-VERSION'] = process.env.npm_package_version
-            return {
-                headers: {
-                ...headers,
-                authorization: `Bearer ${this.authToken}`,
-                }
-            }
+            return { headers: headers}
         })
 
         this.client = new ApolloClient({

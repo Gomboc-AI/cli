@@ -33,8 +33,6 @@ const readableTransformation = (transformation) => {
     return 'invalid transformation';
 };
 export const scanCfn = async (inputs) => {
-    var pjson = require('./package.json');
-    console.log(pjson);
     let exitCode = ExitCode.SUCCESS;
     const cl = new ConsoleLogger(inputs.output !== 'text');
     cl.log(formatTitle('Running Gomboc.ai for CloudFormation'));
