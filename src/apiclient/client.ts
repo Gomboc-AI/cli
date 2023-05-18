@@ -56,13 +56,14 @@ export class Client {
         return data.scanCfnTemplateExt
     }
 
-    async scanTfPlan(plan: string, workingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions): Promise<ScanTfPlan_scanTfPlanExt> {
+    async scanTfPlan(plan: string, workingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlan_scanTfPlanExt> {
         const scanVariables: ScanTfPlanVariables = {
             plan: plan,
             workingDirectory: workingDirectory,
             policy: policy,
             gitHubOptions: gitHubOptions,
-            gitLabOptions: gitLabOptions
+            gitLabOptions: gitLabOptions,
+            secretAccessKey: secretAccessKey
         }
         const { data } : { data: ScanTfPlan} = await this.client.query<ScanTfPlan, ScanTfPlanVariables>({
             query: scanTfQuery,

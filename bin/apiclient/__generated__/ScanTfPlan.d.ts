@@ -137,4 +137,5 @@ export interface ScanTfPlanVariables {
     policy: ScanPolicy;
     gitHubOptions?: GitHubOptions | null;
     gitLabOptions?: GitLabOptions | null;
+    secretAccessKey?: string | null;
 }
