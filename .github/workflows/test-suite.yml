@@ -44,7 +44,7 @@ jobs:
           npm i
           npm run build
           npm install -g .
-          echo $(gomboc-cfn --help) 
+          echo $(gomboc --help) 
 
       - name: Get OIDC token 
         id: get-oidc-token
@@ -63,6 +63,9 @@ jobs:
     name: Test suite
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Test malformed config file
         run: |
           EXIT_CODE=0
