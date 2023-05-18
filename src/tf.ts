@@ -1,5 +1,4 @@
 import chalk from 'chalk'
-import { parse } from 'yaml'
 import { glob } from 'glob'
 import { rm, mkdir, readFileSync, writeFile } from 'fs'
 import { dirname, join, extname } from 'path'
@@ -103,26 +102,6 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
 
   cl.log(formatTitle('Running Gomboc.ai for Terraform'))
 
-  /*
-  const CONFIG_FILE_PATH = inputs.config.toLowerCase()
-  const configExtension = extname(CONFIG_FILE_PATH)
-  const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml']
-  if (!VALID_CONFIG_EXTENSIONS.includes(configExtension)) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`)
-    return ExitCode.INVALID_CONFIG_FILE
-  }
-
-  let configData
-  try {
-    const configFile = readFileSync(CONFIG_FILE_PATH, 'utf8')
-    configData = parse(configFile)
-  } catch (e) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`)
-    return ExitCode.INVALID_CONFIG_FILE
-  }
-  cl._log(`Run configuration: ${hl(CONFIG_FILE_PATH)} ${checkMark}\n`)
-  */
-
   cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`)
   
   let configParser: ConfigParser
@@ -184,19 +163,6 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   // cleanup local file created
   await rm(wip, { recursive: true }, (err) => {})
   await rm(zipFile, (err) => {})
-
-
-  /*
-  let policies: any
-  let mustImplementCapabilities: string[]
-  try {
-    policies = configData['policies']
-    mustImplementCapabilities = policies['must-implement']
-  } catch (e) {
-    cl.err(ExitCode.NO_POLICIES_FOUND, `At least one must-implement policy must be specified`)
-    return ExitCode.NO_POLICIES_FOUND
-  }
-  */
 
   cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`)
   mustImplementCapabilities.forEach((capability: string) => {

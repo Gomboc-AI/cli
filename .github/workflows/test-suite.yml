@@ -61,7 +61,6 @@ jobs:
       - name: Test malformed config file
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation github --config $CONFIGS/malformed-yaml.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }}
           gomboc scan cloudformation github --config $CONFIGS/malformed-yaml.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.INVALID_CONFIG_FILE }}
 

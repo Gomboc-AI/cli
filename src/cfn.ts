@@ -58,28 +58,6 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   cl.log(formatTitle('Running Gomboc.ai for CloudFormation'))
 
-  /*
-  const CONFIG_FILE_PATH = inputs.config.toLowerCase()
-  const configExtension = extname(CONFIG_FILE_PATH)
-  const VALID_CONFIG_EXTENSIONS = ['.yaml', '.yml']
-  if (!VALID_CONFIG_EXTENSIONS.includes(configExtension)) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, `Config file must have a valid extension (${VALID_CONFIG_EXTENSIONS.join(', ')})`)
-    return ExitCode.INVALID_CONFIG_FILE
-  }
-  */
-
-  /*
-  let configData
-  try {
-    const configFile = readFileSync(CONFIG_FILE_PATH, 'utf8')
-    configData = parse(configFile)
-    console.log(configData)
-  } catch (e) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`)
-    return ExitCode.INVALID_CONFIG_FILE
-  }
-  */
-
   cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`)
   
   let configParser: ConfigParser
@@ -96,18 +74,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
     return ExitCode.INVALID_CONFIG_FILE
   }
-  /*
-  const scanOptions = configData['options']
 
-  // Read and print match patterns
-  const searchPattern = scanOptions['search-pattern']
-  if (searchPattern == null) {
-    cl.err(ExitCode.MISSING_SEARCH_PATTERN, `At least one search pattern must be specified`)
-    return ExitCode.MISSING_SEARCH_PATTERN
-  }
-  // Read and print ignore patterns
-  const ignorePattern = scanOptions['ignore-pattern'] ?? []
-  */
   // Look for CloudFormation templates and print results
   const templateFiles = await glob(searchPatterns, { ignore: ignorePatterns })
   const templateCount = templateFiles.length
@@ -130,21 +97,6 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     }
     return templatePayload
   })
-
-  /*
-  let policies: any
-  let mustImplementCapabilities: string[]
-  try {
-    policies = configData['policies']
-    if(policies == null) { throw new Error(`The config file must specify a ${hl('policies')} property`) }
-    mustImplementCapabilities = policies['must-implement']
-    if(mustImplementCapabilities == null) { throw new Error(`The ${hl('policies')} must specify a ${hl('must-implement')} property`) }
-    if(mustImplementCapabilities.length == 0) { throw new Error(`The ${hl('must-implement')} must contain at least one Capability`) }
-  } catch (e: any) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
-    return ExitCode.INVALID_CONFIG_FILE
-  }
-  */
 
   cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`)
   mustImplementCapabilities.forEach((capability: string) => {
