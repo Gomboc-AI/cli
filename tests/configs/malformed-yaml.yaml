@@ -1,9 +1,8 @@
 policies: 
-  must-implement:
+  must-implement
     - Deletion Protection
     - API Key Authentication
     - Provisioned Capacity
-           Request Tracing
 
 options:
   search-pattern:
