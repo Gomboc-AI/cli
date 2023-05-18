@@ -47,6 +47,7 @@ export const scanCfn = async (inputs) => {
     try {
         const configFile = readFileSync(CONFIG_FILE_PATH, 'utf8');
         configData = parse(configFile);
+        console.log(configData);
     }
     catch (e) {
         cl.err(ExitCode.INVALID_CONFIG_FILE, `Could not find ${hl(CONFIG_FILE_PATH)} or file is corrupted`);
