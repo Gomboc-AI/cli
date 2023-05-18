@@ -4,7 +4,7 @@ import { ApolloClient, InMemoryCache } from "@apollo/client/core/core.cjs";
 import { HttpLink } from "@apollo/client/link/http/http.cjs";
 // @ts-ignore
 import { setContext } from '@apollo/client/link/context/context.cjs';
-import { scanCfnQuery } from './scanCloudformationTemplates.js';
+import { scanCfnQuery } from './scanCloudformationTemplate.js';
 import { scanTfQuery } from './scanTerraformPlan.js';
 import crossFetch from 'cross-fetch';
 export class Client {
@@ -31,7 +31,7 @@ export class Client {
             cache: new InMemoryCache()
         });
     }
-    async scanCfnTemplates(templatePayloads, policy, gitHubOptions, gitLabOptions, secretAccessKey) {
+    async scanCfnTemplate(templatePayloads, policy, gitHubOptions, gitLabOptions, secretAccessKey) {
         const scanVariables = {
             templates: templatePayloads,
             policy: policy,

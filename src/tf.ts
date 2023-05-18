@@ -10,9 +10,9 @@ import { GitHubOptions, GitLabOptions, ScanPolicy } from './apiclient/__generate
 import { ScanTfPlan_scanTfPlanExt } from './apiclient/__generated__/ScanTfPlan.js'
 import { ScanTfPlan_scanTfPlanExt_result_complianceObservations_policyStatement } from './apiclient/__generated__/ScanTfPlan.js'
 import { ScanTfPlan_scanTfPlanExt_result_violationObservations_policyStatement } from './apiclient/__generated__/ScanTfPlan.js'
-import { CreateTransformationFragment } from './apiclient/__generated__/CreateTransformationFragment.js'
-import { UpdateTransformationFragment } from './apiclient/__generated__/UpdateTransformationFragment.js'
-import { DeleteTransformationFragment } from './apiclient/__generated__/DeleteTransformationFragment.js'
+import { CreateTransformationFragmentTf } from './apiclient/__generated__/CreateTransformationFragmentTf.js'
+import { UpdateTransformationFragmentTf } from './apiclient/__generated__/UpdateTransformationFragmentTf.js'
+import { DeleteTransformationFragmentTf } from './apiclient/__generated__/DeleteTransformationFragmentTf.js'
 
 import { Client } from './apiclient/client.js'
 import { ConsoleLogger } from './ConsoleLogger.js'
@@ -38,7 +38,7 @@ const readablePolicyStatement = (policyStatement: ScanTfPlan_scanTfPlanExt_resul
   return `unknown policy statement for ${capability}`
 }
 
-const readableTransformation = (transformation: CreateTransformationFragment | UpdateTransformationFragment | DeleteTransformationFragment): String => {
+const readableTransformation = (transformation: CreateTransformationFragmentTf | UpdateTransformationFragmentTf | DeleteTransformationFragmentTf): String => {
   // Get a human readable instruction for Create, Update and Delete transformations
   const at = `At ${transformation.logicalResource.name} (l.${transformation.logicalResource.line})`
   if(transformation.__typename === 'DeleteTransformation'){

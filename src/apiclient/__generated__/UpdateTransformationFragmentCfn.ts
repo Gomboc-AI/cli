@@ -4,22 +4,21 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL fragment: CreateTransformationFragment
+// GraphQL fragment: UpdateTransformationFragmentCfn
 // ====================================================
 
-export interface CreateTransformationFragment_logicalResource {
+export interface UpdateTransformationFragmentCfn_logicalResource {
   __typename: "LogicalResource";
-  filePath: string | null;
   line: number;
   name: string;
 }
 
-export interface CreateTransformationFragment {
-  __typename: "CreateTransformation";
+export interface UpdateTransformationFragmentCfn {
+  __typename: "UpdateTransformation";
   /**
-   * Creates a new Property on a Resource
+   * Updates an existing Property on a Resource
    */
-  logicalResource: CreateTransformationFragment_logicalResource;
+  logicalResource: UpdateTransformationFragmentCfn_logicalResource;
   property: string;
   value: string | null;
 }

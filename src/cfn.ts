@@ -5,12 +5,12 @@ import { readFileSync } from 'fs'
 import { join, extname } from 'path'
 
 import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './apiclient/__generated__/GlobalTypes.js'
-import { ScanCfnTemplates_scanCfnTemplateExt } from './apiclient/__generated__/ScanCfnTemplates.js'
-import { ScanCfnTemplates_scanCfnTemplateExt_results_complianceObservations_policyStatement } from './apiclient/__generated__/ScanCfnTemplates.js'
-import { ScanCfnTemplates_scanCfnTemplateExt_results_violationObservations_policyStatement } from './apiclient/__generated__/ScanCfnTemplates.js'
-import { CreateTransformationFragment } from './apiclient/__generated__/CreateTransformationFragment.js'
-import { UpdateTransformationFragment } from './apiclient/__generated__/UpdateTransformationFragment.js'
-import { DeleteTransformationFragment } from './apiclient/__generated__/DeleteTransformationFragment.js'
+import { ScanCfnTemplate_scanCfnTemplateExt } from './apiclient/__generated__/ScanCfnTemplate.js'
+import { ScanCfnTemplate_scanCfnTemplateExt_results_complianceObservations_policyStatement } from './apiclient/__generated__/ScanCfnTemplate.js'
+import { ScanCfnTemplate_scanCfnTemplateExt_results_violationObservations_policyStatement } from './apiclient/__generated__/ScanCfnTemplate.js'
+import { CreateTransformationFragmentCfn } from './apiclient/__generated__/CreateTransformationFragmentCfn.js'
+import { UpdateTransformationFragmentCfn } from './apiclient/__generated__/UpdateTransformationFragmentCfn.js'
+import { DeleteTransformationFragmentCfn } from './apiclient/__generated__/DeleteTransformationFragmentCfn.js'
 
 import { Client } from './apiclient/client.js'
 import { ConsoleLogger } from './ConsoleLogger.js'
@@ -28,14 +28,14 @@ export interface ScanCfnInput {
   gitLabOptions?: GitLabOptions
 }
 
-const readablePolicyStatement = (policyStatement: ScanCfnTemplates_scanCfnTemplateExt_results_complianceObservations_policyStatement | ScanCfnTemplates_scanCfnTemplateExt_results_violationObservations_policyStatement): String => {
+const readablePolicyStatement = (policyStatement: ScanCfnTemplate_scanCfnTemplateExt_results_complianceObservations_policyStatement | ScanCfnTemplate_scanCfnTemplateExt_results_violationObservations_policyStatement): String => {
   // Get a human readable policy statement
   const capability = policyStatement.capability.title
   if(policyStatement.__typename === 'MustImplementCapabilityPolicyStatement') { return `Must implement ${capability}` }
   return `unknown policy statement for ${capability}`
 }
 
-const readableTransformation = (transformation: CreateTransformationFragment | UpdateTransformationFragment | DeleteTransformationFragment): String => {
+const readableTransformation = (transformation: CreateTransformationFragmentCfn | UpdateTransformationFragmentCfn | DeleteTransformationFragmentCfn): String => {
   // Get a human readable instruction for Create, Update, and Delete transformations
   const at = `At ${transformation.logicalResource.name} (l.${transformation.logicalResource.line})`
   if(transformation.__typename === 'DeleteTransformation'){
@@ -127,11 +127,11 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   const policy: ScanPolicy = { mustImplement: mustImplementCapabilities }
 
-  let scan: ScanCfnTemplates_scanCfnTemplateExt
+  let scan: ScanCfnTemplate_scanCfnTemplateExt
 
   try {
     const client = new Client(inputs.apiUrl, inputs.authToken)
-    scan = await client.scanCfnTemplates(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
+    scan = await client.scanCfnTemplate(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e)
     return ExitCode.SERVER_ERROR

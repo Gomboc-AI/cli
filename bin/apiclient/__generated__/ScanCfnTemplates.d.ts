@@ -37,7 +37,6 @@ export interface ScanCfnTemplates_scanCfnTemplateExt_results_violationObservatio
 }
 export interface ScanCfnTemplates_scanCfnTemplateExt_results_violationObservations_trivialRemediation_resolvesWithTransformations_CreateTransformation_logicalResource {
     __typename: "LogicalResource";
-    filePath: string | null;
     line: number;
     name: string;
 }
@@ -52,7 +51,6 @@ export interface ScanCfnTemplates_scanCfnTemplateExt_results_violationObservatio
 }
 export interface ScanCfnTemplates_scanCfnTemplateExt_results_violationObservations_trivialRemediation_resolvesWithTransformations_UpdateTransformation_logicalResource {
     __typename: "LogicalResource";
-    filePath: string | null;
     line: number;
     name: string;
 }
@@ -67,7 +65,6 @@ export interface ScanCfnTemplates_scanCfnTemplateExt_results_violationObservatio
 }
 export interface ScanCfnTemplates_scanCfnTemplateExt_results_violationObservations_trivialRemediation_resolvesWithTransformations_DeleteTransformation_logicalResource {
     __typename: "LogicalResource";
-    filePath: string | null;
     line: number;
     name: string;
 }

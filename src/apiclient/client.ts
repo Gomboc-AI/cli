@@ -6,8 +6,8 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 import { setContext } from '@apollo/client/link/context/context.cjs'
 import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './__generated__/GlobalTypes.js'
 import { ScanTfPlan, ScanTfPlanVariables, ScanTfPlan_scanTfPlanExt } from "./__generated__/ScanTfPlan.js";
-import { ScanCfnTemplates, ScanCfnTemplatesVariables, ScanCfnTemplates_scanCfnTemplateExt } from "./__generated__/ScanCfnTemplates.js";
-import { scanCfnQuery } from './scanCloudformationTemplates.js'
+import { ScanCfnTemplate, ScanCfnTemplateVariables, ScanCfnTemplate_scanCfnTemplateExt } from "./__generated__/ScanCfnTemplate.js";
+import { scanCfnQuery } from './scanCloudformationTemplate.js'
 import { scanTfQuery } from './scanTerraformPlan.js'
 
 import crossFetch from 'cross-fetch'
@@ -39,15 +39,15 @@ export class Client {
         })
     }
 
-    async scanCfnTemplates(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplates_scanCfnTemplateExt> {
-        const scanVariables: ScanCfnTemplatesVariables = {
+    async scanCfnTemplate(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplate_scanCfnTemplateExt> {
+        const scanVariables: ScanCfnTemplateVariables = {
             templates: templatePayloads,
             policy: policy,
             gitHubOptions: gitHubOptions,
             gitLabOptions: gitLabOptions,
             secretAccessKey: secretAccessKey
         }
-        const { data } : { data: ScanCfnTemplates} = await this.client.query<ScanCfnTemplates, ScanCfnTemplatesVariables>({
+        const { data } : { data: ScanCfnTemplate} = await this.client.query<ScanCfnTemplate, ScanCfnTemplateVariables>({
             query: scanCfnQuery,
             variables: scanVariables
         })
