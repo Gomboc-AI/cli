@@ -52,6 +52,7 @@ const readableTransformation = (transformation: CreateTransformationFragmentCfn 
 }
 
 export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
+  console.log(process.env)
   let exitCode = ExitCode.SUCCESS
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
