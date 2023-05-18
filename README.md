@@ -73,6 +73,7 @@ The execution will end with one of the following codes
 |  0 | SUCCESS | There were no reasons to raise an alert |
 | 10 | INVALID_CONFIG_FILE | Could not read file from provided filepath |
 | 13 | NO_POLICIES_FOUND | At least one policy must be specified |
+| 14 | CAPABILITY_DOES_NOT_EXIST | At least one of the requested capabilities does not exist |
 | 20 | VIOLATIONS_FOUND | Policy violation(s) found in at least one template |
 | 30 | SIDE_EFFECTS_FAILED | Something went wrong when trying to apply side effects |
 | 98 | CLIENT_ERROR | Something went wrong at the client level |

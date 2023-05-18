@@ -76,6 +76,13 @@ jobs:
           gomboc scan cloudformation github --config ${{ env.CONFIGS }}/no-policies.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.NO_POLICIES_FOUND }}
 
+      - name: Test config with non existing capability
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config ${{ env.CONFIGS }}/non-existing-capability.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }}
+          gomboc scan cloudformation github --config ${{ env.CONFIGS }}/non-existing-capability.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.NO_POLICIES_FOUND }}
+
       - name: Test config with no templates found
         run: |
           EXIT_CODE=0
