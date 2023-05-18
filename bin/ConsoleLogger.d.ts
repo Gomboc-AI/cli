@@ -2,7 +2,7 @@ import { ExitCode } from './exitCodes.js';
 export declare class ConsoleLogger {
     isSilenced: boolean;
     constructor(isSilenced: boolean);
-    logIndented: (message: string, indentation: number) => void;
+    private logIndented;
     log: (message: string) => void;
     _log: (message: string) => void;
     __log: (message: string) => void;

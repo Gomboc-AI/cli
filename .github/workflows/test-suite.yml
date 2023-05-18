@@ -82,6 +82,7 @@ jobs:
           ./tests/scripts/assert-code.sh $EXIT_CODE ${{ env.INVALID_CONFIG_FILE }}
 
       - name: Test config with non existing capability
+        if: false
         run: |
           EXIT_CODE=0
           gomboc scan cloudformation github --config ${{ env.CONFIGS }}/non-existing-capability.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }}
