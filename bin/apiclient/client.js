@@ -17,10 +17,16 @@ export class Client {
         this.authToken = authToken;
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch });
         const authLink = setContext((_, { headers }) => {
-            headers['X-GOMBOC-CLI-VERSION'] = CLI_VERSION;
-            headers['X-GOMBOC-RUNNER-PATH'] = process.env._;
+            headers = {
+                'X-GOMBOC-CLI-VERSION': CLI_VERSION,
+                'X-GOMBOC-RUNNER-PATH': process.env._,
+                ...headers
+            };
             if (this.authToken != null) {
-                headers['Authorization'] = `Bearer ${this.authToken}`;
+                headers = {
+                    'Authorization': `Bearer ${this.authToken}`,
+                    ...headers
+                };
             }
             return { headers: headers };
         });

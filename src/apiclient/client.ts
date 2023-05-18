@@ -23,12 +23,18 @@ export class Client {
         this.authToken = authToken
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
         const authLink = setContext((_: any, { headers }: any) => {
-            headers['X-GOMBOC-CLI-VERSION'] = CLI_VERSION
-            headers['X-GOMBOC-RUNNER-PATH'] = process.env._
-            if(this.authToken != null) {
-                headers['Authorization'] = `Bearer ${this.authToken}`
+            headers = {
+                'X-GOMBOC-CLI-VERSION': CLI_VERSION,
+                'X-GOMBOC-RUNNER-PATH': process.env._,
+                ...headers
             }
-            return { headers: headers}
+            if(this.authToken != null) {
+                headers = {
+                    'Authorization': `Bearer ${this.authToken}`,
+                    ...headers
+                }
+            }
+            return { headers: headers }
         })
 
         this.client = new ApolloClient({
