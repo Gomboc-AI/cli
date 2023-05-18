@@ -39,10 +39,12 @@ export class Client {
             gitLabOptions: gitLabOptions,
             secretAccessKey: secretAccessKey
         };
+        console.log(scanVariables);
         const { data } = await this.client.query({
             query: scanCfnQuery,
             variables: scanVariables
         });
+        console.log(data);
         return data.scanCfnTemplateExt;
     }
     async scanTfPlan(plan, workingDirectory, policy, gitHubOptions, gitLabOptions) {

@@ -47,10 +47,12 @@ export class Client {
             gitLabOptions: gitLabOptions,
             secretAccessKey: secretAccessKey
         }
+        console.log(scanVariables)
         const { data } : { data: ScanCfnTemplate} = await this.client.query<ScanCfnTemplate, ScanCfnTemplateVariables>({
             query: scanCfnQuery,
             variables: scanVariables
         })
+        console.log(data)
         return data.scanCfnTemplateExt
     }
 
