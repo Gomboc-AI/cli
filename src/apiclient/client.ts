@@ -25,10 +25,12 @@ export class Client {
             if(this.authToken == null) {
                 return { headers: headers }
             }
+            console.log(process.env.npm_package_version)
+            headers['X-GOMBOC-CLI-VERSION'] = process.env.npm_package_version
             return {
                 headers: {
                 ...headers,
-                authorization: `Bearer ${this.authToken}`
+                authorization: `Bearer ${this.authToken}`,
                 }
             }
         })
