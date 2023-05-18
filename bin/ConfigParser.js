@@ -1,7 +1,7 @@
 import { parse } from 'yaml';
-import { hl } from './consoleUtils.js';
 import { extname } from 'path';
 import { readFileSync } from 'fs';
+import { hl } from './consoleUtils.js';
 export class ConfigParser {
     configData;
     constructor(configFilePath) {

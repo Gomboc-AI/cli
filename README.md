@@ -77,9 +77,8 @@ The execution will end with one of the following codes
 | 30 | SIDE_EFFECTS_FAILED | Something went wrong when trying to apply side effects |
 | 98 | CLIENT_ERROR | Something went wrong at the client level |
 | 99 | SERVER_ERROR | Something went wrong at the server level |
-| 101 | MISSING_SEARCH_PATTERN | Did not provide a search pattern to find CloudFormation templates|
-| 102 | NO_TEMPLATES_FOUND | The provided search pattern(s) did not yield any findings |
-| 103 | TEMPLATE_ERROR | Something went wrong with the template |
+| 101 | NO_TEMPLATES_FOUND | The provided search pattern(s) did not yield any findings |
+| 102 | TEMPLATE_ERROR | Something went wrong with the template |
 | 201 | INVALID_PLAN_FILE | The Terraform Plan file is missing or invalid |
 | 202 | NO_CONFIGURATION_FILES_FOUND | No Terraform configuration files were found |
 
