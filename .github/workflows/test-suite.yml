@@ -96,7 +96,7 @@ jobs:
         run: |
           EXIT_CODE=0
           gomboc scan cloudformation github --config $CONFIGS/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE $VIOLAIONS_FOUND
+          ./tests/scripts/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
           ./tests/scripts/assert-output.sh output.json $OUTPUTS/001.json
 
       - name: Test single YAML template with violations (002)
