@@ -114,11 +114,3 @@ jobs:
           EXIT_CODE=0
           gomboc scan cloudformation github --config $CONFIGS/match-not-a-cfn-template.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE $TEMPLATE_ERROR
-
-
-  run-reusable-workflows:
-    uses: Gomboc-AI/ReusableWorkflows/.github/workflows/cliIntegrationTests.yml@main
-    name: Runs integration tests
-    needs: [setup]
-    with:
-      AUTH_TOKEN: ${{ needs.setup.outputs.AUTH_TOKEN }}

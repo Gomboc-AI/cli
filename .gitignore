@@ -1,5 +1,6 @@
 # Used by the pull-schema script
 scripts/
+bin/
 
 # generated types
 # graphql-schema.json
