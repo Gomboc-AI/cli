@@ -6,7 +6,10 @@ on:
 
 jobs:
   pull-schema:
-    uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullScanAPISchema.yml@main
+    uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullGraphqlSchema.yml@main
+    with:
+      ECR_SERVICE: 'scanapi'
+      ROLE_SERVICE: 'cli-dev'
 
   publish:
     needs: pull-schema
