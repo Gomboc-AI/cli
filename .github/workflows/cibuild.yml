@@ -15,7 +15,7 @@ jobs:
   pull-schema:
     uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullGraphqlSchema.yml@main
     with:
-      STAGE: "scanapi"
+      SERVICE_NAME: "scanapi"
 
   cibuild:
     name: CI Build
