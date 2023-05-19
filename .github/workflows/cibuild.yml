@@ -1,4 +1,4 @@
-name: Gomboc.ai CloudFormation CLI CI Build
+name: Gomboc.ai CloudFormation CLI test suite
 
 permissions:
   id-token: write
@@ -12,19 +12,114 @@ on:
     branches: ["main"]
 
 jobs:
-  ci-build:
-    if: false
+  pull-schema:
+    uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullGraphqlSchema.yml@main
+    with:
+      STAGE: "scanapi"
+
+  cibuild:
     name: CI Build
+    needs: pull-schema
     runs-on: ubuntu-latest
     env:
+      FORCE_COLOR: 3
       CONFIGS: tests/configs
+      OUTPUTS: tests/outputs
+      SUCCESS: 0
+      INVALID_CONFIG_FILE: 10
+      VIOLATIONS_FOUND: 20
+      SIDE_EFFECTS_FAILED: 30
+      CLIENT_ERROR: 98
+      SERVER_ERROR: 99
+      NO_TEMPLATES_FOUND: 101
+      TEMPLATE_ERROR: 102
+      INVALID_PLAN_FILE: 201
+      NO_CONFIGURATION_FILES_FOUND: 202
     steps:
-    - name: "Download artifact"
-      run: |
-        OTHER_REPO="Gomboc-AI/ScanAPI"
-        WF_NAME="wf_name"
-        ARTIFACT_NAME="test.json"
-        LAST_RUN_ID=`gh run --repo ${OTHER_REPO} list --workflow ${WF_NAME} --json databaseId --jq .[0].databaseId`
-        gh run --repo ${OTHER_REPO} download ${LAST_RUN_ID} -n ${ARTIFACT_NAME}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      
+      - run: npm i
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: graphql-schema
+          path: _graphql/schema.json
+
+      - run: apollo codegen:generate \
+          --localSchemaFile=_graphql/schema.json \
+          --target=typescript \
+          --tagName=gql \
+          --queries='src/apiclient/*.ts' \
+          --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
+
+      - run: npm run build
+
+      - run: npm run lint
+
+      - run: npm install -g .
+
+      - name: Get OIDC token 
+        id: get-oidc-token
+        run: |
+          echo "ID_TOKEN=$(curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | python -c "import sys, json; print(json.load(sys.stdin)['value'])")" >> $GITHUB_OUTPUT
+
+      - name: Settings 
+        run: |
+          chmod 755 ./tests/scripts/wipe-json-property-value.sh
+          chmod 755 ./tests/scripts/assert-code.sh
+          chmod 755 ./tests/scripts/assert-output.sh
+          set -e
+      
+      - name: Test malformed config file
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CONFIGS/malformed-yaml.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
+
+      - name: Test non existing config file
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config this-file-does-not-exist.exe --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
+
+      - name: Test config without search patterns
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CONFIGS/no-search-patterns.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
+
+      - name: Test config without policy
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CONFIGS/no-policies.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
+
+      - name: Test config with no templates found
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CONFIGS/no-templates-found.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE $NO_TEMPLATES_FOUND
+
+      - name: Test single JSON template with violations (001)
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CONFIGS/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
+          ./tests/scripts/assert-output.sh output.json $OUTPUTS/001.json
+
+      - name: Test single YAML template with violations (002)
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CONFIGS/002.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
+          ./tests/scripts/assert-output.sh output.json $OUTPUTS/002.json
+
+      - name: Test matching a random json (not a cfn template)
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CONFIGS/match-not-a-cfn-template.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          ./tests/scripts/assert-code.sh $EXIT_CODE $TEMPLATE_ERROR

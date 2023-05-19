@@ -5,31 +5,42 @@ on:
     types: [created]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - run: npm run build
-      - run: npm ci
-      - run: npm test
+  pull-schema:
+    uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullGraphqlSchema.yml@main
+    with:
+      SERVICE_NAME: "scanapi"
 
-  publish-gpr:
-    needs: build
+  publish:
+    needs: pull-schema
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-          registry-url: https://npm.pkg.github.com/
+
+      - run: npm i
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: graphql-schema
+          path: _graphql/schema.json
+
+      - run: apollo codegen:generate \
+          --localSchemaFile=_graphql/schema.json \
+          --target=typescript \
+          --tagName=gql \
+          --queries='src/apiclient/*.ts' \
+          --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
+
       - run: npm run build
+
       - run: npm ci
+
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
