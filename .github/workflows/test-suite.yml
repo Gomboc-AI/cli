@@ -55,6 +55,11 @@ jobs:
         run: |
           echo "ID_TOKEN=$(curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | python -c "import sys, json; print(json.load(sys.stdin)['value'])")" >> $GITHUB_OUTPUT
 
+      - name: Runs integration tests
+        uses: Gomboc-AI/ReusableWorkflows/.github/workflows/cliIntegrationTests.yml@main
+        with:
+          AUTH_TOKEN: ${{ steps.get-oidc-token.outputs.ID_TOKEN }}
+
       - name: Settings 
         run: |
           chmod 755 ./tests/scripts/wipe-json-property-value.sh

@@ -69,8 +69,7 @@ const findSensitives = (breadcrumbs: TfPlanBreadcrumbs, isSensitive: any, sensit
     })
   } else if (isSensitive instanceof Object) {
     for (const [key, _] of Object.entries(isSensitive)) {
-      const bc = [...breadcrumbs] 
-      bc.push(key)
+      const bc = [...breadcrumbs, key] 
       findSensitives(bc, isSensitive[key], sensitives)
     }
   }
