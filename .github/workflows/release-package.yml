@@ -7,8 +7,6 @@ on:
 jobs:
   pull-schema:
     uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullScanAPISchema.yml@main
-    with:
-      SERVICE_NAME: "scanapi"
 
   publish:
     needs: pull-schema
