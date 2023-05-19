@@ -1,7 +1,7 @@
-import { scanCfn, ScanCfnInput } from "./cfn.js"
-import { scanTf, ScanTfInput } from "./tf.js"
+import { scanCfn, ScanCfnInput } from "../services/cloudformation.js"
+import { scanTf, ScanTfInput } from "../services/terraform.js"
 import { ExitCode } from "./exitCodes.js"
-import { ActionCommand, ServiceCommand, ClientCommand } from "./cliCommands.js"
+import { ActionCommand, ServiceCommand, ClientCommand } from "./commands.js"
 
 
 const getCommonInputs = (argv: any): ScanCfnInput | ScanTfInput => {
@@ -73,15 +73,12 @@ const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void =>
 
 export const cliCheck = async (argv?: any): Promise<ExitCode> => {
   const inputs: ScanCfnInput | ScanTfInput = getCommonInputs(argv)
-  const cmd1 = argv._[0]
-  if(cmd1 === ActionCommand.SCAN) {
+  const command = argv._[0]
+  if(command === ActionCommand.SCAN) {
     // Add client specific inputs
     const client = argv._[2]
-    if(client === ClientCommand.GITHUB) {
-      addGitHubInputs(inputs, argv)
-    } else if(client === ClientCommand.GITLAB) {
-      addGitLabInputs(inputs, argv)
-    }
+    if(client === ClientCommand.GITHUB) { addGitHubInputs(inputs, argv) }
+    else if(client === ClientCommand.GITLAB) { addGitLabInputs(inputs, argv) }
 
     // Add service specific inputs and call scans
     const service = argv._[1]

@@ -1,12 +1,10 @@
 #! /usr/bin/env node
 
-import { hideBin } from 'yargs/helpers'
-import { cliCheck } from './cli.js'
-
-import { ActionCommand, ServiceCommand, ClientCommand } from './cliCommands.js'
-import { hl } from './consoleUtils.js'
-
 import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
+import { cliCheck } from './cli/interface.js'
+
+import { ActionCommand, ServiceCommand, ClientCommand } from './cli/commands.js'
 
 
 const addGitHubOptionsBuilder = (yargs: any) => {
@@ -99,8 +97,6 @@ const addGitLabOptionsBuilder = (yargs: any) => {
     demandOption: false
   })
 }
-
-const usage = ""
 
 // Setting CLI command and options
 await yargs(hideBin(process.argv))

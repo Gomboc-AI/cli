@@ -11,7 +11,7 @@ import { ScanCfnTemplate, ScanCfnTemplateVariables, ScanCfnTemplate_scanCfnTempl
 import { scanCfnQuery } from './scanCloudformationTemplate.js'
 import { scanTfQuery } from './scanTerraformPlan.js'
 
-import { CLI_VERSION } from '../cliVersion.js';
+import { CLI_VERSION } from '../cli/version.js';
 
 export class Client {
     url: string

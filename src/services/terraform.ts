@@ -5,19 +5,19 @@ import { dirname, join, extname } from 'path'
 import { zip, COMPRESSION_LEVEL } from 'zip-a-folder'
 import { modifyPath } from 'ramda'
 
-import { GitHubOptions, GitLabOptions, ScanPolicy } from './apiclient/__generated__/GlobalTypes.js'
-import { ScanTfPlan_scanTfPlanExt } from './apiclient/__generated__/ScanTfPlan.js'
-import { ScanTfPlan_scanTfPlanExt_result_complianceObservations_policyStatement } from './apiclient/__generated__/ScanTfPlan.js'
-import { ScanTfPlan_scanTfPlanExt_result_violationObservations_policyStatement } from './apiclient/__generated__/ScanTfPlan.js'
-import { CreateTransformationFragmentTf } from './apiclient/__generated__/CreateTransformationFragmentTf.js'
-import { UpdateTransformationFragmentTf } from './apiclient/__generated__/UpdateTransformationFragmentTf.js'
-import { DeleteTransformationFragmentTf } from './apiclient/__generated__/DeleteTransformationFragmentTf.js'
+import { GitHubOptions, GitLabOptions, ScanPolicy } from '../apiclient/__generated__/GlobalTypes.js'
+import { ScanTfPlan_scanTfPlanExt } from '../apiclient/__generated__/ScanTfPlan.js'
+import { ScanTfPlan_scanTfPlanExt_result_complianceObservations_policyStatement } from '../apiclient/__generated__/ScanTfPlan.js'
+import { ScanTfPlan_scanTfPlanExt_result_violationObservations_policyStatement } from '../apiclient/__generated__/ScanTfPlan.js'
+import { CreateTransformationFragmentTf } from '../apiclient/__generated__/CreateTransformationFragmentTf.js'
+import { UpdateTransformationFragmentTf } from '../apiclient/__generated__/UpdateTransformationFragmentTf.js'
+import { DeleteTransformationFragmentTf } from '../apiclient/__generated__/DeleteTransformationFragmentTf.js'
 
-import { Client } from './apiclient/client.js'
-import { ConsoleLogger } from './ConsoleLogger.js'
-import { ExitCode } from './exitCodes.js'
-import { hl, checkMark, crossMark, exclamationMark, formatTitle } from './consoleUtils.js'
-import { ConfigParser } from './ConfigParser.js'
+import { Client } from '../apiclient/client.js'
+import { ConsoleLogger } from '../utils/ConsoleLogger.js'
+import { ExitCode } from '../cli/exitCodes.js'
+import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
+import { ConfigParser } from '../utils/ConfigParser.js'
 
 
 export interface ScanTfInput {
@@ -195,7 +195,6 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
   cl._log('')
 
-  //cl.log(`Results for proposed plan${hl(results.filePath)} ${checkMark}\n`)
   cl.log(`Results for proposed plan ${checkMark}\n`)
   // Print violation observations
   if(scan.result.violationObservations.length > 0) {

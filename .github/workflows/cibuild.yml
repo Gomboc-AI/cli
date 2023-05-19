@@ -1,0 +1,29 @@
+name: Gomboc.ai CloudFormation CLI CI Build
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  pull_request:
+    branches: ["main"]
+
+  push:
+    branches: ["main"]
+
+jobs:
+  ci-build:
+    name: CI Build
+    runs-on: ubuntu-latest
+    env:
+      CONFIGS: tests/configs
+    steps:
+    - name: "Download artifact"
+      run: |
+        OTHER_REPO="Gomboc-AI/ScanAPI"
+        WF_NAME="wf_name"
+        ARTIFACT_NAME="test.json"
+        LAST_RUN_ID=`gh run --repo ${OTHER_REPO} list --workflow ${WF_NAME} --json databaseId --jq .[0].databaseId`
+        gh run --repo ${OTHER_REPO} download ${LAST_RUN_ID} -n ${ARTIFACT_NAME}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

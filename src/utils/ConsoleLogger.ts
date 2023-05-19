@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 
-import { ExitCode } from './exitCodes.js';
+import { ExitCode } from '../cli/exitCodes.js';
 
 
 export class ConsoleLogger {

@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "exit 0",
-    "prebuild": "node -p \"'export const CLI_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/cliVersion.ts",
+    "prebuild": "node -p \"'export const CLI_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/cli/version.ts",
+    "lint": "",
     "build": "tsc"
   },
   "repository": {
@@ -31,6 +32,7 @@
     "@types/react": "^18.2.0",
     "@types/yargs": "^17.0.24",
     "apollo": "^2.34.0",
+    "eslint": "^8.40.0",
     "prettier": "^2.8.8",
     "typescript": "^5.0.4"
   },

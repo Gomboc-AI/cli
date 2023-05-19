@@ -1,8 +1,8 @@
 #! /usr/bin/env node
-import { hideBin } from 'yargs/helpers';
-import { cliCheck } from './cli.js';
-import { ActionCommand, ServiceCommand, ClientCommand } from './cliCommands.js';
 import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import { cliCheck } from './cli/interface.js';
+import { ActionCommand, ServiceCommand, ClientCommand } from './cli/commands.js';
 const addGitHubOptionsBuilder = (yargs) => {
     yargs.option("access-token", {
         describe: "Access token",
@@ -92,7 +92,6 @@ const addGitLabOptionsBuilder = (yargs) => {
         demandOption: false
     });
 };
-const usage = "";
 // Setting CLI command and options
 await yargs(hideBin(process.argv))
     .usage('Usage: gomboc scan [service] [client] <options>')
