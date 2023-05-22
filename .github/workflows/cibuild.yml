@@ -43,16 +43,15 @@ jobs:
         with:
           node-version: 16
       
-      - run: npm install -g apollo
-      - run: npm install -g graphql
-
       - uses: actions/download-artifact@v3
         with:
           name: graphql-schema
       
-      - run: ls
-
-      - run: apollo codegen:generate --localSchemaFile=schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
+      - name: Generate types
+        run: |
+          npm install -g apollo
+          npm install -g graphql
+          apollo codegen:generate --localSchemaFile=schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
 
       - run: npm i
 
