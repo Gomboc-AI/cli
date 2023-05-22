@@ -53,13 +53,12 @@ jobs:
           npm install -g graphql
           apollo codegen:generate --localSchemaFile=schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
 
-      - run: npm i
-
-      - run: npm run build
-
-      - run: npm run lint
-
-      - run: npm install -g .
+      - name: Build, lint and install CLI
+        run: |
+          npm i
+          npm run build
+          npm run lint
+          npm install -g .
 
       - name: Get OIDC token 
         id: get-oidc-token

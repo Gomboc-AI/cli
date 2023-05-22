@@ -24,22 +24,21 @@ jobs:
         with:
           node-version: 16.20.0
 
-      - run: npm i
-
       - uses: actions/download-artifact@v3
         with:
           name: graphql-schema
-          path: _graphql/schema.json
+      
+      - name: Generate types
+        run: |
+          npm install -g apollo
+          npm install -g graphql
+          apollo codegen:generate --localSchemaFile=schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
 
-      - run: apollo codegen:generate \
-          --localSchemaFile=_graphql/schema.json \
-          --target=typescript \
-          --tagName=gql \
-          --queries='src/apiclient/*.ts' \
-          --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
-
-      - run: npm run build
-
+      - name: Build, lint and install CLI
+        run: |
+          npm i
+          npm run build
+          
       - run: npm ci
 
       - run: npm publish
