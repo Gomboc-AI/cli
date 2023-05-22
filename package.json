@@ -1,0 +1,49 @@
+{
+  "name": "@gomboc-ai/cli",
+  "version": "0.0.5",
+  "description": "",
+  "type": "module",
+  "main": "bin/index.js",
+  "bin": {
+    "gomboc": "bin/index.js"
+  },
+  "scripts": {
+    "test": "exit 0",
+    "prebuild": "node -p \"'export const CLI_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/cli/version.ts",
+    "lint": "",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gomboc-AI/cli-dev.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gomboc-AI/cli-dev/issues"
+  },
+  "homepage": "https://github.com/Gomboc-AI/cli-dev#readme",
+  "publishConfig": {
+    "@Gomboc-AI:registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.2",
+    "@types/ramda": "^0.29.1",
+    "@types/react": "^18.2.0",
+    "@types/yargs": "^17.0.24",
+    "apollo": "^2.34.0",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.7.10",
+    "chalk": "^5.2.0",
+    "cross-fetch": "^3.1.5",
+    "glob": "^10.2.2",
+    "graphql": "^16.6.0",
+    "graphql-tag": "^2.12.6",
+    "ramda": "^0.29.0",
+    "yaml": "^2.2.2",
+    "yargs": "^17.7.2",
+    "zip-a-folder": "^1.1.5"
+  }
+}

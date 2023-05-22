@@ -1,0 +1,12 @@
+policies: 
+  must-implement:
+    - Deletion Protection
+    - API Key Authentication
+    - Provisioned Capacity
+    - Request Tracing
+
+options:
+  search-pattern:
+    - 'tests/templates/violations-002.yml'
+  ignore-pattern:
+    - 'my-private-directory/*'

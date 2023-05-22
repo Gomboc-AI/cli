@@ -1,0 +1,10 @@
+policies: 
+  must-implement:
+    - Deletion Protection
+    - API Key Authentication
+    - Provisioned Capacity
+    - Request Tracing
+
+options:
+  ignore-pattern:
+    - 'my-private-directory/*'

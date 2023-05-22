@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "declaration": true,
+    "outDir": "bin",
+    "strict": true
+  },
+  "baseUrl": ".src",
+  "paths": {
+    "@/*": ["./src/*"]
+  },
+  "allowSyntheticDefaultImports": true,
+  "esModuleInterop": true,
+  "include": ["src"],
+  "exclude": ["bin", "node_modules", "**/__tests__/*"]
+}
