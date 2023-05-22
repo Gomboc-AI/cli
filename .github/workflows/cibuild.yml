@@ -45,6 +45,8 @@ jobs:
       
       - run: npm i
 
+      - run: npm i -g apollo
+
       - uses: actions/download-artifact@v3
         with:
           name: graphql-schema
