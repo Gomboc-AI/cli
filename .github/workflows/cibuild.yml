@@ -45,16 +45,12 @@ jobs:
       
       - run: npm i
 
-      - run: npm i -g apollo
-
-      - run: npm install -g graphql
-
       - uses: actions/download-artifact@v3
         with:
           name: graphql-schema
           path: _graphql/schema.json
 
-      - run: apollo codegen:generate \
+      - run: ./node_modules/.bin/apollo codegen:generate \
           --localSchemaFile=_graphql/schema.json \
           --target=typescript \
           --tagName=gql \
