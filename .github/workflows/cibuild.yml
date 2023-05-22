@@ -49,6 +49,9 @@ jobs:
         with:
           name: graphql-schema
           path: schema.graphql
+      
+      - run: ls -R
+        working-directory: schema.graphql
 
       - run: ./node_modules/.bin/apollo codegen:generate --localSchemaFile=schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
 
