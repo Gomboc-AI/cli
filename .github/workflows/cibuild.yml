@@ -105,7 +105,6 @@ jobs:
       - name: Test single JSON template with violations (001)
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation github --config $CONFIGS/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }}
           gomboc scan cloudformation github --config $CONFIGS/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
           ./tests/scripts/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
           ./tests/scripts/assert-output.sh output.json $OUTPUTS/001.json
