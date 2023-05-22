@@ -1,5 +1,10 @@
 # Used by the pull-schema script
-graphql-schema.json
+scripts/
+bin/
+
+# generated types
+# graphql-schema.json
+src/apiclient/__generated__/
 
 # Logs
 logs

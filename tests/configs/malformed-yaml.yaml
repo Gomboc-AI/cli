@@ -1,0 +1,11 @@
+policies: 
+  must-implement
+    - Deletion Protection
+    - API Key Authentication
+    - Provisioned Capacity
+
+options:
+  search-pattern:
+    - 'tests/templates/violations-001.json'
+  ignore-pattern:
+    - 'my-private-directory/*'

@@ -10,33 +10,23 @@ export const MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT = gql`
   }
 `
 
-export const DELETE_TRANSFORMATION_FRAGMENT_CFN = gql`
-  fragment DeleteTransformationFragmentCfn on DeleteTransformation {
+export const DELETE_TRANSFORMATION_FRAGMENT_TF = gql`
+  fragment DeleteTransformationFragmentTf on DeleteTransformation {
     __typename
     property
     logicalResource {
+      filePath
       line
       name
     }
   }
 `
 
-export const UPDATE_TRANSFORMATION_FRAGMENT_CFN = gql`
-  fragment UpdateTransformationFragmentCfn on UpdateTransformation {
+export const UPDATE_TRANSFORMATION_FRAGMENT_TF = gql`
+  fragment UpdateTransformationFragmentTf on UpdateTransformation {
     __typename
     logicalResource {
-      line
-      name
-    }
-    property
-    value
-  }
-`
-
-export const CREATE_TRANSFORMATION_FRAGMENT_CFN = gql`
-  fragment CreateTransformationFragmentCfn on CreateTransformation {
-    __typename
-    logicalResource {
+      filePath
       line
       name
     }
@@ -45,13 +35,26 @@ export const CREATE_TRANSFORMATION_FRAGMENT_CFN = gql`
   }
 `
 
-export const scanCfnQuery = gql` 
+export const CREATE_TRANSFORMATION_FRAGMENT_TF = gql`
+  fragment CreateTransformationFragmentTf on CreateTransformation {
+    __typename
+    logicalResource {
+      filePath
+      line
+      name
+    }
+    property
+    value
+  }
+`
+
+export const scanTfQuery = gql` 
   ${MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT}
-  ${DELETE_TRANSFORMATION_FRAGMENT_CFN}
-  ${UPDATE_TRANSFORMATION_FRAGMENT_CFN}
-  ${CREATE_TRANSFORMATION_FRAGMENT_CFN}
-  query ScanCfnTemplate($templates: [TemplatePayload!]!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions, $secretAccessKey: String) {
-    scanCfnTemplateExt(templates: $templates, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions, secretAccessKey: $secretAccessKey) {
+  ${DELETE_TRANSFORMATION_FRAGMENT_TF}
+  ${UPDATE_TRANSFORMATION_FRAGMENT_TF}
+  ${CREATE_TRANSFORMATION_FRAGMENT_TF}
+  query ScanTfPlan($plan: String!, $workingDirectory: String!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions, $secretAccessKey: String) {
+    scanTfPlanExt(plan: $plan, workingDirectory: $workingDirectory, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions, secretAccessKey: $secretAccessKey) {
       scanMeta {
         timestamp
         scanId
@@ -60,11 +63,10 @@ export const scanCfnQuery = gql`
       sideEffectsResult {
         success
       }
-      results {
-        filePath
-        error
+      result {
         complianceObservations {
           logicalResource {
+            filePath
             line
             name
           }
@@ -79,11 +81,12 @@ export const scanCfnQuery = gql`
           trivialRemediation {
             id
             resolvesWithTransformations {
-              ...CreateTransformationFragmentCfn
-              ...UpdateTransformationFragmentCfn
-              ...DeleteTransformationFragmentCfn
+              ...CreateTransformationFragmentTf
+              ...UpdateTransformationFragmentTf
+              ...DeleteTransformationFragmentTf
             }
             appliesToLogicalResource {
+              filePath
               line
               name
             }
@@ -91,11 +94,13 @@ export const scanCfnQuery = gql`
           nonTrivialRemediation {
             id
             appliesToLogicalResource {
+              filePath
               line
               name
             }
           }
           logicalResource {
+            filePath
             line
             name
           }
