@@ -47,12 +47,11 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: _graphql
+          name: graphql-schema
       
-      - run: ls -R
-        working-directory: _graphql
+      - run: ls
 
-      - run: ./node_modules/.bin/apollo codegen:generate --localSchemaFile=_graphql/schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
+      - run: ./node_modules/.bin/apollo codegen:generate --localSchemaFile=schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
 
       - run: npm run build
 
