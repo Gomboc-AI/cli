@@ -26,7 +26,9 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16.20.0
+          node-version: '16.x'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@Gomboc-AI'
 
       - uses: actions/download-artifact@v3
         with:
@@ -39,9 +41,7 @@ jobs:
           apollo codegen:generate --localSchemaFile=schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
 
       - name: Build, lint and install CLI
-        run: |
-          npm i
-          npm run build
+        run: npm run build
           
       - run: npm ci
 
