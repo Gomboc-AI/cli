@@ -1,5 +1,9 @@
 name: Node.js Package
 
+permissions:
+  id-token: write
+  contents: read
+
 on:
   release:
     types: [created]
