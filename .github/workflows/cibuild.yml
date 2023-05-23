@@ -16,7 +16,7 @@ jobs:
     uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullGraphqlSchema.yml@main
     with:
       ECR_SERVICE: 'scanapi'
-      ROLE_SERVICE: 'cli-dev'
+      ROLE_SERVICE: ${{ github.event.repository.name }}
 
   cibuild:
     name: CI Build

@@ -1,5 +1,9 @@
 name: Node.js Package
 
+permissions:
+  id-token: write
+  contents: read
+
 on:
   release:
     types: [created]
@@ -9,7 +13,7 @@ jobs:
     uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullGraphqlSchema.yml@main
     with:
       ECR_SERVICE: 'scanapi'
-      ROLE_SERVICE: 'cli-dev'
+      ROLE_SERVICE: ${{ github.event.repository.name }}
 
   publish:
     needs: pull-schema
