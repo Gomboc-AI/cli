@@ -1,9 +1,5 @@
 name: Gomboc.ai CloudFormation CLI test suite
 
-permissions:
-  id-token: write
-  contents: read
-
 on:
   pull_request:
     branches: ["main"]
@@ -22,6 +18,9 @@ jobs:
     name: CI Build
     needs: pull-schema
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     env:
       FORCE_COLOR: 3
       CONFIGS: tests/configs
