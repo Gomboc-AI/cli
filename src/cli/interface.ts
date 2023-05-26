@@ -73,6 +73,7 @@ const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void =>
 
 export const cliCheck = async (argv?: any): Promise<ExitCode> => {
   const inputs: ScanCfnInput | ScanTfInput = getCommonInputs(argv)
+
   const command = argv._[0]
   if(command === ActionCommand.SCAN) {
     // Add client specific inputs
