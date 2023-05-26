@@ -29,6 +29,7 @@ export interface ScanTfInput {
   workingDirectory: string
   gitHubOptions?: GitHubOptions
   gitLabOptions?: GitLabOptions
+  secretAccessKey?: string
 }
 
 const readablePolicyStatement = (policyStatement: ScanTfPlan_scanTfPlanExt_result_complianceObservations_policyStatement | ScanTfPlan_scanTfPlanExt_result_violationObservations_policyStatement): String => {
@@ -177,7 +178,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
 
   try {
     const client = new Client(inputs.apiUrl, inputs.authToken)
-    scan = await client.scanTfPlan(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, policy, inputs.gitHubOptions, inputs.gitLabOptions)
+    scan = await client.scanTfPlan(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e)
     return ExitCode.SERVER_ERROR
