@@ -36,7 +36,7 @@ const readablePolicyStatement = (policyStatement: ScanCfnTemplate_scanCfnTemplat
 
 const readableTransformation = (transformation: CreateTransformationFragmentCfn | UpdateTransformationFragmentCfn | DeleteTransformationFragmentCfn): String => {
   // Get a human readable instruction for Create, Update, and Delete transformations
-  const at = `At ${transformation.logicalResource.name} (l.${transformation.logicalResource.line})`
+  const at = `At ${hl(transformation.logicalResource.name)} (l.${transformation.logicalResource.line})`
   if(transformation.__typename === 'DeleteTransformation'){
     return `${at}: Delete property "${hl(transformation.property)}"`
   } else {
@@ -115,16 +115,16 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     return ExitCode.SERVER_ERROR
   }
 
-  if(scan.sideEffectsResult?.success===false){
-    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`)
-    return ExitCode.SIDE_EFFECTS_FAILED
-  }
-
-  cl.log(`Successful scan ${checkMark}\n`)
+  cl.log(`Scan completed ${checkMark}\n`)
   cl._log(`ID: ${hl(scan!.scanMeta!.scanId)}`)
   cl._log(`Timestamp: ${hl(scan!.scanMeta!.timestamp)}`)
   cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
   cl._log('')
+
+  if(scan.sideEffectsResult?.success===false){
+    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`)
+    return ExitCode.SIDE_EFFECTS_FAILED
+  }
 
   for (const result of scan!.results) {
     cl.log(`Results for ${hl(result.filePath)} ${checkMark}\n`)

@@ -1,7 +1,10 @@
 # Used by the pull-schema script
-scripts/
+/scripts/
 bin/
 .npmrc
+**/.terraform/
+**/.terraform*
+**/*_FUTURE*
 
 # generated types
 # graphql-schema.json

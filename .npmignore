@@ -1,3 +1,6 @@
 tests/
 src/
+scripts/
 tsconfig.json
+.github/
+.eslintrc.js
