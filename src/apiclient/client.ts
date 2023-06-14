@@ -10,8 +10,10 @@ import { ScanTfPlan, ScanTfPlanVariables, ScanTfPlan_scanTfPlanExt } from "./__g
 import { ScanCfnTemplate, ScanCfnTemplateVariables, ScanCfnTemplate_scanCfnTemplateExt } from "./__generated__/ScanCfnTemplate.js";
 import { scanCfnQuery } from './scanCloudformationTemplate.js'
 import { scanTfQuery } from './scanTerraformPlan.js'
+import { callLighthouseQuery } from './callLighthouse.js'
 
 import { CLI_VERSION } from '../cli/version.js';
+import { CallLighthouse, CallLighthouse_lighthouse } from './__generated__/CallLighthouse.js';
 
 export class Client {
     url: string
@@ -41,6 +43,14 @@ export class Client {
             link: authLink.concat(httpLink),
             cache: new InMemoryCache()
         })
+    }
+
+    async callLighthouse(): Promise<CallLighthouse_lighthouse[]> {
+        // Returns a list of lighthouse messages
+        const { data } : { data: CallLighthouse} = await this.client.query<CallLighthouse>({
+            query: callLighthouseQuery
+        })
+        return data.lighthouse
     }
 
     async scanCfnTemplate(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplate_scanCfnTemplateExt> {

@@ -18,6 +18,7 @@ import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
+import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js'
 
 
 export interface ScanTfInput {
@@ -97,6 +98,14 @@ const sanitizedTfPlanObject = (filePath: string): any => {
 
 export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   let exitCode = ExitCode.SUCCESS
+  
+  const client = new Client(inputs.apiUrl, inputs.authToken)
+  let lighthouseMessages: CallLighthouse_lighthouse[]
+  try {
+    lighthouseMessages = await client.callLighthouse()
+  } catch (e: any) {
+    lighthouseMessages = []
+  }
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
@@ -114,7 +123,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
     configParser = new ConfigParser(inputs.config)
     mustImplementCapabilities = configParser.getMustImplementCapabilities()
   } catch (e: any) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
+    cl.err(ExitCode.INVALID_CONFIG_FILE, e, lighthouseMessages)
     return ExitCode.INVALID_CONFIG_FILE
   }
 
@@ -126,7 +135,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   const tfPlanObjectJsonB64 = Buffer.from(tfPlanObjectJsonStr).toString("base64");
 
   if (extname(inputs.plan.toLowerCase()) !== '.json') {
-    cl.err(ExitCode.INVALID_PLAN_FILE, `Plan file must have a JSON extension`)
+    cl.err(ExitCode.INVALID_PLAN_FILE, `Plan file must have a JSON extension`, lighthouseMessages)
     return ExitCode.INVALID_PLAN_FILE
   }
 
@@ -138,7 +147,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   const configFiles = await glob(join('.', cwd, '**/*.tf'))
   const configFilesCount = configFiles.length
   if(configFilesCount === 0){
-    cl.err(ExitCode.NO_CONFIGURATION_FILES_FOUND, `Did not find any configuration files`)
+    cl.err(ExitCode.NO_CONFIGURATION_FILES_FOUND, `Did not find any configuration files`, lighthouseMessages)
     return ExitCode.NO_CONFIGURATION_FILES_FOUND 
   } else {
     cl._log(`Terraform configuration files: ${hl(configFilesCount)} ${checkMark}`)
@@ -181,10 +190,10 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   let scan: ScanTfPlan_scanTfPlanExt
 
   try {
-    const client = new Client(inputs.apiUrl, inputs.authToken)
     scan = await client.scanTfPlan(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
-    cl.err(ExitCode.SERVER_ERROR, e)
+    cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
+    //cl.allLighthouseMessages(lighthouseMessages)
     return ExitCode.SERVER_ERROR
   }
 
@@ -195,7 +204,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   cl._log('')
 
   if(scan.sideEffectsResult?.success===false){
-    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`)
+    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
     return ExitCode.SIDE_EFFECTS_FAILED
   }
 
@@ -233,9 +242,13 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   }
   if(inputs.output === 'json'){
     console.log(JSON.stringify(scan!, null, 2))
+  } else {
+    if(exitCode === ExitCode.VIOLATIONS_FOUND){
+      cl.err(ExitCode.VIOLATIONS_FOUND, `The plan contains one or more violations`, [])
+    }
+    // We print these now, even if there were no violations
+    cl.allLighthouseMessages(lighthouseMessages)
   }
-  if(exitCode === ExitCode.VIOLATIONS_FOUND){
-    cl.err(ExitCode.VIOLATIONS_FOUND, `The plan contains one or more violations`)
-  }
+
   return exitCode
 }

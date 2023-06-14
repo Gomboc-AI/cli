@@ -3,7 +3,7 @@ import { glob } from 'glob'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from '../apiclient/__generated__/GlobalTypes.js'
+import { GitHubOptions, GitLabOptions, MessageLevel, ScanPolicy, TemplatePayload } from '../apiclient/__generated__/GlobalTypes.js'
 import { ScanCfnTemplate_scanCfnTemplateExt } from '../apiclient/__generated__/ScanCfnTemplate.js'
 import { ScanCfnTemplate_scanCfnTemplateExt_results_complianceObservations_policyStatement } from '../apiclient/__generated__/ScanCfnTemplate.js'
 import { ScanCfnTemplate_scanCfnTemplateExt_results_violationObservations_policyStatement } from '../apiclient/__generated__/ScanCfnTemplate.js'
@@ -16,6 +16,7 @@ import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
+import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js'
 
 export interface ScanCfnInput {
   authToken?: string
@@ -53,6 +54,14 @@ const readableTransformation = (transformation: CreateTransformationFragmentCfn 
 export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   let exitCode = ExitCode.SUCCESS
 
+  const client = new Client(inputs.apiUrl, inputs.authToken)
+  let lighthouseMessages: CallLighthouse_lighthouse[]
+  try {
+    lighthouseMessages = await client.callLighthouse()
+  } catch (e: any) {
+    lighthouseMessages = []
+  }
+
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
   cl.log(formatTitle('Running Gomboc.ai for CloudFormation'))
@@ -70,7 +79,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     searchPatterns = configParser.getSearchPatterns()
     ignorePatterns = configParser.getIgnorePatterns()
   } catch (e: any) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
+    cl.err(ExitCode.INVALID_CONFIG_FILE, e, lighthouseMessages)
     return ExitCode.INVALID_CONFIG_FILE
   }
 
@@ -78,7 +87,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   const templateFiles = await glob(searchPatterns, { ignore: ignorePatterns })
   const templateCount = templateFiles.length
   if(templateCount === 0){
-    cl.err(ExitCode.NO_TEMPLATES_FOUND, `Did not find any templates`)
+    cl.err(ExitCode.NO_TEMPLATES_FOUND, `Did not find any templates`, lighthouseMessages)
     return ExitCode.NO_TEMPLATES_FOUND 
   } else {
     cl._log(`Cloudformation templates: ${hl(templateCount)} ${checkMark}`)
@@ -108,10 +117,9 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   let scan: ScanCfnTemplate_scanCfnTemplateExt
 
   try {
-    const client = new Client(inputs.apiUrl, inputs.authToken)
     scan = await client.scanCfnTemplate(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
-    cl.err(ExitCode.SERVER_ERROR, e)
+    cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
     return ExitCode.SERVER_ERROR
   }
 
@@ -122,7 +130,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   cl._log('')
 
   if(scan.sideEffectsResult?.success===false){
-    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`)
+    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
     return ExitCode.SIDE_EFFECTS_FAILED
   }
 
@@ -130,7 +138,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     cl.log(`Results for ${hl(result.filePath)} ${checkMark}\n`)
     if(result.error != null) {
       exitCode = ExitCode.TEMPLATE_ERROR
-      cl.err(ExitCode.TEMPLATE_ERROR, result.error)
+      cl.err(ExitCode.TEMPLATE_ERROR, result.error, [])
       cl._log('')
       continue
     }
@@ -168,9 +176,12 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   }
   if(inputs.output === 'json'){
     console.log(JSON.stringify(scan!, null, 2))
-  }
-  if(exitCode === ExitCode.VIOLATIONS_FOUND){
-    cl.err(ExitCode.VIOLATIONS_FOUND, `One or more templates had violations`)
+  } else {
+    if(exitCode === ExitCode.VIOLATIONS_FOUND){
+      cl.err(ExitCode.VIOLATIONS_FOUND, `One or more templates had violations`, [])
+    }
+    // We print these now, even if there were no violations
+    cl.allLighthouseMessages(lighthouseMessages)
   }
   return exitCode
 }

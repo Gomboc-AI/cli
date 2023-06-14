@@ -5,6 +5,9 @@ import { ActionCommand, ServiceCommand, ClientCommand } from "./commands.js"
 
 
 const getCommonInputs = (argv: any): ScanCfnInput | ScanTfInput => {
+  if(process.env.API_URL){
+    console.log(`..:: Running locally at url: ${process.env.API_URL}!`)
+  }
   return {
       authToken: argv.authToken as string,
       secretAccessKey: argv.secretAccessKey as string,
