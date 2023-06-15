@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { glob } from 'glob'
 import { readFileSync } from 'fs'
-import { join } from 'path'
+import { join, basename } from 'path'
 
 import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from '../apiclient/__generated__/GlobalTypes.js'
 import { ScanCfnTemplate_scanCfnTemplateExt } from '../apiclient/__generated__/ScanCfnTemplate.js'
@@ -16,6 +16,7 @@ import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
+import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js'
 
 export interface ScanCfnInput {
   authToken?: string
@@ -27,31 +28,45 @@ export interface ScanCfnInput {
   gitLabOptions?: GitLabOptions
 }
 
-const readablePolicyStatement = (policyStatement: ScanCfnTemplate_scanCfnTemplateExt_results_complianceObservations_policyStatement | ScanCfnTemplate_scanCfnTemplateExt_results_violationObservations_policyStatement): String => {
+const readablePolicyStatement = (policyStatement: ScanCfnTemplate_scanCfnTemplateExt_results_complianceObservations_policyStatement | ScanCfnTemplate_scanCfnTemplateExt_results_violationObservations_policyStatement): string => {
   // Get a human readable policy statement
   const capability = policyStatement.capability.title
   if(policyStatement.__typename === 'MustImplementCapabilityPolicyStatement') { return `Must implement ${capability}` }
   return `unknown policy statement for ${capability}`
 }
 
-const readableTransformation = (transformation: CreateTransformationFragmentCfn | UpdateTransformationFragmentCfn | DeleteTransformationFragmentCfn): String => {
+const readableTransformation = (transformation: CreateTransformationFragmentCfn | UpdateTransformationFragmentCfn | DeleteTransformationFragmentCfn, resourceFileName: string): string => {
+  // Cloudformation transformations receive the file name as a parameter
   // Get a human readable instruction for Create, Update, and Delete transformations
-  const at = `At ${transformation.logicalResource.name} (l.${transformation.logicalResource.line})`
-  if(transformation.__typename === 'DeleteTransformation'){
-    return `${at}: Delete property "${hl(transformation.property)}"`
-  } else {
-    const value = transformation.value ? `value ${hl(transformation.value)}` : 'any value'
-    if(transformation.__typename === 'UpdateTransformation'){
-      return `${at}: Update property ${hl(transformation.property)}" to have ${value}`
-    } else if(transformation.__typename === 'CreateTransformation') {
-      return `${at}: Add a property ${hl(transformation.property)} with ${value}`
-    }
+  const { line: resLine, name: resName } = transformation.logicalResource
+  const at = `At ${hl(resName)} (${resourceFileName}:${resLine})`
+
+  const _formatValue = (value: any): string => {
+    return value ? `value ${hl(value)}` : 'any value'
   }
-  return 'invalid transformation'
+
+  switch(transformation.__typename) {
+    case 'CfnDeleteTransformation':
+      return `${at}: Delete property ${hl(transformation.property)}`
+    case 'CfnUpdateTransformation':
+      return `${at}: Update property ${hl(transformation.property)} to have ${_formatValue(transformation.value)}`
+    case 'CfnCreateTransformation':
+      return `${at}: Add a property ${hl(transformation.property)} with ${_formatValue(transformation.value)}`
+    default:
+      return 'invalid transformation'
+  }
 }
 
 export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   let exitCode = ExitCode.SUCCESS
+
+  const client = new Client(inputs.apiUrl, inputs.authToken)
+  let lighthouseMessages: CallLighthouse_lighthouse[]
+  try {
+    lighthouseMessages = await client.callLighthouse()
+  } catch (e: any) {
+    lighthouseMessages = []
+  }
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
@@ -70,7 +85,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
     searchPatterns = configParser.getSearchPatterns()
     ignorePatterns = configParser.getIgnorePatterns()
   } catch (e: any) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
+    cl.err(ExitCode.INVALID_CONFIG_FILE, e, lighthouseMessages)
     return ExitCode.INVALID_CONFIG_FILE
   }
 
@@ -78,7 +93,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   const templateFiles = await glob(searchPatterns, { ignore: ignorePatterns })
   const templateCount = templateFiles.length
   if(templateCount === 0){
-    cl.err(ExitCode.NO_TEMPLATES_FOUND, `Did not find any templates`)
+    cl.err(ExitCode.NO_TEMPLATES_FOUND, `Did not find any templates`, lighthouseMessages)
     return ExitCode.NO_TEMPLATES_FOUND 
   } else {
     cl._log(`Cloudformation templates: ${hl(templateCount)} ${checkMark}`)
@@ -108,32 +123,32 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   let scan: ScanCfnTemplate_scanCfnTemplateExt
 
   try {
-    const client = new Client(inputs.apiUrl, inputs.authToken)
     scan = await client.scanCfnTemplate(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
-    cl.err(ExitCode.SERVER_ERROR, e)
+    cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
     return ExitCode.SERVER_ERROR
   }
 
-  if(scan.sideEffectsResult?.success===false){
-    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`)
-    return ExitCode.SIDE_EFFECTS_FAILED
-  }
-
-  cl.log(`Successful scan ${checkMark}\n`)
+  cl.log(`Scan completed ${checkMark}\n`)
   cl._log(`ID: ${hl(scan!.scanMeta!.scanId)}`)
   cl._log(`Timestamp: ${hl(scan!.scanMeta!.timestamp)}`)
-  cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
+  //cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
   cl._log('')
+
+  if(scan.sideEffectsResult?.success===false){
+    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
+    return ExitCode.SIDE_EFFECTS_FAILED
+  }
 
   for (const result of scan!.results) {
     cl.log(`Results for ${hl(result.filePath)} ${checkMark}\n`)
     if(result.error != null) {
       exitCode = ExitCode.TEMPLATE_ERROR
-      cl.err(ExitCode.TEMPLATE_ERROR, result.error)
+      cl.err(ExitCode.TEMPLATE_ERROR, result.error, [])
       cl._log('')
       continue
     }
+    const fileName = basename(result.filePath)
     // Print violation observations
     if(result.violationObservations.length > 0) {
       exitCode = ExitCode.VIOLATIONS_FOUND
@@ -141,15 +156,16 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
       result.violationObservations.forEach((observation) => {
         const resource = observation.logicalResource
         const policyStatement = readablePolicyStatement(observation.policyStatement)
-        const statement = `l.${resource.line}: Resource ${hl(resource.name)} violates ${hl(policyStatement)}`
+        const location = `${fileName}:${resource.line}`
+        const statement = `Resource ${hl(resource.name)} (${location}) violates ${hl(policyStatement)}`
         if(observation.trivialRemediation != null){
           cl.__log(`${crossMark} ${statement}. To remediate, do this:`)
           for (const transformation of observation.trivialRemediation.resolvesWithTransformations) {
-            cl.___log(`↪ ${readableTransformation(transformation)}`)
+            cl.___log(`↪ ${readableTransformation(transformation, fileName)}`)
           }
         } else {
-          cl.__log(`${crossMark} ${statement}. There is no trivial remediation:`)
-          cl.___log(`↪ ${scan.scanMeta.portalUrl}`)
+          cl.__log(`${crossMark} ${statement}. The remediation(s) cannot be described in a single line.`)
+          //cl.___log(`↪ ${scan.scanMeta.portalUrl}`)
         }
       })
       cl._log('')
@@ -160,7 +176,8 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
       result.complianceObservations.forEach((observation) => {
         const resource = observation!.logicalResource
         const policyStatement = readablePolicyStatement(observation!.policyStatement)
-        const statement = `l.${resource.line}: Resource ${hl(resource.name)} complies with ${hl(policyStatement)}`
+        const location = `${fileName}:${resource.line}`
+        const statement = `Resource ${hl(resource.name)} (${location}) complies with ${hl(policyStatement)}`
         cl.__log(`${checkMark} ${statement}`)
       })
       cl._log('')
@@ -168,9 +185,12 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   }
   if(inputs.output === 'json'){
     console.log(JSON.stringify(scan!, null, 2))
-  }
-  if(exitCode === ExitCode.VIOLATIONS_FOUND){
-    cl.err(ExitCode.VIOLATIONS_FOUND, `One or more templates had violations`)
+  } else {
+    if(exitCode === ExitCode.VIOLATIONS_FOUND){
+      cl.err(ExitCode.VIOLATIONS_FOUND, `One or more templates had violations`, [])
+    }
+    // We print these now, even if there were no violations
+    cl.allLighthouseMessages(lighthouseMessages)
   }
   return exitCode
 }

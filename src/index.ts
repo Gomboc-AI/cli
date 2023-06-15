@@ -19,12 +19,7 @@ const addGitHubOptionsBuilder = (yargs: any) => {
     demandOption: false
   })
   .option("commit-on-current-branch", {
-    describe: "Commit remediations in existing PR",
-    type: "boolean",
-    demandOption: false
-  })
-  .option("create-comments-with-code-suggestions", {
-    describe: "Create comments with code suggestions",
+    describe: "Commit a remediation in the current branch",
     type: "boolean",
     demandOption: false
   })
@@ -58,16 +53,6 @@ const addGitLabOptionsBuilder = (yargs: any) => {
   })
   .option("create-mr", {
     describe: "Create a Merge Request with remediations",
-    type: "boolean",
-    demandOption: false
-  })
-  .option("commit-on-current-branch", {
-    describe: "Commit remediations in existing MR",
-    type: "boolean",
-    demandOption: false
-  })
-  .option("create-comments-with-code-suggestions", {
-    describe: "Create comments with code suggestions",
     type: "boolean",
     demandOption: false
   })
@@ -111,25 +96,28 @@ await yargs(hideBin(process.argv))
         (yargs) => {
           yargs.command(
             ClientCommand.GITHUB,
-            '\tScan CloudFormation templates on GitHub',
+            '\t...with side effects on GitHub',
             (yargs) => {
               addGitHubOptionsBuilder(yargs)
               yargs.check(async (argv)=>{
                 process.exitCode = await cliCheck(argv) as number
                 return true
-              })
+              }, false)
           })
           .command(
             ClientCommand.GITLAB,
-            '\tScan CloudFormation templates on GitLab',
+            '\t...with side effects on GitLab',
             (yargs) => {
               addGitLabOptionsBuilder(yargs)
               yargs.check(async (argv)=>{
                 process.exitCode = await cliCheck(argv) as number
                 return true
-              })
+              }, false)
             }
-          )
+          ).check(async (argv)=>{
+            process.exitCode = await cliCheck(argv) as number
+            return true
+          }, false)
         }
       ).command(
         ServiceCommand.TERRAFORM,
@@ -137,35 +125,38 @@ await yargs(hideBin(process.argv))
         (yargs) => {
           yargs.command(
             ClientCommand.GITHUB,
-            '\tScan Terraform plan on GitHub',
+            '\t...with side effects on GitHub',
             (yargs) => {
               addGitHubOptionsBuilder(yargs)
               yargs.check(async (argv)=>{
                 process.exitCode = await cliCheck(argv) as number
                 return true
-              })
+              }, false)
           })
           .command(
             ClientCommand.GITLAB,
-            '\tScan Terraform plan on GitLab',
+            '\t...with side effects on GitLab',
             (yargs) => {
               addGitLabOptionsBuilder(yargs)
               yargs.check(async (argv)=>{
                 process.exitCode = await cliCheck(argv) as number
                 return true
-              })
+              }, false)
             }
-          ).option("working-directory", {
+          ).option("tf-directory", {
               describe: "The root directory for the Terraform configuration",
               type: "string",
               default: "",
             }
-          ).option("plan", {
-              describe: "A filepath to a local JSON file describing your Terraform plan (relative to working-directory)",
+          ).option("tf-plan", {
+              describe: "A filepath to a local JSON file describing your Terraform plan (relative to tf-directory)",
               type: "string",
               demandOption: true,
             }
-          )
+          ).check(async (argv)=>{
+            process.exitCode = await cliCheck(argv) as number
+            return true
+          }, false)
         }
       ).option("config", {
         describe: "The filepath to the Gomboc.ai config YAML file",
@@ -188,7 +179,11 @@ await yargs(hideBin(process.argv))
         default: "text",
         demandOption: false,
         choices: ['text', 'json'],
-      })
+      }).check(async (argv)=>{
+        console.log('Missing required command: cloudformation or terraform')
+        process.exitCode = 70
+        return true
+      }, false)
     }
   )
   .demandCommand()
@@ -196,6 +191,7 @@ await yargs(hideBin(process.argv))
   .version()
   .argv
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 const index = async () => {
 }
 

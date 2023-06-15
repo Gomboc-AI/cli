@@ -1,7 +1,10 @@
 # Used by the pull-schema script
-scripts/
+/scripts/
 bin/
 .npmrc
+**/.terraform/
+**/.terraform*
+**/*_FUTURE*
 
 # generated types
 # graphql-schema.json
@@ -137,3 +140,5 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+playground/

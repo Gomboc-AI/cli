@@ -1,4 +1,4 @@
-name: Gomboc.ai CloudFormation CLI test suite
+name: Gomboc.ai CLI test suite
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ jobs:
   pull-schema:
     uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullGraphqlSchema.yml@main
     with:
-      ECR_SERVICE: 'scanapi'
+      ECR_SERVICE: ${{ vars.AWS_ECR_REPO_SCANAPI }}
       ROLE_SERVICE: ${{ github.event.repository.name }}
 
   cibuild:
@@ -20,11 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
     env:
       FORCE_COLOR: 3
-      CONFIGS: tests/configs
-      OUTPUTS: tests/outputs
+      SCRIPTS: ./tests/scripts
+      CFN_CONFIGS: tests/cfn/configs
+      CFN_OUTPUTS: tests/cfn/outputs
+      TF_CONFIGS: tests/tf/configs
+      TF_FILES: tests/tf/files
+      TF_OUTPUTS: tests/cfn/outputs
       SUCCESS: 0
       INVALID_CONFIG_FILE: 10
       VIOLATIONS_FOUND: 20
@@ -66,57 +70,75 @@ jobs:
 
       - name: Settings 
         run: |
-          chmod 755 ./tests/scripts/wipe-json-property-value.sh
-          chmod 755 ./tests/scripts/assert-code.sh
-          chmod 755 ./tests/scripts/assert-output.sh
+          chmod 755 $SCRIPTS/wipe-json-property-value.sh
+          chmod 755 $SCRIPTS/assert-code.sh
+          chmod 755 $SCRIPTS/assert-output.sh
           set -e
       
-      - name: Test malformed config file
+      - name: TF - Test single violation
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation github --config $CONFIGS/malformed-yaml.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
+          gomboc scan terraform github --config $TF_CONFIGS/001.yaml --tf-directory $TF_FILES/violations-001/tf --tf-plan tfplan.json --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
 
-      - name: Test non existing config file
+      - name: TF - Test single violation with side effects
+        run: |
+          EXIT_CODE=0
+          gomboc scan terraform github --config $TF_CONFIGS/001.yaml --tf-directory $TF_FILES/violations-001/tf --tf-plan tfplan.json --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} --create-pr > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
+
+      - name: CFN - Test malformed config file
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CFN_CONFIGS/malformed-yaml.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
+
+      - name: CFN - Test non existing config file
         run: |
           EXIT_CODE=0
           gomboc scan cloudformation github --config this-file-does-not-exist.exe --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
+          $SCRIPTS/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
 
-      - name: Test config without search patterns
+      - name: CFN - Test config without search patterns
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation github --config $CONFIGS/no-search-patterns.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
+          gomboc scan cloudformation github --config $CFN_CONFIGS/no-search-patterns.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
 
-      - name: Test config without policy
+      - name: CFN - Test config without policy
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation github --config $CONFIGS/no-policies.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
+          gomboc scan cloudformation github --config $CFN_CONFIGS/no-policies.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $INVALID_CONFIG_FILE
 
-      - name: Test config with no templates found
+      - name: CFN - Test config with no templates found
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation github --config $CONFIGS/no-templates-found.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE $NO_TEMPLATES_FOUND
+          gomboc scan cloudformation github --config $CFN_CONFIGS/no-templates-found.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $NO_TEMPLATES_FOUND
 
-      - name: Test single JSON template with violations (001)
+      - name: CFN - Test single JSON template with violations (001)
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation github --config $CONFIGS/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
-          ./tests/scripts/assert-output.sh output.json $OUTPUTS/001.json
+          gomboc scan cloudformation github --config $CFN_CONFIGS/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
+          $SCRIPTS/assert-output.sh output.json $CFN_OUTPUTS/001.json
 
-      - name: Test single YAML template with violations (002)
+      - name: CFN - Test single JSON template with violations (001) with SIDE EFFECTS
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation github --config $CONFIGS/002.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
-          ./tests/scripts/assert-output.sh output.json $OUTPUTS/002.json
+          gomboc scan cloudformation github --config $CFN_CONFIGS/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} --create-pr > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
 
-      - name: Test matching a random json (not a cfn template)
+      - name: CFN - Test single YAML template with violations (002)
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation github --config $CONFIGS/match-not-a-cfn-template.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
-          ./tests/scripts/assert-code.sh $EXIT_CODE $TEMPLATE_ERROR
+          gomboc scan cloudformation github --config $CFN_CONFIGS/002.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
+          $SCRIPTS/assert-output.sh output.json $CFN_OUTPUTS/002.json
+
+      - name: CFN - Test matching a random json (not a cfn template)
+        run: |
+          EXIT_CODE=0
+          gomboc scan cloudformation github --config $CFN_CONFIGS/match-not-a-cfn-template.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          $SCRIPTS/assert-code.sh $EXIT_CODE $TEMPLATE_ERROR

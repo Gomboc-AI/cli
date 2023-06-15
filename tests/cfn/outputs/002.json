@@ -14,9 +14,9 @@
       "error": null,
       "complianceObservations": [
         {
-          "__typename": "ComplianceObservation",
+          "__typename": "CfnComplianceObservation",
           "logicalResource": {
-            "__typename": "LogicalResource",
+            "__typename": "CfnResource",
             "line": 3,
             "name": "GraphQLApi"
           },
@@ -31,7 +31,7 @@
       ],
       "violationObservations": [
         {
-          "__typename": "ViolationObservation",
+          "__typename": "CfnViolationObservation",
           "policyStatement": {
             "__typename": "MustImplementCapabilityPolicyStatement",
             "capability": {
@@ -40,13 +40,13 @@
             }
           },
           "trivialRemediation": {
-            "__typename": "Remediation",
+            "__typename": "CfnRemediation",
             "id": "",
             "resolvesWithTransformations": [
               {
-                "__typename": "CreateTransformation",
+                "__typename": "CfnCreateTransformation",
                 "logicalResource": {
-                  "__typename": "LogicalResource",
+                  "__typename": "CfnResource",
                   "line": 13,
                   "name": "DDBTable"
                 },
@@ -55,20 +55,20 @@
               }
             ],
             "appliesToLogicalResource": {
-              "__typename": "LogicalResource",
+              "__typename": "CfnResource",
               "line": 13,
               "name": "DDBTable"
             }
           },
           "nonTrivialRemediation": [],
           "logicalResource": {
-            "__typename": "LogicalResource",
+            "__typename": "CfnResource",
             "line": 13,
             "name": "DDBTable"
           }
         },
         {
-          "__typename": "ViolationObservation",
+          "__typename": "CfnViolationObservation",
           "policyStatement": {
             "__typename": "MustImplementCapabilityPolicyStatement",
             "capability": {
@@ -77,13 +77,13 @@
             }
           },
           "trivialRemediation": {
-            "__typename": "Remediation",
+            "__typename": "CfnRemediation",
             "id": "",
             "resolvesWithTransformations": [
               {
-                "__typename": "UpdateTransformation",
+                "__typename": "CfnUpdateTransformation",
                 "logicalResource": {
-                  "__typename": "LogicalResource",
+                  "__typename": "CfnResource",
                   "line": 3,
                   "name": "GraphQLApi"
                 },
@@ -92,14 +92,14 @@
               }
             ],
             "appliesToLogicalResource": {
-              "__typename": "LogicalResource",
+              "__typename": "CfnResource",
               "line": 3,
               "name": "GraphQLApi"
             }
           },
           "nonTrivialRemediation": [],
           "logicalResource": {
-            "__typename": "LogicalResource",
+            "__typename": "CfnResource",
             "line": 3,
             "name": "GraphQLApi"
           }

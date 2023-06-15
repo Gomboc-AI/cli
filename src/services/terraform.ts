@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { glob } from 'glob'
 import { rm, mkdir, readFileSync, writeFile } from 'fs'
-import { dirname, join, extname } from 'path'
+import { dirname, join, extname, relative } from 'path'
 import { zip, COMPRESSION_LEVEL } from 'zip-a-folder'
 import { modifyPath } from 'ramda'
 
@@ -18,6 +18,7 @@ import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
+import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js'
 
 
 export interface ScanTfInput {
@@ -32,27 +33,32 @@ export interface ScanTfInput {
   secretAccessKey?: string
 }
 
-const readablePolicyStatement = (policyStatement: ScanTfPlan_scanTfPlanExt_result_complianceObservations_policyStatement | ScanTfPlan_scanTfPlanExt_result_violationObservations_policyStatement): String => {
+const readablePolicyStatement = (policyStatement: ScanTfPlan_scanTfPlanExt_result_complianceObservations_policyStatement | ScanTfPlan_scanTfPlanExt_result_violationObservations_policyStatement): string => {
   // Get a human readable policy statement
   const capability = policyStatement.capability.title
   if(policyStatement.__typename === 'MustImplementCapabilityPolicyStatement') { return `Must implement ${capability}` }
   return `unknown policy statement for ${capability}`
 }
 
-const readableTransformation = (transformation: CreateTransformationFragmentTf | UpdateTransformationFragmentTf | DeleteTransformationFragmentTf): String => {
+const readableTransformation = (transformation: CreateTransformationFragmentTf | UpdateTransformationFragmentTf | DeleteTransformationFragmentTf): string => {
   // Get a human readable instruction for Create, Update and Delete transformations
-  const at = `At ${transformation.logicalResource.name} (l.${transformation.logicalResource.line})`
-  if(transformation.__typename === 'DeleteTransformation'){
-    return `${at}: Delete property "${hl(transformation.property)}"`
-  } else {
-    const value = transformation.value ? `value ${hl(transformation.value)}` : 'any value'
-    if(transformation.__typename === 'UpdateTransformation'){
-      return `${at}: Update property ${hl(transformation.property)}" to have ${value}`
-    } else if(transformation.__typename === 'CreateTransformation') {
-      return `${at}: Add a property ${hl(transformation.property)} with ${value}`
-    }
+  const { filePath: resFilePath, line: resLine, name: resName } = transformation.logicalResource
+  const at = `At ${hl(resName)} (${resFilePath}:${resLine})`
+
+  const _formatValue = (value: any): string => {
+    return value ? `value ${hl(value)}` : 'any value'
   }
-  return 'invalid transformation'
+
+  switch(transformation.__typename) {
+    case 'TfDeleteTransformation':
+      return `${at}: Delete property ${hl(transformation.property)}`
+    case 'TfUpdateTransformation':
+      return `${at}: Update property ${hl(transformation.property)} to have ${_formatValue(transformation.value)}`
+    case 'TfCreateTransformation':
+      return `${at}: Add a property ${hl(transformation.property)} with ${_formatValue(transformation.value)}`
+    default:
+      return 'invalid transformation'
+  }
 }
 
 type TfPlanBreadcrumbs = Array<number|string>
@@ -97,12 +103,23 @@ const sanitizedTfPlanObject = (filePath: string): any => {
 
 export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   let exitCode = ExitCode.SUCCESS
+  
+  const client = new Client(inputs.apiUrl, inputs.authToken)
+  let lighthouseMessages: CallLighthouse_lighthouse[]
+  try {
+    lighthouseMessages = await client.callLighthouse()
+  } catch (e: any) {
+    lighthouseMessages = []
+  }
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
   cl.log(formatTitle('Running Gomboc.ai for Terraform'))
 
-  cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`)
+  cl._log(`Reading Gomboc configuration: ${hl(inputs.config)} ${checkMark}\n`)
+
+  const cwd = inputs.workingDirectory
+  cl._log(`Working Terraform directory: ${hl(cwd)} ${checkMark}\n`)
   
   let configParser: ConfigParser
   let mustImplementCapabilities: string[]
@@ -111,42 +128,44 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
     configParser = new ConfigParser(inputs.config)
     mustImplementCapabilities = configParser.getMustImplementCapabilities()
   } catch (e: any) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, e.message)
+    cl.err(ExitCode.INVALID_CONFIG_FILE, e, lighthouseMessages)
     return ExitCode.INVALID_CONFIG_FILE
   }
 
-  const tfPlanFilePath = join(inputs.workingDirectory, inputs.plan)
-  cl._log(`Terraform plan file: ${hl(tfPlanFilePath)} ${checkMark}`)
+  const tfPlanFilePath = join(cwd, inputs.plan)
+  cl._log(`Terraform plan file: ${hl(inputs.plan)} ${checkMark}`)
 
   const tfPlanObject = sanitizedTfPlanObject(tfPlanFilePath)
   const tfPlanObjectJsonStr = JSON.stringify(tfPlanObject);
   const tfPlanObjectJsonB64 = Buffer.from(tfPlanObjectJsonStr).toString("base64");
 
   if (extname(inputs.plan.toLowerCase()) !== '.json') {
-    cl.err(ExitCode.INVALID_PLAN_FILE, `Plan file must have a JSON extension`)
+    cl.err(ExitCode.INVALID_PLAN_FILE, `Plan file must have a JSON extension`, lighthouseMessages)
     return ExitCode.INVALID_PLAN_FILE
   }
 
   cl.__log(`Stripping sensitive values ${exclamationMark}\n`)
   
   const wip = './wip'
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   await mkdir(wip, { recursive: true }, (err) => {})
   // Look for Terraform config files and print results
-  const configFiles = await glob(join('.', inputs.workingDirectory, '**/*.tf'))
+  const configFiles = await glob(join('.', cwd, '**/*.tf'))
   const configFilesCount = configFiles.length
   if(configFilesCount === 0){
-    cl.err(ExitCode.NO_CONFIGURATION_FILES_FOUND, `Did not find any configuration files`)
+    cl.err(ExitCode.NO_CONFIGURATION_FILES_FOUND, `Did not find any configuration files`, lighthouseMessages)
     return ExitCode.NO_CONFIGURATION_FILES_FOUND 
   } else {
     cl._log(`Terraform configuration files: ${hl(configFilesCount)} ${checkMark}`)
     for (const configFile of configFiles) {
-      cl.__log(`${checkMark} ${hl(configFile)}`)
-      const wipFilePath = join(wip, configFile)
-      await mkdir(dirname(wipFilePath), { recursive: true }, (err) => {
+      const relativeConfigFile = relative(cwd, configFile)
+      cl.__log(`${checkMark} ${hl(relativeConfigFile)}`)
+      const wipRelativeFilePath = join(wip, relativeConfigFile)
+      await mkdir(dirname(wipRelativeFilePath), { recursive: true }, (err) => {
         if (err) {
           console.log(err);
         } else {
-          writeFile(wipFilePath, readFileSync(configFile, 'utf8'), (err) => {
+          writeFile(wipRelativeFilePath, readFileSync(configFile, 'utf8'), (err) => {
             if (err) {
               console.log(err);
             }
@@ -161,7 +180,9 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   await zip(wip, zipFile, {compression: COMPRESSION_LEVEL.uncompressed});
   const tfConfigFilesDirectoryContent = readFileSync(zipFile, 'base64')
   // cleanup local file created
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   await rm(wip, { recursive: true }, (err) => {})
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   await rm(zipFile, (err) => {})
 
   cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`)
@@ -177,23 +198,23 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   let scan: ScanTfPlan_scanTfPlanExt
 
   try {
-    const client = new Client(inputs.apiUrl, inputs.authToken)
     scan = await client.scanTfPlan(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
-    cl.err(ExitCode.SERVER_ERROR, e)
+    cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
+    //cl.allLighthouseMessages(lighthouseMessages)
     return ExitCode.SERVER_ERROR
   }
 
-  if(scan.sideEffectsResult?.success===false){
-    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`)
-    return ExitCode.SIDE_EFFECTS_FAILED
-  }
-
-  cl.log(`Successful scan ${checkMark}\n`)
+  cl.log(`Scan completed ${checkMark}\n`)
   cl._log(`ID: ${hl(scan!.scanMeta!.scanId)}`)
   cl._log(`Timestamp: ${hl(scan!.scanMeta!.timestamp)}`)
-  cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
+  // cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
   cl._log('')
+
+  if(scan.sideEffectsResult?.success===false){
+    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
+    return ExitCode.SIDE_EFFECTS_FAILED
+  }
 
   cl.log(`Results for proposed plan ${checkMark}\n`)
   // Print violation observations
@@ -203,15 +224,21 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
     scan.result.violationObservations.forEach((observation) => {
       const resource = observation.logicalResource
       const policyStatement = readablePolicyStatement(observation.policyStatement)
-      const statement = `l.${resource.line}: Resource ${hl(resource.name)} violates ${hl(policyStatement)}`
-      if(observation.trivialRemediation != null){
-        cl.__log(`${crossMark} ${statement}. To remediate, do this:`)
-        for (const transformation of observation.trivialRemediation.resolvesWithTransformations) {
-          cl.___log(`↪ ${readableTransformation(transformation)}`)
-        }
+      const location = `${resource.filePath}:${resource.line}`
+      let statement = ''
+      if (resource.definedByModule) {
+        statement = `Module ${hl(resource.definedByModule)} instantiates ${hl(resource.name)} (${location}), which violates ${hl(policyStatement)}`
       } else {
-        cl.__log(`${crossMark} ${statement}. There is no trivial remediation:`)
-        cl.___log(`↪ ${scan.scanMeta.portalUrl}`)
+        statement = `Resource ${hl(resource.name)} (${location}) violates ${hl(policyStatement)}`
+        if(observation.trivialRemediation != null){
+          cl.__log(`${crossMark} ${statement}. To remediate, do this:`)
+          for (const transformation of observation.trivialRemediation.resolvesWithTransformations) {
+            cl.___log(`↪ ${readableTransformation(transformation)}`)
+          }
+        } else {
+          cl.__log(`${crossMark} ${statement}. The remediation(s) cannot be described in a single line.`)
+          // cl.___log(`↪ ${scan.scanMeta.portalUrl}`)
+        }
       }
     })
     cl._log('')
@@ -222,16 +249,21 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
     scan.result.complianceObservations.forEach((observation) => {
       const resource = observation!.logicalResource
       const policyStatement = readablePolicyStatement(observation!.policyStatement)
-      const statement = `l.${resource.line}: Resource ${hl(resource.name)} complies with ${hl(policyStatement)}`
+      const location = `${resource.filePath}:${resource.line}`
+      const statement = `Resource ${hl(resource.name)} (${location}) complies with ${hl(policyStatement)}`
       cl.__log(`${checkMark} ${statement}`)
     })
     cl._log('')
   }
   if(inputs.output === 'json'){
     console.log(JSON.stringify(scan!, null, 2))
+  } else {
+    if(exitCode === ExitCode.VIOLATIONS_FOUND){
+      cl.err(ExitCode.VIOLATIONS_FOUND, `The plan contains one or more violations`, [])
+    }
+    // We print these now, even if there were no violations
+    cl.allLighthouseMessages(lighthouseMessages)
   }
-  if(exitCode === ExitCode.VIOLATIONS_FOUND){
-    cl.err(ExitCode.VIOLATIONS_FOUND, `One or more templates had violations`)
-  }
+
   return exitCode
 }
