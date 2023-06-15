@@ -7,6 +7,6 @@ policies:
 
 options:
   search-pattern:
-    - 'tests/asdasdasd/nothing-will-be-found.json'
+    - 'tests/cfn/templates/violations-001.json'
   ignore-pattern:
     - 'my-private-directory/*'
