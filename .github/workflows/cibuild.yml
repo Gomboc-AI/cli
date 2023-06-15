@@ -78,13 +78,13 @@ jobs:
       - name: TF - Test single violation
         run: |
           EXIT_CODE=0
-          gomboc scan terraform github --config $TF_CONFIGS/001.yaml --working-directory $TF_FILES/violations-001/tf --plan tfplan.json --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
+          gomboc scan terraform github --config $TF_CONFIGS/001.yaml --tf-directory $TF_FILES/violations-001/tf --tf-plan tfplan.json --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json > output.json || EXIT_CODE=$?
           $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
 
       - name: TF - Test single violation with side effects
         run: |
           EXIT_CODE=0
-          gomboc scan terraform github --config $TF_CONFIGS/001.yaml --working-directory $TF_FILES/violations-001/tf --plan tfplan.json --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} --create-pr > output.json || EXIT_CODE=$?
+          gomboc scan terraform github --config $TF_CONFIGS/001.yaml --tf-directory $TF_FILES/violations-001/tf --tf-plan tfplan.json --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} --create-pr > output.json || EXIT_CODE=$?
           $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
 
       - name: CFN - Test malformed config file

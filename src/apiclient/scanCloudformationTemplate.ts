@@ -11,7 +11,7 @@ export const MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT = gql`
 `
 
 export const DELETE_TRANSFORMATION_FRAGMENT_CFN = gql`
-  fragment DeleteTransformationFragmentCfn on DeleteTransformation {
+  fragment DeleteTransformationFragmentCfn on CfnDeleteTransformation {
     __typename
     property
     logicalResource {
@@ -22,7 +22,7 @@ export const DELETE_TRANSFORMATION_FRAGMENT_CFN = gql`
 `
 
 export const UPDATE_TRANSFORMATION_FRAGMENT_CFN = gql`
-  fragment UpdateTransformationFragmentCfn on UpdateTransformation {
+  fragment UpdateTransformationFragmentCfn on CfnUpdateTransformation {
     __typename
     logicalResource {
       line
@@ -34,7 +34,7 @@ export const UPDATE_TRANSFORMATION_FRAGMENT_CFN = gql`
 `
 
 export const CREATE_TRANSFORMATION_FRAGMENT_CFN = gql`
-  fragment CreateTransformationFragmentCfn on CreateTransformation {
+  fragment CreateTransformationFragmentCfn on CfnCreateTransformation {
     __typename
     logicalResource {
       line

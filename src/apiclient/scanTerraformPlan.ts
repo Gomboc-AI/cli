@@ -11,7 +11,7 @@ export const MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT = gql`
 `
 
 export const DELETE_TRANSFORMATION_FRAGMENT_TF = gql`
-  fragment DeleteTransformationFragmentTf on DeleteTransformation {
+  fragment DeleteTransformationFragmentTf on TfDeleteTransformation {
     __typename
     property
     logicalResource {
@@ -23,7 +23,7 @@ export const DELETE_TRANSFORMATION_FRAGMENT_TF = gql`
 `
 
 export const UPDATE_TRANSFORMATION_FRAGMENT_TF = gql`
-  fragment UpdateTransformationFragmentTf on UpdateTransformation {
+  fragment UpdateTransformationFragmentTf on TfUpdateTransformation {
     __typename
     logicalResource {
       filePath
@@ -36,7 +36,7 @@ export const UPDATE_TRANSFORMATION_FRAGMENT_TF = gql`
 `
 
 export const CREATE_TRANSFORMATION_FRAGMENT_TF = gql`
-  fragment CreateTransformationFragmentTf on CreateTransformation {
+  fragment CreateTransformationFragmentTf on TfCreateTransformation {
     __typename
     logicalResource {
       filePath
@@ -69,6 +69,8 @@ export const scanTfQuery = gql`
             filePath
             line
             name
+            address
+            definedByModule
           }
           policyStatement {
             ...MustImplementCapabilityPolicyStatementFragment
@@ -89,6 +91,8 @@ export const scanTfQuery = gql`
               filePath
               line
               name
+              address
+              definedByModule
             }
           }
           nonTrivialRemediation {
@@ -97,12 +101,16 @@ export const scanTfQuery = gql`
               filePath
               line
               name
+              address
+              definedByModule
             }
           }
           logicalResource {
             filePath
             line
             name
+            address
+            definedByModule
           }
         }
       }
