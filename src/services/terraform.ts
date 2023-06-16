@@ -225,10 +225,12 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
       const resource = observation.logicalResource
       const policyStatement = readablePolicyStatement(observation.policyStatement)
       const location = `${resource.filePath}:${resource.line}`
-      let statement = ''
       if (resource.definedByModule) {
-        statement = `Module ${hl(resource.definedByModule)} instantiates ${hl(resource.name)} (${location}), which violates ${hl(policyStatement)}`
+        const resourceType = resource.type.split('.').pop()
+        const message = `Module ${hl(resource.definedByModule)} (${location}) instantiates a ${hl(resourceType)} that violates ${hl(policyStatement)}`
+        cl.__log(`${crossMark} ${message}`)
       } else {
+        let statement = ''
         statement = `Resource ${hl(resource.name)} (${location}) violates ${hl(policyStatement)}`
         if(observation.trivialRemediation != null){
           cl.__log(`${crossMark} ${statement}. To remediate, do this:`)

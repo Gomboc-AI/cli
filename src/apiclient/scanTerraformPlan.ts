@@ -71,6 +71,7 @@ export const scanTfQuery = gql`
             name
             address
             definedByModule
+            type
           }
           policyStatement {
             ...MustImplementCapabilityPolicyStatementFragment
@@ -93,6 +94,7 @@ export const scanTfQuery = gql`
               name
               address
               definedByModule
+              type
             }
           }
           nonTrivialRemediation {
@@ -103,6 +105,7 @@ export const scanTfQuery = gql`
               name
               address
               definedByModule
+              type
             }
           }
           logicalResource {
@@ -111,6 +114,7 @@ export const scanTfQuery = gql`
             name
             address
             definedByModule
+            type
           }
         }
       }
