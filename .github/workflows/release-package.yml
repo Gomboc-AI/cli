@@ -64,7 +64,7 @@ jobs:
         if: ${{github.ref == 'refs/heads/main' && github.event_name == 'push'}}
         run: |
           mkdir .pack
-          cli % npm pack --pack-destination pack/
+          npm pack --pack-destination pack/
           cd pack
           mv * cli.tar
           aws s3 cp cli.tar s3://gombocdownloads/cli.tar
