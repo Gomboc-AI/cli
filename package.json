@@ -1,9 +1,13 @@
 {
   "name": "@gomboc-ai/cli",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "",
   "type": "module",
   "main": "bin/index.js",
+  "engines": {
+    "node": "v16.20.0",
+    "npm": ">=8.1.0"
+  },
   "bin": {
     "gomboc": "bin/index.js"
   },
@@ -17,18 +21,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Gomboc-AI/cli-dev.git"
+    "url": "git+https://github.com/Gomboc-AI/cli.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Gomboc-AI/cli-dev/issues"
+    "url": "https://github.com/Gomboc-AI/cli/issues"
   },
-  "homepage": "https://github.com/Gomboc-AI/cli-dev#readme",
+  "homepage": "https://github.com/Gomboc-AI/cli#readme",
   "publishConfig": {
     "@Gomboc-AI:registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
+    "@types/graphql": "^14.5.0",
     "@types/node": "^18.16.16",
     "@types/ramda": "^0.29.1",
     "@types/react": "^18.2.0",

@@ -2,7 +2,7 @@ name: Gomboc.ai CLI test suite
 
 on:
   pull_request:
-    branches: ["main"]
+    branches: ["main", "clean"]
 
   push:
     branches: ["main"]
@@ -22,6 +22,7 @@ jobs:
       id-token: write
       contents: write
     env:
+      CLI_REPO: 'cli'
       FORCE_COLOR: 3
       SCRIPTS: ./tests/scripts
       CFN_CONFIGS: tests/cfn/configs
@@ -82,6 +83,7 @@ jobs:
           $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
 
       - name: TF - Test single violation with side effects
+        if: ${{ github.event.repository.name != env.CLI_REPO }}
         run: |
           EXIT_CODE=0
           gomboc scan terraform github --config $TF_CONFIGS/001.yaml --tf-directory $TF_FILES/violations-001/tf --tf-plan tfplan.json --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} --create-pr > output.json || EXIT_CODE=$?
