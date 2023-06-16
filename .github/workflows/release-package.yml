@@ -50,3 +50,21 @@ jobs:
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Assume AWS Role
+        if: ${{github.ref == 'refs/heads/main' && github.event_name == 'push'}}
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ vars.DEFAULT_AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_BUILD }}:role/GitHub-ReadWrite-cli
+          mask-aws-account-id: "true"
+
+      - name: Build Tar File
+        if: ${{github.ref == 'refs/heads/main' && github.event_name == 'push'}}
+        run: |
+          echo "packoutput=`npm pack --json`"" >> $GITHUB_OUTPUT
+
+      - name: Create and upload tar to S3
+        if: ${{github.ref == 'refs/heads/main' && github.event_name == 'push'}}
+        run: |
+          aws s3 cp ${{ fromJSON(env.packoutput) }} s3://gombocdownloads/cli.tar
