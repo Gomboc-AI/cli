@@ -59,12 +59,12 @@ jobs:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_BUILD }}:role/GitHub-ReadWrite-cli
           mask-aws-account-id: "true"
 
-      - name: Build Tar File
+      steps:
+      - name: Build Tar File and upload to S3
         if: ${{github.ref == 'refs/heads/main' && github.event_name == 'push'}}
         run: |
-          echo "packoutput=`npm pack --json`"" >> $GITHUB_OUTPUT
-
-      - name: Create and upload tar to S3
-        if: ${{github.ref == 'refs/heads/main' && github.event_name == 'push'}}
-        run: |
-          aws s3 cp ${{ fromJSON(env.packoutput) }} s3://gombocdownloads/cli.tar
+          mkdir .pack
+          cli % npm pack --pack-destination pack/
+          cd pack
+          mv * cli.tar
+          aws s3 cp cli.tar s3://gombocdownloads/cli.tar
