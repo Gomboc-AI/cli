@@ -9,12 +9,26 @@ export type GitInfo = {
 }
 
 const _getBranchNameFromRefs = (refs: string): string => {
-    const refParts = refs.split(',')
-    if (refParts.length === 0) {
-        throw new Error('No ref parts found')
+    /// refs: 'grafted, HEAD -> vertefra-test-branch, origin/vertefra-test-branch'
+    /// regex to get <head branch> -> <branchName>,
+    const regex = / -> ([^\s/]+)(?:\s|$)/g
+    const matches = regex.exec(refs)
+
+    if (!matches || matches.length < 2) {
+        throw new Error(`No matches found, invalid remote refs -> ${refs}`)
     }
-    const ref = refParts[0]
-    return ref.split('->')[1].trim()
+
+    let ref = matches[1]
+
+    /// trim
+    ref = ref.trim()
+
+    /// If trailing comma, remove it
+    if (ref.endsWith(',')) {
+        ref = ref.slice(0, -1)
+    }
+
+    return ref
 }
 
 export const getGitHubInfo = async (): Promise<GitInfo> => {
