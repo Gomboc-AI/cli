@@ -202,7 +202,6 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
     scan = await client.scanTfPlan(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
-    //cl.allLighthouseMessages(lighthouseMessages)
     return ExitCode.SERVER_ERROR
   }
 
