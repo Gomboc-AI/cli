@@ -17,6 +17,7 @@ import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
 import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js'
+import { CLI_VERSION } from '../cli/version.js'
 
 export interface ScanCfnInput {
   authToken?: string
@@ -70,7 +71,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
-  cl.log(formatTitle('Running Gomboc.ai for CloudFormation'))
+  cl.log(formatTitle(`Running Gomboc.AI for CloudFormation (v${CLI_VERSION})`))
 
   cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`)
   
@@ -135,11 +136,6 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   //cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
   cl._log('')
 
-  if(scan.sideEffectsResult?.success===false){
-    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
-    return ExitCode.SIDE_EFFECTS_FAILED
-  }
-
   for (const result of scan!.results) {
     cl.log(`Results for ${hl(result.filePath)} ${checkMark}\n`)
     if(result.error != null) {
@@ -183,6 +179,13 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
       cl._log('')
     }
   }
+
+  if(scan.sideEffectsResult?.success===false){
+    // Let results for each template be printed, then fail/stop first by side effects failed
+    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
+    return ExitCode.SIDE_EFFECTS_FAILED
+  }
+
   if(inputs.output === 'json'){
     console.log(JSON.stringify(scan!, null, 2))
   } else {
