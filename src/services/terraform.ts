@@ -19,6 +19,7 @@ import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
 import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js'
+import { CLI_VERSION } from '../cli/version.js'
 
 
 export interface ScanTfInput {
@@ -114,7 +115,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
-  cl.log(formatTitle('Running Gomboc.ai for Terraform'))
+  cl.log(formatTitle(`Running Gomboc.AI for Terraform (v${CLI_VERSION})`))
 
   cl._log(`Reading Gomboc configuration: ${hl(inputs.config)} ${checkMark}\n`)
 
@@ -211,11 +212,6 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   // cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
   cl._log('')
 
-  if(scan.sideEffectsResult?.success===false){
-    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
-    return ExitCode.SIDE_EFFECTS_FAILED
-  }
-
   cl.log(`Results for proposed plan ${checkMark}\n`)
   // Print violation observations
   if(scan.result.violationObservations.length > 0) {
@@ -257,6 +253,13 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
     })
     cl._log('')
   }
+
+  if(scan.sideEffectsResult?.success===false){
+    // Print the observations for the plan first, then fail before by side effects failed
+    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
+    return ExitCode.SIDE_EFFECTS_FAILED
+  }
+
   if(inputs.output === 'json'){
     console.log(JSON.stringify(scan!, null, 2))
   } else {

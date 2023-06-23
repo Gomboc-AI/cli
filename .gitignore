@@ -1,7 +1,6 @@
 # Used by the pull-schema script
 /scripts/
 bin/
-.npmrc
 **/.terraform/
 **/.terraform*
 **/*_FUTURE*
