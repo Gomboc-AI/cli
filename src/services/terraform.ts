@@ -212,11 +212,6 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
   // cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
   cl._log('')
 
-  if(scan.sideEffectsResult?.success===false){
-    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
-    return ExitCode.SIDE_EFFECTS_FAILED
-  }
-
   cl.log(`Results for proposed plan ${checkMark}\n`)
   // Print violation observations
   if(scan.result.violationObservations.length > 0) {
@@ -258,6 +253,13 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
     })
     cl._log('')
   }
+
+  if(scan.sideEffectsResult?.success===false){
+    // Print the observations for the plan first, then fail before by side effects failed
+    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
+    return ExitCode.SIDE_EFFECTS_FAILED
+  }
+
   if(inputs.output === 'json'){
     console.log(JSON.stringify(scan!, null, 2))
   } else {

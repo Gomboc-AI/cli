@@ -136,11 +136,6 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
   //cl._log(`URL: ${hl(scan!.scanMeta!.portalUrl)}`)
   cl._log('')
 
-  if(scan.sideEffectsResult?.success===false){
-    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
-    return ExitCode.SIDE_EFFECTS_FAILED
-  }
-
   for (const result of scan!.results) {
     cl.log(`Results for ${hl(result.filePath)} ${checkMark}\n`)
     if(result.error != null) {
@@ -184,6 +179,13 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
       cl._log('')
     }
   }
+
+  if(scan.sideEffectsResult?.success===false){
+    // Let results for each template be printed, then fail/stop first by side effects failed
+    cl.err(ExitCode.SIDE_EFFECTS_FAILED, `One or more side effects failed`, lighthouseMessages)
+    return ExitCode.SIDE_EFFECTS_FAILED
+  }
+
   if(inputs.output === 'json'){
     console.log(JSON.stringify(scan!, null, 2))
   } else {
