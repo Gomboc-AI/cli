@@ -61,7 +61,7 @@ jobs:
 
       - name: Build Tar File and upload to S3
         run: |
-          mkdir .pack
+          mkdir pack
           npm pack --pack-destination pack/
           cd pack
           mv * cli.tar
