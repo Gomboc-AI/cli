@@ -13,12 +13,13 @@ jobs:
     uses: Gomboc-AI/ReusableWorkflows/.github/workflows/pullGraphqlSchema.yml@main
     with:
       ECR_SERVICE: ${{ vars.AWS_ECR_REPO_SCANAPI }}
-      ROLE_SERVICE: ${{ github.event.repository.name }}
+      ROLE_SERVICE: ${{ github.event.repository.name=='cli' && 'cli' || 'cli-dev' }}
 
   publish:
     needs: pull-schema
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       packages: write
       contents: read
     steps:

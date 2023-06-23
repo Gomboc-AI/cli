@@ -8,7 +8,7 @@ import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighth
 export class ConsoleLogger {
   isSilenced: boolean
 
-  constructor(isSilenced: boolean) {
+  constructor(isSilenced = false) {
     this.isSilenced = isSilenced;
   }
 
@@ -24,7 +24,7 @@ export class ConsoleLogger {
   public ___log = (message: string) => { this.logIndented(message, 3) }
 
   public err = (code: ExitCode, message: string, lighthouseMessages: CallLighthouse_lighthouse[]) => {
-    this.log(`${chalk.red.bold(`Error ${code as number}`)}: ${message}\n`)
+    this.log(`\n${chalk.red.bold(`Error ${code as number}`)}: ${message}`)
     // In any case, we want to log the lighthouse messages
     this.allLighthouseMessages(lighthouseMessages)
   }

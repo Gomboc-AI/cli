@@ -3,9 +3,13 @@ import { scanTf, ScanTfInput } from "../services/terraform.js"
 import { ExitCode } from "./exitCodes.js"
 import { ActionCommand, ServiceCommand, ClientCommand } from "./commands.js"
 import { getGitHubInfo, GitInfo } from "../utils/gitUtils.js"
+import { ConsoleLogger } from "../utils/ConsoleLogger.js"
+import { hl } from "../utils/consoleUtils.js"
 
 
 const getCommonInputs = (argv: any): ScanCfnInput | ScanTfInput => {
+  if(argv.authToken && argv.secretAccessKey) { throw new Error(`Conflicting options. Select ${hl('auth-token')} OR ${hl('secret-access-key')}`) }
+
   if(process.env.API_URL){
     console.log(`..:: Running against local URL: ${process.env.API_URL}!`)
   }
@@ -39,7 +43,10 @@ const completeGitFields = async (argv: any): Promise<any> => {
 }
 
 const addGitHubInputs = async (inputs: ScanCfnInput | ScanTfInput, argv: any): Promise<void> => {
-  if (argv.accessToken == null) { return }
+  if (argv.accessToken == null) { throw new Error(`Missing an ${hl('access-token')} for GitHub`) }
+  if(argv.createPr && argv.commitOnCurrentBranch) { throw new Error(`Conflicting options. Select ${hl('create-pr')} OR ${hl('commit-on-current-branch')}`) }
+  if(!argv.createPr && !argv.commitOnCurrentBranch) { throw new Error(`No options passed. Select ${hl('create-pr')} OR ${hl('commit-on-current-branch')}`) }
+
   inputs.gitHubOptions = { accessToken: argv.accessToken as string }
   let _completeGitArgs = false
 
@@ -71,7 +78,9 @@ const addGitHubInputs = async (inputs: ScanCfnInput | ScanTfInput, argv: any): P
 }
 
 const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void => {
-  if (argv.accessToken == null) { return }
+  if (argv.accessToken == null) { throw new Error(`Missing an ${hl('access-token')} for GitLab`) }
+  if(!argv.createMr) { throw new Error(`No options passed. Select ${hl('create-mr')}`) }
+
   inputs.gitLabOptions = { accessToken: argv.accessToken as string }
   if (argv.createMr) {
     inputs.gitLabOptions.createMR = true
@@ -95,27 +104,33 @@ const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void =>
 }
 
 export const cliCheck = async (argv?: any): Promise<ExitCode> => {
-  const inputs: ScanCfnInput | ScanTfInput = getCommonInputs(argv)
+  try {
+    const inputs: ScanCfnInput | ScanTfInput = getCommonInputs(argv)
 
-  const command = argv._[0]
-  if (command === ActionCommand.SCAN) {
-    // Add client specific inputs
-    const client = argv._[2]
-    if (client === ClientCommand.GITHUB) { addGitHubInputs(inputs, argv) }
-    else if (client === ClientCommand.GITLAB) { addGitLabInputs(inputs, argv) }
+    const command = argv._[0]
+    if (command === ActionCommand.SCAN) {
+      // Add client specific inputs
+      const client = argv._[2]
+      if (client === ClientCommand.GITHUB) { await addGitHubInputs(inputs, argv) }
+      else if (client === ClientCommand.GITLAB) { addGitLabInputs(inputs, argv) }
 
-    // Add service specific inputs and call scans
-    const service = argv._[1]
-    if (service === ServiceCommand.CLOUDFORMATION) {
-      const cfnInputs = inputs as ScanCfnInput
-      // no CloudFormation specific options to add
-      return await scanCfn(cfnInputs)
-    } else if (service === ServiceCommand.TERRAFORM) {
-      const tfInputs = inputs as ScanTfInput
-      tfInputs.plan = argv.tfPlan as string
-      tfInputs.workingDirectory = argv.tfDirectory as string
-      return await scanTf(tfInputs)
+      // Add service specific inputs and call scans
+      const service = argv._[1]
+      if (service === ServiceCommand.CLOUDFORMATION) {
+        const cfnInputs = inputs as ScanCfnInput
+        // no CloudFormation specific options to add
+        return await scanCfn(cfnInputs)
+      } else if (service === ServiceCommand.TERRAFORM) {
+        const tfInputs = inputs as ScanTfInput
+        tfInputs.plan = argv.tfPlan as string
+        tfInputs.workingDirectory = argv.tfDirectory as string
+        return await scanTf(tfInputs)
+      }
     }
+  } catch (error: any) {
+    const cl = new ConsoleLogger()
+    cl.err(ExitCode.COMMAND_ERROR, error.message, [])
+    return new Promise(() => { ExitCode.COMMAND_ERROR })
   }
   return new Promise(() => { ExitCode.CLIENT_ERROR })
 }
