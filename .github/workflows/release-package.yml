@@ -52,7 +52,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Assume AWS Role
-        if: ${{github.ref == 'refs/heads/main' && github.event_name == 'push'}}
+        if: ${{github.ref == 'refs/heads/main' && github.event_name == 'release'}}
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ vars.DEFAULT_AWS_REGION }}
@@ -60,7 +60,7 @@ jobs:
           mask-aws-account-id: "true"
 
       - name: Build Tar File and upload to S3
-        if: ${{github.ref == 'refs/heads/main' && github.event_name == 'push'}}
+        if: ${{github.ref == 'refs/heads/main' && github.event_name == 'release'}}
         run: |
           mkdir .pack
           npm pack --pack-destination pack/
