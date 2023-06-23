@@ -17,6 +17,7 @@ import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
 import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js'
+import { CLI_VERSION } from '../cli/version.js'
 
 export interface ScanCfnInput {
   authToken?: string
@@ -70,7 +71,7 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
-  cl.log(formatTitle('Running Gomboc.ai for CloudFormation'))
+  cl.log(formatTitle(`Running Gomboc.AI for CloudFormation (v${CLI_VERSION})`))
 
   cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`)
   

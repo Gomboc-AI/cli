@@ -19,6 +19,7 @@ import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
 import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js'
+import { CLI_VERSION } from '../cli/version.js'
 
 
 export interface ScanTfInput {
@@ -114,7 +115,7 @@ export const scanTf = async (inputs: ScanTfInput): Promise<ExitCode> => {
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
-  cl.log(formatTitle('Running Gomboc.ai for Terraform'))
+  cl.log(formatTitle(`Running Gomboc.AI for Terraform (v${CLI_VERSION})`))
 
   cl._log(`Reading Gomboc configuration: ${hl(inputs.config)} ${checkMark}\n`)
 
