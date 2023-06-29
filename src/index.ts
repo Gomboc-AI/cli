@@ -1,13 +1,13 @@
 #! /usr/bin/env node
 
-import yargs from 'yargs'
+import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { cliCheck } from './cli/interface.js'
 
 import { ActionCommand, ServiceCommand, ClientCommand, SourceCommand } from './cli/commands.js'
 
 
-const addGitHubOptionsBuilder = (yargs: any) => {
+const addGitHubOptionsBuilder = (yargs: Argv) => {
   yargs.option("access-token", {
   describe: "Access token",
   type: "string",
@@ -45,7 +45,7 @@ const addGitHubOptionsBuilder = (yargs: any) => {
   })
 }
 
-const addGitLabOptionsBuilder = (yargs: any) => {
+const addGitLabOptionsBuilder = (yargs: Argv) => {
   yargs.option("access-token", {
     describe: "Access token",
     type: "string",
@@ -83,10 +83,26 @@ const addGitLabOptionsBuilder = (yargs: any) => {
   })
 }
 
+const addExecutableCommandCheck = (argv: Argv) => {
+  // If reached, this check will execute the CLI and set an exit code
+  argv.check(async (argv) => {
+    process.exitCode = await cliCheck(argv) as number
+    return true
+  }, false)
+}
+
+const addOutputOption = (argv: Argv) => {
+  argv.option("output", {
+    describe: "What format to output",
+    type: "string",
+    default: "text",
+    demandOption: false,
+    choices: ['text', 'json'],
+  })
+}
 
 // Setting CLI command and options
 await yargs(hideBin(process.argv))
-  .usage('Usage: gomboc scan [service] [client] <options>')
   .command(
     ActionCommand.SCAN,
     '\tGomboc.AI scan service',
@@ -100,25 +116,17 @@ await yargs(hideBin(process.argv))
             '\t...with side effects on GitHub',
             (yargs) => {
               addGitHubOptionsBuilder(yargs)
-              yargs.check(async (argv)=>{
-                process.exitCode = await cliCheck(argv) as number
-                return true
-              }, false)
-          })
-          .command(
+              addExecutableCommandCheck(yargs)
+            }
+          ).command(
             ClientCommand.GITLAB,
             '\t...with side effects on GitLab',
             (yargs) => {
               addGitLabOptionsBuilder(yargs)
-              yargs.check(async (argv)=>{
-                process.exitCode = await cliCheck(argv) as number
-                return true
-              }, false)
+              addExecutableCommandCheck(yargs)
             }
-          ).check(async (argv)=>{
-            process.exitCode = await cliCheck(argv) as number
-            return true
-          }, false)
+          )
+          addExecutableCommandCheck(yargs)
         }
       ).command(
         ServiceCommand.TERRAFORM,
@@ -129,20 +137,14 @@ await yargs(hideBin(process.argv))
             '\t...with side effects on GitHub',
             (yargs) => {
               addGitHubOptionsBuilder(yargs)
-              yargs.check(async (argv)=>{
-                process.exitCode = await cliCheck(argv) as number
-                return true
-              }, false)
-          })
-          .command(
+              addExecutableCommandCheck(yargs)
+            }
+          ).command(
             ClientCommand.GITLAB,
             '\t...with side effects on GitLab',
             (yargs) => {
               addGitLabOptionsBuilder(yargs)
-              yargs.check(async (argv)=>{
-                process.exitCode = await cliCheck(argv) as number
-                return true
-              }, false)
+              addExecutableCommandCheck(yargs)
             }
           ).option("tf-directory", {
               describe: "The root directory for the Terraform configuration",
@@ -154,10 +156,8 @@ await yargs(hideBin(process.argv))
               type: "string",
               demandOption: true,
             }
-          ).check(async (argv)=>{
-            process.exitCode = await cliCheck(argv) as number
-            return true
-          }, false)
+          )
+          addExecutableCommandCheck(yargs)
         }
       ).option("config", {
         describe: "The filepath to the Gomboc.AI config YAML file",
@@ -174,17 +174,8 @@ await yargs(hideBin(process.argv))
         type: "string",
         demandOption: false
       })
-      .option("output", {
-        describe: "What format to output",
-        type: "string",
-        default: "text",
-        demandOption: false,
-        choices: ['text', 'json'],
-      }).check(async (argv)=>{
-        console.log('Missing required command: cloudformation or terraform')
-        process.exitCode = 70
-        return true
-      }, false)
+      addOutputOption(yargs)
+      yargs.demandCommand(1, 'Specify a service [terraform OR cloudformation]')
     }
   )
   .command(
@@ -195,22 +186,23 @@ await yargs(hideBin(process.argv))
         SourceCommand.REMOTE,
         '\tRemediate Remote git repository',
         (yargs) => {
-        yargs.command(
-          ServiceCommand.TERRAFORM,
-          '\tRemediate Remote Terraform code',
-          (yargs) => {
-            yargs.option("tf-directory", {
-                describe: "The root directory for the Terraform configuration",
-                type: "string",
-                default: "",
-              }
-            ).check(async (argv)=>{
-              process.exitCode = await cliCheck(argv) as number
-              return true
-            }, false)
-          }
-        )
-      }).option("config", {
+          console.log('~ remote ~')
+          yargs.command(
+            ServiceCommand.TERRAFORM,
+            '\tRemediate Remote Terraform code',
+            (yargs) => {
+              yargs.option("tf-directory", {
+                  describe: "The root directory for the Terraform configuration",
+                  type: "string",
+                  default: "",
+                }
+              )
+              addExecutableCommandCheck(yargs)
+            }
+          )
+          yargs.demandCommand(1, 'Specify a service [terraform]')
+        }
+      ).option("config", {
         describe: "The filepath to the Gomboc.AI config YAML file",
         type: "string",
         demandOption: true
@@ -220,17 +212,8 @@ await yargs(hideBin(process.argv))
         type: "string",
         demandOption: false
       })
-      .option("output", {
-        describe: "What format to output",
-        type: "string",
-        default: "text",
-        demandOption: false,
-        choices: ['text', 'json'],
-      }).check(async (argv)=>{
-        console.log('Missing required command: terraform')
-        process.exitCode = 70
-        return true
-      }, false)
+      addOutputOption(yargs)
+      yargs.demandCommand(1, 'Specify a source [remote]')
     }
   )
   .demandCommand()

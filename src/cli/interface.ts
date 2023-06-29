@@ -1,7 +1,8 @@
 import { resolve as resolveScanCfnTemplateExt, Inputs as ScanCfnTemplateExtInputs } from "../resolvers/scanCfnTemplateExt.js"
 import { resolve as resolveScanTfPlanExt, Inputs as ScanTfPlanExtInputs } from "../resolvers/scanTfPlanExt.js"
+import { resolve as resolveRemediateRemoteTfCode, Inputs as RemediateRemoteTfCodeInputs } from "../resolvers/remediateRemoteTfCode.js"
 import { ExitCode } from "./exitCodes.js"
-import { ActionCommand, ServiceCommand, ClientCommand } from "./commands.js"
+import { ActionCommand, ServiceCommand, ClientCommand, SourceCommand } from "./commands.js"
 import { getGitHubInfo, GitInfo } from "../utils/gitUtils.js"
 import { ConsoleLogger } from "../utils/ConsoleLogger.js"
 import { hl } from "../utils/consoleUtils.js"
@@ -109,8 +110,8 @@ export const cliCheck = async (argv?: any): Promise<ExitCode> => {
   try {
     const inputs: CLIInputs = getCommonInputs(argv)
 
-    const command = argv._[0]
-    if (command === ActionCommand.SCAN) {
+    const action = argv._[0]
+    if (action === ActionCommand.SCAN) {
       // Add client specific inputs
       const client = argv._[2]
       if (client === ClientCommand.GITHUB) { await addGitHubInputs(inputs, argv) }
@@ -129,23 +130,17 @@ export const cliCheck = async (argv?: any): Promise<ExitCode> => {
         return await resolveScanTfPlanExt(tfInputs)
       }
     }
-    else if (command === ActionCommand.REMEDIATE) {
+    else if (action === ActionCommand.REMEDIATE) {
       // Add client specific inputs
-      const client = argv._[2]
-      if (client === ClientCommand.GITHUB) { await addGitHubInputs(inputs, argv) }
-      else if (client === ClientCommand.GITLAB) { addGitLabInputs(inputs, argv) }
-
-      // Add service specific inputs and call scans
-      const service = argv._[1]
-      if (service === ServiceCommand.CLOUDFORMATION) {
-        const cfnInputs = inputs as ScanCfnTemplateExtInputs
-        // no CloudFormation specific options to add
-        return await resolveScanCfnTemplateExt(cfnInputs)
-      } else if (service === ServiceCommand.TERRAFORM) {
-        const tfInputs = inputs as ScanTfPlanExtInputs
-        tfInputs.plan = argv.tfPlan as string
-        tfInputs.workingDirectory = argv.tfDirectory as string
-        return await resolveScanTfPlanExt(tfInputs)
+      const source = argv._[2]
+      if (source === SourceCommand.REMOTE) { 
+        // Add service specific inputs and call scans
+        const service = argv._[1]
+        if (service === ServiceCommand.TERRAFORM) {
+          const tfInputs = inputs as ScanTfPlanExtInputs
+          tfInputs.workingDirectory = argv.tfDirectory as string
+          return await resolveRemediateRemoteTfCode(tfInputs)
+        }
       }
     }
   } catch (error: any) {
