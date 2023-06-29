@@ -1,5 +1,11 @@
 export enum ActionCommand {
-    SCAN = 'scan'
+    SCAN = 'scan',
+    REMEDIATE = 'remediate'
+}
+
+export enum LocationCommand {
+    LOCAL = 'local',
+    REMOTE = 'remote'
 }
 
 export enum ServiceCommand {

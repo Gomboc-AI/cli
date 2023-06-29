@@ -6,14 +6,17 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 // @ts-ignore
 import { setContext } from '@apollo/client/link/context/context.cjs'
 import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './__generated__/GlobalTypes.js'
-import { ScanTfPlan, ScanTfPlanVariables, ScanTfPlan_scanTfPlanExt } from "./__generated__/ScanTfPlan.js";
-import { ScanCfnTemplate, ScanCfnTemplateVariables, ScanCfnTemplate_scanCfnTemplateExt } from "./__generated__/ScanCfnTemplate.js";
-import { scanCfnQuery } from './scanCloudformationTemplate.js'
-import { scanTfQuery } from './scanTerraformPlan.js'
-import { callLighthouseQuery } from './callLighthouse.js'
+import { ScanTfPlanExt, ScanTfPlanExtVariables, ScanTfPlanExt_scanTfPlanExt } from "./__generated__/ScanTfPlanExt.js";
+import { ScanCfnTemplateExt, ScanCfnTemplateExtVariables, ScanCfnTemplateExt_scanCfnTemplateExt } from "./__generated__/ScanCfnTemplateExt.js";
+import { ScanCfnTemplateExtQuery } from './scanCfnTemplateExt.js'
+import { ScanTfPlanExtQuery } from './scanTfPlanExt.js'
+import { RemediateRemoteTfCodeQuery } from './remediateRemoteTfCode.js'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { CallLighthouse, CallLighthouse_lighthouse } from './__generated__/CallLighthouse.js';
+//import { CallLighthouse, CallLighthouse_lighthouse } from './__generated__/CallLighthouse.js';
+import { Lighthouse, Lighthouse_lighthouse } from './__generated__/Lighthouse.js';
+import { LighthouseQuery } from './lighthouse.js';
+import { RemediateRemoteTfCode, RemediateRemoteTfCodeVariables, RemediateRemoteTfCode_remediateRemoteTfCode } from './__generated__/RemediateRemoteTfCode.js';
 
 export class Client {
     url: string
@@ -45,31 +48,31 @@ export class Client {
         })
     }
 
-    async callLighthouse(): Promise<CallLighthouse_lighthouse[]> {
+    async lighthouseQueryCall(): Promise<Lighthouse_lighthouse[]> {
         // Returns a list of lighthouse messages
-        const { data } : { data: CallLighthouse} = await this.client.query<CallLighthouse>({
-            query: callLighthouseQuery
+        const { data } : { data: Lighthouse} = await this.client.query<Lighthouse>({
+            query: LighthouseQuery
         })
         return data.lighthouse
     }
 
-    async scanCfnTemplate(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplate_scanCfnTemplateExt> {
-        const scanVariables: ScanCfnTemplateVariables = {
+    async scanCfnTemplateExtQueryCall(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplateExt_scanCfnTemplateExt> {
+        const scanVariables: ScanCfnTemplateExtVariables = {
             templates: templatePayloads,
             policy: policy,
             gitHubOptions: gitHubOptions,
             gitLabOptions: gitLabOptions,
             secretAccessKey: secretAccessKey
         }
-        const { data } : { data: ScanCfnTemplate} = await this.client.query<ScanCfnTemplate, ScanCfnTemplateVariables>({
-            query: scanCfnQuery,
+        const { data } : { data: ScanCfnTemplateExt} = await this.client.query<ScanCfnTemplateExt, ScanCfnTemplateExtVariables>({
+            query: ScanCfnTemplateExtQuery,
             variables: scanVariables
         })
         return data.scanCfnTemplateExt
     }
 
-    async scanTfPlan(plan: string, workingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlan_scanTfPlanExt> {
-        const scanVariables: ScanTfPlanVariables = {
+    async scanTfPlanExtQueryCall(plan: string, workingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlanExt_scanTfPlanExt> {
+        const scanVariables: ScanTfPlanExtVariables = {
             plan: plan,
             workingDirectory: workingDirectory,
             policy: policy,
@@ -77,10 +80,22 @@ export class Client {
             gitLabOptions: gitLabOptions,
             secretAccessKey: secretAccessKey
         }
-        const { data } : { data: ScanTfPlan} = await this.client.query<ScanTfPlan, ScanTfPlanVariables>({
-            query: scanTfQuery,
+        const { data } : { data: ScanTfPlanExt} = await this.client.query<ScanTfPlanExt, ScanTfPlanExtVariables>({
+            query: ScanTfPlanExtQuery,
             variables: scanVariables
         })
         return data.scanTfPlanExt
+    }
+
+    async remediateRemoteTfCodeQueryCall(workingDirectory: string, policy: ScanPolicy): Promise<RemediateRemoteTfCode_remediateRemoteTfCode> {
+        const scanVariables: RemediateRemoteTfCodeVariables = {
+            workingDirectory: workingDirectory,
+            policy: policy,
+        }
+        const { data } : { data: RemediateRemoteTfCode} = await this.client.query<RemediateRemoteTfCode, RemediateRemoteTfCodeVariables>({
+            query: RemediateRemoteTfCodeQuery,
+            variables: scanVariables
+        })
+        return data.remediateRemoteTfCode
     }
 }

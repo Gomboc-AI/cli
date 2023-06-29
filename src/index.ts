@@ -4,7 +4,7 @@ import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { cliCheck } from './cli/interface.js'
 
-import { ActionCommand, ServiceCommand, ClientCommand } from './cli/commands.js'
+import { ActionCommand, ServiceCommand, ClientCommand, LocationCommand } from './cli/commands.js'
 
 
 const addGitHubOptionsBuilder = (yargs: any) => {
@@ -83,12 +83,13 @@ const addGitLabOptionsBuilder = (yargs: any) => {
   })
 }
 
+
 // Setting CLI command and options
 await yargs(hideBin(process.argv))
   .usage('Usage: gomboc scan [service] [client] <options>')
   .command(
     ActionCommand.SCAN,
-    '\tGomboc.ai scan service',
+    '\tGomboc.AI scan service',
     (yargs) => {
       yargs.command(
         ServiceCommand.CLOUDFORMATION,
@@ -159,7 +160,7 @@ await yargs(hideBin(process.argv))
           }, false)
         }
       ).option("config", {
-        describe: "The filepath to the Gomboc.ai config YAML file",
+        describe: "The filepath to the Gomboc.AI config YAML file",
         type: "string",
         demandOption: true
       })
@@ -181,6 +182,52 @@ await yargs(hideBin(process.argv))
         choices: ['text', 'json'],
       }).check(async (argv)=>{
         console.log('Missing required command: cloudformation or terraform')
+        process.exitCode = 70
+        return true
+      }, false)
+    }
+  )
+  .command(
+    ActionCommand.REMEDIATE,
+    '\tGomboc.AI remediation service',
+    (yargs) => {
+      yargs.command(
+        LocationCommand.REMOTE,
+        '\tRemediate Remote git repository',
+        (yargs) => {
+        yargs.command(
+          ServiceCommand.TERRAFORM,
+          '\tRemediate Remote Terraform code',
+          (yargs) => {
+            yargs.option("tf-directory", {
+                describe: "The root directory for the Terraform configuration",
+                type: "string",
+                default: "",
+              }
+            ).check(async (argv)=>{
+              process.exitCode = await cliCheck(argv) as number
+              return true
+            }, false)
+          }
+        )
+      }).option("config", {
+        describe: "The filepath to the Gomboc.AI config YAML file",
+        type: "string",
+        demandOption: true
+      })
+      .option("auth-token", {
+        describe: "An authentication auth token",
+        type: "string",
+        demandOption: false
+      })
+      .option("output", {
+        describe: "What format to output",
+        type: "string",
+        default: "text",
+        demandOption: false,
+        choices: ['text', 'json'],
+      }).check(async (argv)=>{
+        console.log('Missing required command: terraform')
         process.exitCode = 70
         return true
       }, false)

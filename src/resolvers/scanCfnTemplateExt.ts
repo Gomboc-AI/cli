@@ -4,22 +4,21 @@ import { readFileSync } from 'fs'
 import { join, basename } from 'path'
 
 import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from '../apiclient/__generated__/GlobalTypes.js'
-import { ScanCfnTemplate_scanCfnTemplateExt } from '../apiclient/__generated__/ScanCfnTemplate.js'
-import { ScanCfnTemplate_scanCfnTemplateExt_results_complianceObservations_policyStatement } from '../apiclient/__generated__/ScanCfnTemplate.js'
-import { ScanCfnTemplate_scanCfnTemplateExt_results_violationObservations_policyStatement } from '../apiclient/__generated__/ScanCfnTemplate.js'
 import { CreateTransformationFragmentCfn } from '../apiclient/__generated__/CreateTransformationFragmentCfn.js'
 import { UpdateTransformationFragmentCfn } from '../apiclient/__generated__/UpdateTransformationFragmentCfn.js'
 import { DeleteTransformationFragmentCfn } from '../apiclient/__generated__/DeleteTransformationFragmentCfn.js'
+import { Lighthouse_lighthouse } from '../apiclient/__generated__/Lighthouse.js'
+import { ScanCfnTemplateExt_scanCfnTemplateExt, ScanCfnTemplateExt_scanCfnTemplateExt_results_complianceObservations_policyStatement, ScanCfnTemplateExt_scanCfnTemplateExt_results_violationObservations_policyStatement } from '../apiclient/__generated__/ScanCfnTemplateExt.js'
 
 import { Client } from '../apiclient/client.js'
 import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
-import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js'
 import { CLI_VERSION } from '../cli/version.js'
 
-export interface ScanCfnInput {
+
+export interface Inputs {
   authToken?: string
   secretAccessKey?: string
   apiUrl: string
@@ -29,7 +28,7 @@ export interface ScanCfnInput {
   gitLabOptions?: GitLabOptions
 }
 
-const readablePolicyStatement = (policyStatement: ScanCfnTemplate_scanCfnTemplateExt_results_complianceObservations_policyStatement | ScanCfnTemplate_scanCfnTemplateExt_results_violationObservations_policyStatement): string => {
+const readablePolicyStatement = (policyStatement: ScanCfnTemplateExt_scanCfnTemplateExt_results_complianceObservations_policyStatement | ScanCfnTemplateExt_scanCfnTemplateExt_results_violationObservations_policyStatement): string => {
   // Get a human readable policy statement
   const capability = policyStatement.capability.title
   if(policyStatement.__typename === 'MustImplementCapabilityPolicyStatement') { return `Must implement ${capability}` }
@@ -58,20 +57,20 @@ const readableTransformation = (transformation: CreateTransformationFragmentCfn 
   }
 }
 
-export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
+export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   let exitCode = ExitCode.SUCCESS
 
   const client = new Client(inputs.apiUrl, inputs.authToken)
-  let lighthouseMessages: CallLighthouse_lighthouse[]
+  let lighthouseMessages: Lighthouse_lighthouse[]
   try {
-    lighthouseMessages = await client.callLighthouse()
+    lighthouseMessages = await client.lighthouseQueryCall()
   } catch (e: any) {
     lighthouseMessages = []
   }
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
-  cl.log(formatTitle(`Running Gomboc.AI for CloudFormation (v${CLI_VERSION})`))
+  cl.log(formatTitle(`Running Gomboc.AI Scan for CloudFormation (v${CLI_VERSION})`))
 
   cl._log(`Reading configuration: ${hl(inputs.config)} ${checkMark}\n`)
   
@@ -121,10 +120,10 @@ export const scanCfn = async (inputs: ScanCfnInput): Promise<ExitCode> => {
 
   const policy: ScanPolicy = { mustImplement: mustImplementCapabilities }
 
-  let scan: ScanCfnTemplate_scanCfnTemplateExt
+  let scan: ScanCfnTemplateExt_scanCfnTemplateExt
 
   try {
-    scan = await client.scanCfnTemplate(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
+    scan = await client.scanCfnTemplateExtQueryCall(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
     return ExitCode.SERVER_ERROR

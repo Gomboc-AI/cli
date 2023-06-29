@@ -1,5 +1,5 @@
-import { scanCfn, ScanCfnInput } from "../services/cloudformation.js"
-import { scanTf, ScanTfInput } from "../services/terraform.js"
+import { resolve as resolveScanCfnTemplateExt, Inputs as ScanCfnTemplateExtInputs } from "../resolvers/scanCfnTemplateExt.js"
+import { resolve as resolveScanTfPlanExt, Inputs as ScanTfPlanExtInputs } from "../resolvers/scanTfPlanExt.js"
 import { ExitCode } from "./exitCodes.js"
 import { ActionCommand, ServiceCommand, ClientCommand } from "./commands.js"
 import { getGitHubInfo, GitInfo } from "../utils/gitUtils.js"
@@ -7,7 +7,9 @@ import { ConsoleLogger } from "../utils/ConsoleLogger.js"
 import { hl } from "../utils/consoleUtils.js"
 
 
-const getCommonInputs = (argv: any): ScanCfnInput | ScanTfInput => {
+type CLIInputs = ScanCfnTemplateExtInputs | ScanTfPlanExtInputs
+
+const getCommonInputs = (argv: any): CLIInputs => {
   if(argv.authToken && argv.secretAccessKey) { throw new Error(`Conflicting options. Select ${hl('auth-token')} OR ${hl('secret-access-key')}`) }
 
   if(process.env.API_URL){
@@ -42,7 +44,7 @@ const completeGitFields = async (argv: any): Promise<any> => {
   return filledArgv
 }
 
-const addGitHubInputs = async (inputs: ScanCfnInput | ScanTfInput, argv: any): Promise<void> => {
+const addGitHubInputs = async (inputs: CLIInputs, argv: any): Promise<void> => {
   if (argv.accessToken == null) { throw new Error(`Missing an ${hl('access-token')} for GitHub`) }
   if(argv.createPr && argv.commitOnCurrentBranch) { throw new Error(`Conflicting options. Select ${hl('create-pr')} OR ${hl('commit-on-current-branch')}`) }
   if(!argv.createPr && !argv.commitOnCurrentBranch) { throw new Error(`No options passed. Select ${hl('create-pr')} OR ${hl('commit-on-current-branch')}`) }
@@ -77,7 +79,7 @@ const addGitHubInputs = async (inputs: ScanCfnInput | ScanTfInput, argv: any): P
   }
 }
 
-const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void => {
+const addGitLabInputs = (inputs: CLIInputs, argv: any): void => {
   if (argv.accessToken == null) { throw new Error(`Missing an ${hl('access-token')} for GitLab`) }
   if(!argv.createMr) { throw new Error(`No options passed. Select ${hl('create-mr')}`) }
 
@@ -105,7 +107,7 @@ const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void =>
 
 export const cliCheck = async (argv?: any): Promise<ExitCode> => {
   try {
-    const inputs: ScanCfnInput | ScanTfInput = getCommonInputs(argv)
+    const inputs: CLIInputs = getCommonInputs(argv)
 
     const command = argv._[0]
     if (command === ActionCommand.SCAN) {
@@ -117,14 +119,14 @@ export const cliCheck = async (argv?: any): Promise<ExitCode> => {
       // Add service specific inputs and call scans
       const service = argv._[1]
       if (service === ServiceCommand.CLOUDFORMATION) {
-        const cfnInputs = inputs as ScanCfnInput
+        const cfnInputs = inputs as ScanCfnTemplateExtInputs
         // no CloudFormation specific options to add
-        return await scanCfn(cfnInputs)
+        return await resolveScanCfnTemplateExt(cfnInputs)
       } else if (service === ServiceCommand.TERRAFORM) {
-        const tfInputs = inputs as ScanTfInput
+        const tfInputs = inputs as ScanTfPlanExtInputs
         tfInputs.plan = argv.tfPlan as string
         tfInputs.workingDirectory = argv.tfDirectory as string
-        return await scanTf(tfInputs)
+        return await resolveScanTfPlanExt(tfInputs)
       }
     }
   } catch (error: any) {

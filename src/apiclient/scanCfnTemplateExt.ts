@@ -45,13 +45,13 @@ export const CREATE_TRANSFORMATION_FRAGMENT_CFN = gql`
   }
 `
 
-export const scanCfnQuery = gql` 
+export const ScanCfnTemplateExtQuery = gql` 
   ${MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT}
   ${DELETE_TRANSFORMATION_FRAGMENT_CFN}
   ${UPDATE_TRANSFORMATION_FRAGMENT_CFN}
   ${CREATE_TRANSFORMATION_FRAGMENT_CFN}
-  query ScanCfnTemplate($templates: [TemplatePayload!]!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions, $secretAccessKey: String) {
-    scanCfnTemplateExt(templates: $templates, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions, secretAccessKey: $secretAccessKey) {
+  query ScanCfnTemplateExt ($templates: [TemplatePayload!]!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions, $secretAccessKey: String) {
+    scanCfnTemplateExt (templates: $templates, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions, secretAccessKey: $secretAccessKey) {
       scanMeta {
         timestamp
         scanId
