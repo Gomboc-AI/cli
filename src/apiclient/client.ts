@@ -13,7 +13,6 @@ import { ScanTfPlanExtQuery } from './scanTfPlanExt.js'
 import { RemediateRemoteTfCodeQuery } from './remediateRemoteTfCode.js'
 
 import { CLI_VERSION } from '../cli/version.js';
-//import { CallLighthouse, CallLighthouse_lighthouse } from './__generated__/CallLighthouse.js';
 import { Lighthouse, Lighthouse_lighthouse } from './__generated__/Lighthouse.js';
 import { LighthouseQuery } from './lighthouse.js';
 import { RemediateRemoteTfCode, RemediateRemoteTfCodeVariables, RemediateRemoteTfCode_remediateRemoteTfCode } from './__generated__/RemediateRemoteTfCode.js';

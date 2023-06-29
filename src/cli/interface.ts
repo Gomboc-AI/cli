@@ -129,6 +129,25 @@ export const cliCheck = async (argv?: any): Promise<ExitCode> => {
         return await resolveScanTfPlanExt(tfInputs)
       }
     }
+    else if (command === ActionCommand.REMEDIATE) {
+      // Add client specific inputs
+      const client = argv._[2]
+      if (client === ClientCommand.GITHUB) { await addGitHubInputs(inputs, argv) }
+      else if (client === ClientCommand.GITLAB) { addGitLabInputs(inputs, argv) }
+
+      // Add service specific inputs and call scans
+      const service = argv._[1]
+      if (service === ServiceCommand.CLOUDFORMATION) {
+        const cfnInputs = inputs as ScanCfnTemplateExtInputs
+        // no CloudFormation specific options to add
+        return await resolveScanCfnTemplateExt(cfnInputs)
+      } else if (service === ServiceCommand.TERRAFORM) {
+        const tfInputs = inputs as ScanTfPlanExtInputs
+        tfInputs.plan = argv.tfPlan as string
+        tfInputs.workingDirectory = argv.tfDirectory as string
+        return await resolveScanTfPlanExt(tfInputs)
+      }
+    }
   } catch (error: any) {
     const cl = new ConsoleLogger()
     cl.err(ExitCode.COMMAND_ERROR, error.message, [])

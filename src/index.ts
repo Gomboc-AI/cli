@@ -4,7 +4,7 @@ import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { cliCheck } from './cli/interface.js'
 
-import { ActionCommand, ServiceCommand, ClientCommand, LocationCommand } from './cli/commands.js'
+import { ActionCommand, ServiceCommand, ClientCommand, SourceCommand } from './cli/commands.js'
 
 
 const addGitHubOptionsBuilder = (yargs: any) => {
@@ -192,7 +192,7 @@ await yargs(hideBin(process.argv))
     '\tGomboc.AI remediation service',
     (yargs) => {
       yargs.command(
-        LocationCommand.REMOTE,
+        SourceCommand.REMOTE,
         '\tRemediate Remote git repository',
         (yargs) => {
         yargs.command(

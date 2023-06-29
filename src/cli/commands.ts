@@ -3,7 +3,7 @@ export enum ActionCommand {
     REMEDIATE = 'remediate'
 }
 
-export enum LocationCommand {
+export enum SourceCommand {
     LOCAL = 'local',
     REMOTE = 'remote'
 }
