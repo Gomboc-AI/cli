@@ -18,6 +18,7 @@ jobs:
     permissions:
       id-token: write
       contents: write
+      pull-requests: write
     env:
       CLI_REPO: 'cli'
       FORCE_COLOR: 3
