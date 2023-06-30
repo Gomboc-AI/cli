@@ -70,10 +70,11 @@ export class Client {
         return data.scanCfnTemplateExt
     }
 
-    async scanTfPlanExtQueryCall(plan: string, workingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlanExt_scanTfPlanExt> {
+    async scanTfPlanExtQueryCall(plan: string, workingDirectory: string, tfWorkingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlanExt_scanTfPlanExt> {
         const scanVariables: ScanTfPlanExtVariables = {
             plan: plan,
             workingDirectory: workingDirectory,
+            tfWorkingDirectory: tfWorkingDirectory,
             policy: policy,
             gitHubOptions: gitHubOptions,
             gitLabOptions: gitLabOptions,

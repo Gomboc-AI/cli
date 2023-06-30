@@ -53,8 +53,8 @@ export const ScanTfPlanExtQuery = gql`
   ${DELETE_TRANSFORMATION_FRAGMENT_TF}
   ${UPDATE_TRANSFORMATION_FRAGMENT_TF}
   ${CREATE_TRANSFORMATION_FRAGMENT_TF}
-  query ScanTfPlanExt ($plan: String!, $workingDirectory: String!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions, $secretAccessKey: String) {
-    scanTfPlanExt (plan: $plan, workingDirectory: $workingDirectory, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions, secretAccessKey: $secretAccessKey) {
+  query ScanTfPlanExt ($plan: String!, $workingDirectory: String!, $tfWorkingDirectory: String!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions, $secretAccessKey: String) {
+    scanTfPlanExt (plan: $plan, workingDirectory: $workingDirectory, tfWorkingDirectory: $tfWorkingDirectory, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions, secretAccessKey: $secretAccessKey) {
       scanMeta {
         timestamp
         scanId

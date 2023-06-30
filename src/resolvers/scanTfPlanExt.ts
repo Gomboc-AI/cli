@@ -197,7 +197,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   let scan: ScanTfPlanExt_scanTfPlanExt
 
   try {
-    scan = await client.scanTfPlanExtQueryCall(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
+    scan = await client.scanTfPlanExtQueryCall(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, cwd, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
     return ExitCode.SERVER_ERROR
