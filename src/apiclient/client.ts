@@ -16,6 +16,7 @@ import { CLI_VERSION } from '../cli/version.js';
 import { Lighthouse, Lighthouse_lighthouse } from './__generated__/Lighthouse.js';
 import { LighthouseQuery } from './lighthouse.js';
 import { RemediateRemoteTfCode, RemediateRemoteTfCodeVariables, RemediateRemoteTfCode_remediateRemoteTfCode } from './__generated__/RemediateRemoteTfCode.js';
+import { Action } from '../resolvers/remediateRemoteTfCode.js';
 
 export class Client {
     url: string
@@ -55,13 +56,13 @@ export class Client {
         return data.lighthouse
     }
 
-    async scanCfnTemplateExtQueryCall(templatePayloads: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplateExt_scanCfnTemplateExt> {
+    async scanCfnTemplateExtQueryCall(templates: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplateExt_scanCfnTemplateExt> {
         const scanVariables: ScanCfnTemplateExtVariables = {
-            templates: templatePayloads,
-            policy: policy,
-            gitHubOptions: gitHubOptions,
-            gitLabOptions: gitLabOptions,
-            secretAccessKey: secretAccessKey
+            templates,
+            policy,
+            gitHubOptions,
+            gitLabOptions,
+            secretAccessKey
         }
         const { data } : { data: ScanCfnTemplateExt} = await this.client.query<ScanCfnTemplateExt, ScanCfnTemplateExtVariables>({
             query: ScanCfnTemplateExtQuery,
@@ -72,13 +73,13 @@ export class Client {
 
     async scanTfPlanExtQueryCall(plan: string, workingDirectory: string, tfWorkingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlanExt_scanTfPlanExt> {
         const scanVariables: ScanTfPlanExtVariables = {
-            plan: plan,
-            workingDirectory: workingDirectory,
-            tfWorkingDirectory: tfWorkingDirectory,
-            policy: policy,
-            gitHubOptions: gitHubOptions,
-            gitLabOptions: gitLabOptions,
-            secretAccessKey: secretAccessKey
+            plan,
+            workingDirectory,
+            tfWorkingDirectory,
+            policy,
+            gitHubOptions,
+            gitLabOptions,
+            secretAccessKey
         }
         const { data } : { data: ScanTfPlanExt} = await this.client.query<ScanTfPlanExt, ScanTfPlanExtVariables>({
             query: ScanTfPlanExtQuery,
@@ -87,10 +88,12 @@ export class Client {
         return data.scanTfPlanExt
     }
 
-    async remediateRemoteTfCodeQueryCall(workingDirectory: string, policy: ScanPolicy): Promise<RemediateRemoteTfCode_remediateRemoteTfCode> {
+    async remediateRemoteTfCodeQueryCall(workingDirectory: string, policy: ScanPolicy, action: Action, accessToken: string ): Promise<RemediateRemoteTfCode_remediateRemoteTfCode> {
         const scanVariables: RemediateRemoteTfCodeVariables = {
-            workingDirectory: workingDirectory,
-            policy: policy,
+            workingDirectory,
+            policy,
+            action,
+            accessToken
         }
         const { data } : { data: RemediateRemoteTfCode} = await this.client.query<RemediateRemoteTfCode, RemediateRemoteTfCodeVariables>({
             query: RemediateRemoteTfCodeQuery,

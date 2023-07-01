@@ -1,17 +1,20 @@
 import { resolve as resolveScanCfnTemplateExt, Inputs as ScanCfnTemplateExtInputs } from "../resolvers/scanCfnTemplateExt.js"
 import { resolve as resolveScanTfPlanExt, Inputs as ScanTfPlanExtInputs } from "../resolvers/scanTfPlanExt.js"
-import { resolve as resolveRemediateRemoteTfCode, Inputs as RemediateRemoteTfCodeInputs } from "../resolvers/remediateRemoteTfCode.js"
+import { resolve as resolveRemediateRemoteTfCode, Inputs as RemediateRemoteTfCodeInputs, Action } from "../resolvers/remediateRemoteTfCode.js"
 import { ExitCode } from "./exitCodes.js"
 import { ActionCommand, ServiceCommand, ClientCommand, SourceCommand } from "./commands.js"
 import { getGitHubInfo, GitInfo } from "../utils/gitUtils.js"
 import { ConsoleLogger } from "../utils/ConsoleLogger.js"
 import { hl } from "../utils/consoleUtils.js"
+import { Arguments } from "yargs"
+import { ActionOptions } from "./options.js"
 
 
-type CLIInputs = ScanCfnTemplateExtInputs | ScanTfPlanExtInputs
+type CLIScanInputs = ScanCfnTemplateExtInputs | ScanTfPlanExtInputs
 
-const getCommonInputs = (argv: any): CLIInputs => {
+const getCommonInputs = (argv: any): CLIScanInputs => {
   if(argv.authToken && argv.secretAccessKey) { throw new Error(`Conflicting options. Select ${hl('auth-token')} OR ${hl('secret-access-key')}`) }
+  if(!argv.authToken && !argv.secretAccessKey) { throw new Error(`No auth credentials passed. Select ${hl('auth-token')} OR ${hl('secret-access-key')}`) }
 
   if(process.env.API_URL){
     console.log(`..:: Running against local URL: ${process.env.API_URL}!`)
@@ -45,7 +48,7 @@ const completeGitFields = async (argv: any): Promise<any> => {
   return filledArgv
 }
 
-const addGitHubInputs = async (inputs: CLIInputs, argv: any): Promise<void> => {
+const addGitHubInputs = async (inputs: CLIScanInputs, argv: Arguments): Promise<void> => {
   if (argv.accessToken == null) { throw new Error(`Missing an ${hl('access-token')} for GitHub`) }
   if(argv.createPr && argv.commitOnCurrentBranch) { throw new Error(`Conflicting options. Select ${hl('create-pr')} OR ${hl('commit-on-current-branch')}`) }
   if(!argv.createPr && !argv.commitOnCurrentBranch) { throw new Error(`No options passed. Select ${hl('create-pr')} OR ${hl('commit-on-current-branch')}`) }
@@ -80,7 +83,7 @@ const addGitHubInputs = async (inputs: CLIInputs, argv: any): Promise<void> => {
   }
 }
 
-const addGitLabInputs = (inputs: CLIInputs, argv: any): void => {
+const addGitLabInputs = (inputs: CLIScanInputs, argv: Arguments): void => {
   if (argv.accessToken == null) { throw new Error(`Missing an ${hl('access-token')} for GitLab`) }
   if(!argv.createMr) { throw new Error(`No options passed. Select ${hl('create-mr')}`) }
 
@@ -106,9 +109,9 @@ const addGitLabInputs = (inputs: CLIInputs, argv: any): void => {
   }
 }
 
-export const cliCheck = async (argv?: any): Promise<ExitCode> => {
+export const cliScanCheck = async (argv: Arguments): Promise<ExitCode> => {
   try {
-    const inputs: CLIInputs = getCommonInputs(argv)
+    const inputs: CLIScanInputs = getCommonInputs(argv)
 
     const action = argv._[0]
     if (action === ActionCommand.SCAN) {
@@ -130,14 +133,37 @@ export const cliCheck = async (argv?: any): Promise<ExitCode> => {
         return await resolveScanTfPlanExt(tfInputs)
       }
     }
-    else if (action === ActionCommand.REMEDIATE) {
+  } catch (error: any) {
+    const cl = new ConsoleLogger()
+    cl.err(ExitCode.COMMAND_ERROR, error.message, [])
+    return new Promise(() => { ExitCode.COMMAND_ERROR })
+  }
+  return new Promise(() => { ExitCode.CLIENT_ERROR })
+}
+
+export const cliRemediateCheck = async (argv: Arguments): Promise<ExitCode> => {
+  try {
+    if(process.env.API_URL){
+      console.log(`..:: Running against local URL: ${process.env.API_URL}!`)
+    }
+    const inputs: RemediateRemoteTfCodeInputs = {
+      authToken: argv.authToken as string,
+      output: argv.output as string,
+      apiUrl: process.env.API_URL ?? "https://scan.gomboc.ai/graphql",
+      config: argv.config as string,
+      workingDirectory: argv.workingDirectory as string,
+      action: argv.action==ActionOptions.DIRECT_APPLY ? Action.DirectApply : Action.SubmitForReview,
+      accessToken: argv.accessToken as string
+    }
+    const action = argv._[0]
+    if (action === ActionCommand.REMEDIATE) {
       // Add client specific inputs
-      const source = argv._[2]
+      const source = argv._[1]
       if (source === SourceCommand.REMOTE) { 
         // Add service specific inputs and call scans
-        const service = argv._[1]
+        const service = argv._[2]
         if (service === ServiceCommand.TERRAFORM) {
-          const tfInputs = inputs as ScanTfPlanExtInputs
+          const tfInputs = inputs as RemediateRemoteTfCodeInputs
           tfInputs.workingDirectory = argv.tfDirectory as string
           return await resolveRemediateRemoteTfCode(tfInputs)
         }
