@@ -78,6 +78,8 @@ jobs:
         if: ${{ github.event.repository.name != env.CLI_REPO }}
         run: |
           EXIT_CODE=0
+          gomboc remediate remote terraform --config $TF_CONFIGS/001.yaml --action SUBMIT_FOR_REVIEW --wd $TF_FILES/violations-001/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }}
+          gomboc remediate remote terraform --config $TF_CONFIGS/001.yaml --action SUBMIT_FOR_REVIEW --wd $TF_FILES/violations-001/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} > output.json
           gomboc remediate remote terraform --config $TF_CONFIGS/001.yaml --action SUBMIT_FOR_REVIEW --wd $TF_FILES/violations-001/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} > output.json || EXIT_CODE=$?
           $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
 
