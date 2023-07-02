@@ -5,7 +5,7 @@ import { ApolloClient, InMemoryCache } from "@apollo/client/core/core.cjs"
 import { HttpLink } from "@apollo/client/link/http/http.cjs";
 // @ts-ignore
 import { setContext } from '@apollo/client/link/context/context.cjs'
-import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './__generated__/GlobalTypes.js'
+import { Action, GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './__generated__/GlobalTypes.js'
 import { ScanTfPlanExt, ScanTfPlanExtVariables, ScanTfPlanExt_scanTfPlanExt } from "./__generated__/ScanTfPlanExt.js";
 import { ScanCfnTemplateExt, ScanCfnTemplateExtVariables, ScanCfnTemplateExt_scanCfnTemplateExt } from "./__generated__/ScanCfnTemplateExt.js";
 import { ScanCfnTemplateExtQuery } from './scanCfnTemplateExt.js'
@@ -16,7 +16,6 @@ import { CLI_VERSION } from '../cli/version.js';
 import { Lighthouse, Lighthouse_lighthouse } from './__generated__/Lighthouse.js';
 import { LighthouseQuery } from './lighthouse.js';
 import { RemediateRemoteTfCode, RemediateRemoteTfCodeVariables, RemediateRemoteTfCode_remediateRemoteTfCode } from './__generated__/RemediateRemoteTfCode.js';
-import { Action } from '../resolvers/remediateRemoteTfCode.js';
 
 export class Client {
     url: string
@@ -57,7 +56,7 @@ export class Client {
     }
 
     async scanCfnTemplateExtQueryCall(templates: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplateExt_scanCfnTemplateExt> {
-        const scanVariables: ScanCfnTemplateExtVariables = {
+        const variables: ScanCfnTemplateExtVariables = {
             templates,
             policy,
             gitHubOptions,
@@ -66,13 +65,13 @@ export class Client {
         }
         const { data } : { data: ScanCfnTemplateExt} = await this.client.query<ScanCfnTemplateExt, ScanCfnTemplateExtVariables>({
             query: ScanCfnTemplateExtQuery,
-            variables: scanVariables
+            variables
         })
         return data.scanCfnTemplateExt
     }
 
     async scanTfPlanExtQueryCall(plan: string, workingDirectory: string, tfWorkingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlanExt_scanTfPlanExt> {
-        const scanVariables: ScanTfPlanExtVariables = {
+        const variables: ScanTfPlanExtVariables = {
             plan,
             workingDirectory,
             tfWorkingDirectory,
@@ -83,21 +82,22 @@ export class Client {
         }
         const { data } : { data: ScanTfPlanExt} = await this.client.query<ScanTfPlanExt, ScanTfPlanExtVariables>({
             query: ScanTfPlanExtQuery,
-            variables: scanVariables
+            variables
         })
         return data.scanTfPlanExt
     }
 
     async remediateRemoteTfCodeQueryCall(workingDirectory: string, policy: ScanPolicy, action: Action, accessToken: string ): Promise<RemediateRemoteTfCode_remediateRemoteTfCode> {
-        const scanVariables: RemediateRemoteTfCodeVariables = {
+        const variables: RemediateRemoteTfCodeVariables = {
             workingDirectory,
             policy,
             action,
             accessToken
         }
+        console.log(variables)
         const { data } : { data: RemediateRemoteTfCode} = await this.client.query<RemediateRemoteTfCode, RemediateRemoteTfCodeVariables>({
             query: RemediateRemoteTfCodeQuery,
-            variables: scanVariables
+            variables
         })
         return data.remediateRemoteTfCode
     }
