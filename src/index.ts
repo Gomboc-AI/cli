@@ -2,10 +2,9 @@
 
 import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { cliScanCheck, cliRemediateCheck } from './cli/interface.js'
-
+import { cliScanCheck } from './cli/interfaces/scan.js'
+import { cliRemediateRemoteTerraformCheck } from './cli/interfaces/remediate.js'
 import { ActionCommand, ServiceCommand, ClientCommand, SourceCommand } from './cli/commands.js'
-import { ActionOptions } from './cli/options.js'
 
 
 const addExecutableCommandCheck = (argv: Argv, check: CallableFunction) => {
@@ -23,15 +22,6 @@ const addOutputOption = (argv: Argv) => {
     default: "text",
     demandOption: false,
     choices: ['text', 'json'],
-  })
-}
-
-const addActionOption = (argv: Argv) => {
-  argv.option("action", {
-    describe: "What action to perform",
-    type: "string",
-    demandOption: true,
-    choices: [ActionOptions.DIRECT_APPLY, ActionOptions.SUBMIT_FOR_REVIEW],
   })
 }
 
@@ -219,9 +209,18 @@ await yargs(hideBin(process.argv))
                   demandOption: true
                 }
               )
-              addActionOption(yargs)
+              .option("direct-apply", {
+                describe: "Commit a remediation in the current branch",
+                type: "boolean",
+                demandOption: false
+              })
+              .option("submit-for-review", {
+                describe: "Commit a remediation in a new branch to be reviewed",
+                type: "boolean",
+                demandOption: false
+              })
               addAccessTokenOption(yargs, true)
-              addExecutableCommandCheck(yargs, cliRemediateCheck)
+              addExecutableCommandCheck(yargs, cliRemediateRemoteTerraformCheck)
             }
           )
           yargs.demandCommand(1, 'Specify a service [terraform]')
