@@ -127,7 +127,7 @@ jobs:
       - name: CFN - Test single JSON template with violations (001) with SIDE EFFECTS
         run: |
           EXIT_CODE=0
-          gomboc scan cloudformation --config $CFN_CONFIGS/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} --create-pr > output.json || EXIT_CODE=$?
+          gomboc scan cloudformation github --config $CFN_CONFIGS/001.yaml --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} --create-pr > output.json || EXIT_CODE=$?
           $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
 
       - name: CFN - Test single YAML template with violations (002)
