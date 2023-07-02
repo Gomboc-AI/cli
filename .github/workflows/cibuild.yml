@@ -78,9 +78,9 @@ jobs:
         if: ${{ github.event.repository.name != env.CLI_REPO }}
         run: |
           EXIT_CODE=0
-          gomboc terraform remediate remote submit-for-review --config $TF_CONFIGS/001.yaml --wd $TF_FILES/violations-001/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --access-token ${{ secrets.GITHUB_TOKEN }}
-          gomboc terraform remediate remote submit-for-review --config $TF_CONFIGS/001.yaml --wd $TF_FILES/violations-001/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }}
-          gomboc terraform remediate remote submit-for-review --config $TF_CONFIGS/001.yaml --wd $TF_FILES/violations-001/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} > output.json || EXIT_CODE=$?
+          gomboc terraform remediate remote submit-for-review --config $TF_CONFIGS/001.yaml --wd $TF_FILES/violations-002/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --access-token ${{ secrets.GITHUB_TOKEN }}
+          gomboc terraform remediate remote submit-for-review --config $TF_CONFIGS/001.yaml --wd $TF_FILES/violations-002/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }}
+          gomboc terraform remediate remote submit-for-review --config $TF_CONFIGS/001.yaml --wd $TF_FILES/violations-002/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} > output.json || EXIT_CODE=$?
           $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
 
       - name: scan terraform - Test single violation
