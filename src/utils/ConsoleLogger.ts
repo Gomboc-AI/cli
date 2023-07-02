@@ -2,7 +2,7 @@ import chalk from 'chalk'
 
 import { ExitCode } from '../cli/exitCodes.js';
 import { MessageLevel } from '../apiclient/__generated__/GlobalTypes.js';
-import { CallLighthouse_lighthouse } from '../apiclient/__generated__/CallLighthouse.js';
+import { Lighthouse_lighthouse } from '../apiclient/__generated__/Lighthouse.js';
 
 
 export class ConsoleLogger {
@@ -23,7 +23,7 @@ export class ConsoleLogger {
   public __log = (message: string) => { this.logIndented(message, 2) }
   public ___log = (message: string) => { this.logIndented(message, 3) }
 
-  public err = (code: ExitCode, message: string, lighthouseMessages: CallLighthouse_lighthouse[]) => {
+  public err = (code: ExitCode, message: string, lighthouseMessages: Lighthouse_lighthouse[]) => {
     this.log(`\n${chalk.red.bold(`Error ${code as number}`)}: ${message}`)
     // In any case, we want to log the lighthouse messages
     this.allLighthouseMessages(lighthouseMessages)
@@ -43,7 +43,7 @@ export class ConsoleLogger {
     }
   }
 
-  public allLighthouseMessages = (messages: CallLighthouse_lighthouse[]) => {
+  public allLighthouseMessages = (messages: Lighthouse_lighthouse[]) => {
     messages.forEach((message) => {
       this.lighthouseMessage(message.level, message.message)
     })

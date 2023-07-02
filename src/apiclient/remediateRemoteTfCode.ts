@@ -48,13 +48,13 @@ export const CREATE_TRANSFORMATION_FRAGMENT_TF = gql`
   }
 `
 
-export const scanTfQuery = gql` 
+export const RemediateRemoteTfCodeQuery = gql` 
   ${MUST_IMPLEMENT_CAPABILITY_POLICY_STATEMENT_FRAGMENT}
   ${DELETE_TRANSFORMATION_FRAGMENT_TF}
   ${UPDATE_TRANSFORMATION_FRAGMENT_TF}
   ${CREATE_TRANSFORMATION_FRAGMENT_TF}
-  query ScanTfPlan($plan: String!, $workingDirectory: String!, $policy: ScanPolicy!, $gitHubOptions: GitHubOptions, $gitLabOptions: GitLabOptions, $secretAccessKey: String) {
-    scanTfPlanExt(plan: $plan, workingDirectory: $workingDirectory, policy: $policy, gitHubOptions: $gitHubOptions, gitLabOptions: $gitLabOptions, secretAccessKey: $secretAccessKey) {
+  query RemediateRemoteTfCode ($workingDirectory: String!, $policy: ScanPolicy!, $action: Action!, $accessToken: String!) {
+    remediateRemoteTfCode (workingDirectory: $workingDirectory, policy: $policy, action: $action, accessToken: $accessToken) {
       scanMeta {
         timestamp
         scanId

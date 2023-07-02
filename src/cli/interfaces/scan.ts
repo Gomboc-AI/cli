@@ -1,14 +1,18 @@
-import { scanCfn, ScanCfnInput } from "../services/cloudformation.js"
-import { scanTf, ScanTfInput } from "../services/terraform.js"
-import { ExitCode } from "./exitCodes.js"
-import { ActionCommand, ServiceCommand, ClientCommand } from "./commands.js"
-import { getGitHubInfo, GitInfo } from "../utils/gitUtils.js"
-import { ConsoleLogger } from "../utils/ConsoleLogger.js"
-import { hl } from "../utils/consoleUtils.js"
+import { resolve as resolveScanCfnTemplateExt, Inputs as ScanCfnTemplateExtInputs } from "../../resolvers/scanCfnTemplateExt.js"
+import { resolve as resolveScanTfPlanExt, Inputs as ScanTfPlanExtInputs } from "../../resolvers/scanTfPlanExt.js"
+import { ExitCode } from "../exitCodes.js"
+import { VerbCommand, ServiceCommand, ClientCommand, SourceCommand } from "../commands.js"
+import { getGitHubInfo, GitInfo } from "../../utils/gitUtils.js"
+import { ConsoleLogger } from "../../utils/ConsoleLogger.js"
+import { hl } from "../../utils/consoleUtils.js"
+import { Arguments } from "yargs"
 
 
-const getCommonInputs = (argv: any): ScanCfnInput | ScanTfInput => {
+type ScanInputs = ScanCfnTemplateExtInputs | ScanTfPlanExtInputs
+
+const getCommonScanInputs = (argv: Arguments): ScanInputs => {
   if(argv.authToken && argv.secretAccessKey) { throw new Error(`Conflicting options. Select ${hl('auth-token')} OR ${hl('secret-access-key')}`) }
+  if(!argv.authToken && !argv.secretAccessKey) { throw new Error(`No auth credentials passed. Select ${hl('auth-token')} OR ${hl('secret-access-key')}`) }
 
   if(process.env.API_URL){
     console.log(`..:: Running against local URL: ${process.env.API_URL}!`)
@@ -22,7 +26,7 @@ const getCommonInputs = (argv: any): ScanCfnInput | ScanTfInput => {
   }
 }
 
-const completeGitFields = async (argv: any): Promise<any> => {
+const completeGitFields = async (argv: Arguments): Promise<any> => {
   let info: GitInfo
   
   try {
@@ -42,7 +46,7 @@ const completeGitFields = async (argv: any): Promise<any> => {
   return filledArgv
 }
 
-const addGitHubInputs = async (inputs: ScanCfnInput | ScanTfInput, argv: any): Promise<void> => {
+const addGitHubInputs = async (inputs: ScanInputs, argv: Arguments): Promise<void> => {
   if (argv.accessToken == null) { throw new Error(`Missing an ${hl('access-token')} for GitHub`) }
   if(argv.createPr && argv.commitOnCurrentBranch) { throw new Error(`Conflicting options. Select ${hl('create-pr')} OR ${hl('commit-on-current-branch')}`) }
   if(!argv.createPr && !argv.commitOnCurrentBranch) { throw new Error(`No options passed. Select ${hl('create-pr')} OR ${hl('commit-on-current-branch')}`) }
@@ -77,7 +81,7 @@ const addGitHubInputs = async (inputs: ScanCfnInput | ScanTfInput, argv: any): P
   }
 }
 
-const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void => {
+const addGitLabInputs = (inputs: ScanInputs, argv: Arguments): void => {
   if (argv.accessToken == null) { throw new Error(`Missing an ${hl('access-token')} for GitLab`) }
   if(!argv.createMr) { throw new Error(`No options passed. Select ${hl('create-mr')}`) }
 
@@ -103,12 +107,12 @@ const addGitLabInputs = (inputs: ScanCfnInput | ScanTfInput, argv: any): void =>
   }
 }
 
-export const cliCheck = async (argv?: any): Promise<ExitCode> => {
+export const cliScanCheck = async (argv: Arguments): Promise<ExitCode> => {
   try {
-    const inputs: ScanCfnInput | ScanTfInput = getCommonInputs(argv)
+    const inputs: ScanInputs = getCommonScanInputs(argv)
 
-    const command = argv._[0]
-    if (command === ActionCommand.SCAN) {
+    const action = argv._[0]
+    if (action === VerbCommand.SCAN) {
       // Add client specific inputs
       const client = argv._[2]
       if (client === ClientCommand.GITHUB) { await addGitHubInputs(inputs, argv) }
@@ -117,14 +121,14 @@ export const cliCheck = async (argv?: any): Promise<ExitCode> => {
       // Add service specific inputs and call scans
       const service = argv._[1]
       if (service === ServiceCommand.CLOUDFORMATION) {
-        const cfnInputs = inputs as ScanCfnInput
+        const cfnInputs = inputs as ScanCfnTemplateExtInputs
         // no CloudFormation specific options to add
-        return await scanCfn(cfnInputs)
+        return await resolveScanCfnTemplateExt(cfnInputs)
       } else if (service === ServiceCommand.TERRAFORM) {
-        const tfInputs = inputs as ScanTfInput
+        const tfInputs = inputs as ScanTfPlanExtInputs
         tfInputs.plan = argv.tfPlan as string
         tfInputs.workingDirectory = argv.tfDirectory as string
-        return await scanTf(tfInputs)
+        return await resolveScanTfPlanExt(tfInputs)
       }
     }
   } catch (error: any) {

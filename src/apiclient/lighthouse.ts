@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 
 
-export const callLighthouseQuery = gql` 
-  query CallLighthouse {
+export const LighthouseQuery = gql` 
+  query Lighthouse {
     lighthouse {
       level
       message
