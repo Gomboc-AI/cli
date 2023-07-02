@@ -211,7 +211,8 @@ await yargs(hideBin(process.argv))
             ServiceCommand.TERRAFORM,
             '\tRemediate Remote Terraform code',
             (yargs) => {
-              yargs.option("tf-directory", {
+              yargs.option("working-directory", {
+                  alias: "wd",
                   describe: "The root directory for the Terraform configuration",
                   type: "string",
                   default: "",
