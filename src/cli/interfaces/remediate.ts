@@ -8,9 +8,6 @@ import { Arguments } from "yargs"
 
 export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode> => {
   try {
-    if(argv.submitForReview && argv.directApply) { throw new Error(`Conflicting actions. Select ${hl('submit-for-review')} OR ${hl('direct-apply')}`) }
-    if(!argv.submitForReview && !argv.directApply) { throw new Error(`No action passed. Select ${hl('submit-for-review')} OR ${hl('direct-apply')}`) }
-
     if(process.env.API_URL){
       console.log(`..:: Running against local URL: ${process.env.API_URL}!`)
     }
