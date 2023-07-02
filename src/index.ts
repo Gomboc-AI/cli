@@ -3,14 +3,14 @@
 import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { cliScanCheck } from './cli/interfaces/scan.js'
-import { cliRemediateRemoteTerraformCheck } from './cli/interfaces/remediate.js'
-import { ActionCommand, ServiceCommand, ClientCommand, SourceCommand } from './cli/commands.js'
+import { cliTerraformRemediateRemoteCheck } from './cli/interfaces/remediate.js'
+import { ActionCommand, VerbCommand, ServiceCommand, ClientCommand, SourceCommand } from './cli/commands.js'
 
 
-const addExecutableCommandCheck = (argv: Argv, check: CallableFunction) => {
+const addExecuteCheck = (argv: Argv, callableCheck: CallableFunction) => {
   // If reached, this check will execute the CLI and set an exit code
   argv.check(async (argv) => {
-    process.exitCode = await check(argv) as number
+    process.exitCode = await callableCheck(argv) as number
     return true
   }, false)
 }
@@ -122,7 +122,7 @@ const addGitLabOptionsBuilder = (yargs: Argv) => {
 // Setting CLI command and options
 await yargs(hideBin(process.argv))
   .command(
-    ActionCommand.SCAN,
+    VerbCommand.SCAN,
     '\tGomboc.AI scan service',
     (yargs) => {
       yargs.command(
@@ -134,17 +134,17 @@ await yargs(hideBin(process.argv))
             '\t...with side effects on GitHub',
             (yargs) => {
               addGitHubOptionsBuilder(yargs)
-              addExecutableCommandCheck(yargs, cliScanCheck)
+              addExecuteCheck(yargs, cliScanCheck)
             }
           ).command(
             ClientCommand.GITLAB,
             '\t...with side effects on GitLab',
             (yargs) => {
               addGitLabOptionsBuilder(yargs)
-              addExecutableCommandCheck(yargs, cliScanCheck)
+              addExecuteCheck(yargs, cliScanCheck)
             }
           )
-          addExecutableCommandCheck(yargs, cliScanCheck)
+          addExecuteCheck(yargs, cliScanCheck)
         }
       ).command(
         ServiceCommand.TERRAFORM,
@@ -155,14 +155,14 @@ await yargs(hideBin(process.argv))
             '\t...with side effects on GitHub',
             (yargs) => {
               addGitHubOptionsBuilder(yargs)
-              addExecutableCommandCheck(yargs, cliScanCheck)
+              addExecuteCheck(yargs, cliScanCheck)
             }
           ).command(
             ClientCommand.GITLAB,
             '\t...with side effects on GitLab',
             (yargs) => {
               addGitLabOptionsBuilder(yargs)
-              addExecutableCommandCheck(yargs, cliScanCheck)
+              addExecuteCheck(yargs, cliScanCheck)
             }
           ).option("tf-directory", {
               describe: "The root directory for the Terraform configuration",
@@ -175,7 +175,7 @@ await yargs(hideBin(process.argv))
               demandOption: true,
             }
           )
-          addExecutableCommandCheck(yargs, cliScanCheck)
+          addExecuteCheck(yargs, cliScanCheck)
         }
       )
       .option("secret-access-key", {
@@ -190,46 +190,50 @@ await yargs(hideBin(process.argv))
     }
   )
   .command(
-    ActionCommand.REMEDIATE,
-    '\tGomboc.AI remediation service',
+    ServiceCommand.TERRAFORM,
+    '\tGomboc.AI Terraform service',
     (yargs) => {
       yargs.command(
-        SourceCommand.REMOTE,
-        '\tRemediate Remote git repository',
+        VerbCommand.REMEDIATE,
+        '\tRemediate Terraform code',
         (yargs) => {
           yargs.command(
-            ServiceCommand.TERRAFORM,
+            SourceCommand.REMOTE,
             '\tRemediate Remote Terraform code',
             (yargs) => {
-              yargs.option("working-directory", {
-                  alias: "wd",
-                  describe: "The root directory for the Terraform configuration",
-                  type: "string",
-                  default: "",
-                  demandOption: true
+              yargs.command(
+                ActionCommand.SUBMIT_FOR_REVIEW,
+                '\tRemediate Remote Terraform code',
+                (yargs) => {
+                  addExecuteCheck(yargs, cliTerraformRemediateRemoteCheck)
                 }
               )
-              .option("direct-apply", {
-                describe: "Commit a remediation in the current branch",
-                type: "boolean",
-                demandOption: false
-              })
-              .option("submit-for-review", {
-                describe: "Commit a remediation in a new branch to be reviewed",
-                type: "boolean",
-                demandOption: false
-              })
-              addAccessTokenOption(yargs, true)
-              addExecutableCommandCheck(yargs, cliRemediateRemoteTerraformCheck)
+              yargs.command(
+                ActionCommand.DIRECT_APPLY,
+                '\tRemediate Remote Terraform code',
+                (yargs) => {
+                  addExecuteCheck(yargs, cliTerraformRemediateRemoteCheck)
+                }
+              )
+              yargs.demandCommand(1, 'Specify an action [direct-apply, submit-for-review]')
             }
           )
-          yargs.demandCommand(1, 'Specify a service [terraform]')
+          addAccessTokenOption(yargs, true)
+          yargs.demandCommand(1, 'Specify a source [remote]')
+        }
+      )
+      yargs.option("working-directory", {
+          alias: "wd",
+          describe: "The root directory for the Terraform configuration",
+          type: "string",
+          default: "",
+          demandOption: true
         }
       )
       addAuthTokenOption(yargs, true)
       addConfigOption(yargs)
       addOutputOption(yargs)
-      yargs.demandCommand(1, 'Specify a source [remote]')
+      yargs.demandCommand(1, 'Specify a verb [remediate]')
     }
   )
   .demandCommand()

@@ -1,4 +1,4 @@
-export enum ActionCommand {
+export enum VerbCommand {
     SCAN = 'scan',
     REMEDIATE = 'remediate'
 }
@@ -16,4 +16,9 @@ export enum ServiceCommand {
 export enum ClientCommand {
     GITHUB = 'github',
     GITLAB = 'gitlab'
+}
+
+export enum ActionCommand {
+    DIRECT_APPLY = 'direct-apply',
+    SUBMIT_FOR_REVIEW = 'submit-for-review'
 }

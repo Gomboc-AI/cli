@@ -1,8 +1,7 @@
 import { resolve as resolveScanCfnTemplateExt, Inputs as ScanCfnTemplateExtInputs } from "../../resolvers/scanCfnTemplateExt.js"
 import { resolve as resolveScanTfPlanExt, Inputs as ScanTfPlanExtInputs } from "../../resolvers/scanTfPlanExt.js"
-import { resolve as resolveRemediateRemoteTfCode, Inputs as RemediateRemoteTfCodeInputs, Action } from "../../resolvers/remediateRemoteTfCode.js"
 import { ExitCode } from "../exitCodes.js"
-import { ActionCommand, ServiceCommand, ClientCommand, SourceCommand } from "../commands.js"
+import { VerbCommand, ServiceCommand, ClientCommand, SourceCommand } from "../commands.js"
 import { getGitHubInfo, GitInfo } from "../../utils/gitUtils.js"
 import { ConsoleLogger } from "../../utils/ConsoleLogger.js"
 import { hl } from "../../utils/consoleUtils.js"
@@ -113,7 +112,7 @@ export const cliScanCheck = async (argv: Arguments): Promise<ExitCode> => {
     const inputs: ScanInputs = getCommonScanInputs(argv)
 
     const action = argv._[0]
-    if (action === ActionCommand.SCAN) {
+    if (action === VerbCommand.SCAN) {
       // Add client specific inputs
       const client = argv._[2]
       if (client === ClientCommand.GITHUB) { await addGitHubInputs(inputs, argv) }
