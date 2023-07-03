@@ -94,7 +94,6 @@ export class Client {
             action,
             accessToken
         }
-        console.log(variables)
         const { data } : { data: RemediateRemoteTfCode} = await this.client.query<RemediateRemoteTfCode, RemediateRemoteTfCodeVariables>({
             query: RemediateRemoteTfCodeQuery,
             variables

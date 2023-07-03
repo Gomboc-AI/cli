@@ -27,7 +27,6 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       accessToken: argv.accessToken as string
     }
 
-    console.log(inputs)
     return await resolveRemediateRemoteTfCode(inputs)
 
   } catch (error: any) {
