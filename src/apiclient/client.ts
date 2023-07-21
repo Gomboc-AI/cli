@@ -87,14 +87,12 @@ export class Client {
         return data.scanTfPlanExt
     }
 
-    async remediateRemoteTfCodeQueryCall(workingDirectory: string, policy: ScanPolicy, action: Action, accessToken: string ): Promise<RemediateRemoteTfCode_remediateRemoteTfCode> {
+    async remediateRemoteTfCodeQueryCall(workingDirectory: string, action: Action, accessToken: string ): Promise<RemediateRemoteTfCode_remediateRemoteTfCode> {
         const variables: RemediateRemoteTfCodeVariables = {
             workingDirectory,
-            policy,
             action,
             accessToken
         }
-        console.log(variables)
         const { data } : { data: RemediateRemoteTfCode} = await this.client.query<RemediateRemoteTfCode, RemediateRemoteTfCodeVariables>({
             query: RemediateRemoteTfCodeQuery,
             variables

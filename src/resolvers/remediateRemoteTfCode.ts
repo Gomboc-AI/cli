@@ -12,15 +12,13 @@ import { DeleteTransformationFragmentTf } from '../apiclient/__generated__/Delet
 import { Client } from '../apiclient/client.js'
 import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
-import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
-import { ConfigParser } from '../utils/ConfigParser.js'
+import { hl, checkMark, crossMark, formatTitle, exclamationMark } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
 
 
 export interface Inputs {
   authToken: string
   apiUrl: string
-  config: string
   output: string
   workingDirectory: string
   action: Action
@@ -70,35 +68,16 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   cl.log(formatTitle(`Running Gomboc.AI Remediate for Terraform (v${CLI_VERSION})`))
 
-  cl._log(`Reading Gomboc configuration: ${hl(inputs.config)} ${checkMark}\n`)
-
   cl._log(`Terraform directory: ${hl(inputs.workingDirectory)} ${checkMark}\n`)
 
   cl._log(`Action: ${hl(inputs.action)} ${checkMark}\n`)
   
-  let configParser: ConfigParser
-  let mustImplementCapabilities: string[]
-
-  try {
-    configParser = new ConfigParser(inputs.config)
-    mustImplementCapabilities = configParser.getMustImplementCapabilities()
-  } catch (e: any) {
-    cl.err(ExitCode.INVALID_CONFIG_FILE, e, lighthouseMessages)
-    return ExitCode.INVALID_CONFIG_FILE
-  }
-
-  cl._log(`Policies found: ${hl(mustImplementCapabilities.length)} ${checkMark}`)
-  mustImplementCapabilities.forEach((capability: string) => {
-    cl.__log(`${exclamationMark} ${hl(`Must implement ${capability}`)}`)
-  })
   cl.log('')
-
-  const policy: ScanPolicy = { mustImplement: mustImplementCapabilities }
 
   let scan: RemediateRemoteTfCode_remediateRemoteTfCode
 
   try {
-    scan = await client.remediateRemoteTfCodeQueryCall(inputs.workingDirectory, policy, inputs.action, inputs.accessToken)
+    scan = await client.remediateRemoteTfCodeQueryCall(inputs.workingDirectory, inputs.action, inputs.accessToken)
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
     return ExitCode.SERVER_ERROR
@@ -111,14 +90,20 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   cl._log('')
 
   cl.log(`Results for proposed plan ${checkMark}\n`)
+
+  const atLeastOneViolationObservation = scan.result.violationObservations.length > 0
+  const atLeastOneComplianceObservation = scan.result.complianceObservations.length > 0
+
   // Print violation observations
-  if(scan.result.violationObservations.length > 0) {
+  if(atLeastOneViolationObservation) {
     exitCode = ExitCode.VIOLATIONS_FOUND
     cl._log(chalk.red(`In violation`))
+
     scan.result.violationObservations.forEach((observation) => {
       const resource = observation.logicalResource
       const policyStatement = readablePolicyStatement(observation.policyStatement)
       const location = `${resource.filePath}:${resource.line}`
+
       if (resource.definedByModule) {
         const resourceType = resource.type.split('.').pop()
         const message = `Module ${hl(resource.definedByModule)} (${location}) instantiates a ${hl(resourceType)} that violates ${hl(policyStatement)}`
@@ -126,6 +111,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       } else {
         let statement = ''
         statement = `Resource ${hl(resource.name)} (${location}) violates ${hl(policyStatement)}`
+
         if(observation.trivialRemediation != null){
           cl.__log(`${crossMark} ${statement}. To remediate, do this:`)
           for (const transformation of observation.trivialRemediation.resolvesWithTransformations) {
@@ -139,9 +125,11 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     })
     cl._log('')
   }
+
   // Print compliance observations
-  if(scan.result.complianceObservations.length > 0) {
+  if(atLeastOneComplianceObservation) {
     cl._log(chalk.green(`In compliance`))
+
     scan.result.complianceObservations.forEach((observation) => {
       const resource = observation!.logicalResource
       const policyStatement = readablePolicyStatement(observation!.policyStatement)
@@ -149,6 +137,12 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       const statement = `Resource ${hl(resource.name)} (${location}) complies with ${hl(policyStatement)}`
       cl.__log(`${checkMark} ${statement}`)
     })
+
+    cl._log('')
+  }
+
+  if(!atLeastOneViolationObservation && !atLeastOneComplianceObservation) {
+    cl._log(`${exclamationMark} No observations to report`)
     cl._log('')
   }
 
