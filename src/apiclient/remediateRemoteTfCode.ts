@@ -53,8 +53,8 @@ export const RemediateRemoteTfCodeQuery = gql`
   ${DELETE_TRANSFORMATION_FRAGMENT_TF}
   ${UPDATE_TRANSFORMATION_FRAGMENT_TF}
   ${CREATE_TRANSFORMATION_FRAGMENT_TF}
-  query RemediateRemoteTfCode ($workingDirectory: String!, $policy: ScanPolicy!, $action: Action!, $accessToken: String!) {
-    remediateRemoteTfCode (workingDirectory: $workingDirectory, policy: $policy, action: $action, accessToken: $accessToken) {
+  query RemediateRemoteTfCode ($workingDirectory: String!, $action: Action!, $accessToken: String!) {
+    remediateRemoteTfCode (workingDirectory: $workingDirectory, action: $action, accessToken: $accessToken) {
       scanMeta {
         timestamp
         scanId
