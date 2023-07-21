@@ -231,7 +231,6 @@ await yargs(hideBin(process.argv))
         }
       )
       addAuthTokenOption(yargs, true)
-      addConfigOption(yargs)
       addOutputOption(yargs)
       yargs.demandCommand(1, 'Specify a verb [remediate]')
     }

@@ -144,8 +144,12 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       continue
     }
     const fileName = basename(result.filePath)
+
+    const atLeastOneViolationObservation = result.violationObservations.length > 0
+    const atLeastOneComplianceObservation = result.complianceObservations.length > 0
+
     // Print violation observations
-    if(result.violationObservations.length > 0) {
+    if(atLeastOneViolationObservation) {
       exitCode = ExitCode.VIOLATIONS_FOUND
       cl._log(chalk.red(`In violation`))
       result.violationObservations.forEach((observation) => {
@@ -166,7 +170,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       cl._log('')
     }
     // Print compliance observations
-    if(result.complianceObservations.length > 0) {
+    if(atLeastOneComplianceObservation) {
       cl._log(chalk.green(`In compliance`))
       result.complianceObservations.forEach((observation) => {
         const resource = observation!.logicalResource
@@ -175,6 +179,11 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
         const statement = `Resource ${hl(resource.name)} (${location}) complies with ${hl(policyStatement)}`
         cl.__log(`${checkMark} ${statement}`)
       })
+      cl._log('')
+    }
+
+    if(!atLeastOneViolationObservation && !atLeastOneComplianceObservation) {
+      cl._log(`${exclamationMark} No observations to report`)
       cl._log('')
     }
   }
