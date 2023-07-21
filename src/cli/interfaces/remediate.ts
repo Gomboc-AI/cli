@@ -21,7 +21,6 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       authToken: argv.authToken as string,
       output: argv.output as string,
       apiUrl: process.env.API_URL ?? "https://scan.gomboc.ai/graphql",
-      config: argv.config as string,
       workingDirectory: argv.workingDirectory as string,
       action: argv._[3]== ActionCommand.SUBMIT_FOR_REVIEW ? Action.SubmitForReview : Action.DirectApply,
       accessToken: argv.accessToken as string

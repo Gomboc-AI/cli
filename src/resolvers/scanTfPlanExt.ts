@@ -210,14 +210,20 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   cl._log('')
 
   cl.log(`Results for proposed plan ${checkMark}\n`)
+
+  const atLeastOneViolationObservation = scan.result.violationObservations.length > 0
+  const atLeastOneComplianceObservation = scan.result.complianceObservations.length > 0
+
   // Print violation observations
-  if(scan.result.violationObservations.length > 0) {
+  if(atLeastOneViolationObservation) {
     exitCode = ExitCode.VIOLATIONS_FOUND
     cl._log(chalk.red(`In violation`))
+
     scan.result.violationObservations.forEach((observation) => {
       const resource = observation.logicalResource
       const policyStatement = readablePolicyStatement(observation.policyStatement)
       const location = `${resource.filePath}:${resource.line}`
+
       if (resource.definedByModule) {
         const resourceType = resource.type.split('.').pop()
         const message = `Module ${hl(resource.definedByModule)} (${location}) instantiates a ${hl(resourceType)} that violates ${hl(policyStatement)}`
@@ -225,6 +231,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       } else {
         let statement = ''
         statement = `Resource ${hl(resource.name)} (${location}) violates ${hl(policyStatement)}`
+
         if(observation.trivialRemediation != null){
           cl.__log(`${crossMark} ${statement}. To remediate, do this:`)
           for (const transformation of observation.trivialRemediation.resolvesWithTransformations) {
@@ -238,9 +245,11 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     })
     cl._log('')
   }
+
   // Print compliance observations
-  if(scan.result.complianceObservations.length > 0) {
+  if(atLeastOneComplianceObservation) {
     cl._log(chalk.green(`In compliance`))
+
     scan.result.complianceObservations.forEach((observation) => {
       const resource = observation!.logicalResource
       const policyStatement = readablePolicyStatement(observation!.policyStatement)
@@ -248,6 +257,12 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       const statement = `Resource ${hl(resource.name)} (${location}) complies with ${hl(policyStatement)}`
       cl.__log(`${checkMark} ${statement}`)
     })
+
+    cl._log('')
+  }
+
+  if(!atLeastOneViolationObservation && !atLeastOneComplianceObservation) {
+    cl._log(`${exclamationMark} No observations to report`)
     cl._log('')
   }
 
