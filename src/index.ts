@@ -4,7 +4,7 @@ import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { cliScanCheck } from './cli/interfaces/scan.js'
 import { cliTerraformRemediateRemoteCheck } from './cli/interfaces/remediate.js'
-import { ActionCommand, VerbCommand, ServiceCommand, ClientCommand, SourceCommand } from './cli/commands.js'
+import { EffectCommand, VerbCommand, ServiceCommand, ClientCommand, SourceCommand } from './cli/commands.js'
 
 
 const addExecuteCheck = (argv: Argv, callableCheck: CallableFunction) => {
@@ -202,14 +202,14 @@ await yargs(hideBin(process.argv))
             '\tRemediate Remote Terraform code',
             (yargs) => {
               yargs.command(
-                ActionCommand.SUBMIT_FOR_REVIEW,
+                EffectCommand.SUBMIT_FOR_REVIEW,
                 '\tRemediate Remote Terraform code',
                 (yargs) => {
                   addExecuteCheck(yargs, cliTerraformRemediateRemoteCheck)
                 }
               )
               yargs.command(
-                ActionCommand.DIRECT_APPLY,
+                EffectCommand.DIRECT_APPLY,
                 '\tRemediate Remote Terraform code',
                 (yargs) => {
                   addExecuteCheck(yargs, cliTerraformRemediateRemoteCheck)
