@@ -5,7 +5,7 @@ import { hl } from './consoleUtils.js';
 class ConsoleDebugger {
   isSilenced: boolean
 
-  constructor(isSilenced = false) {
+  constructor(isSilenced = true) {
     this.isSilenced = isSilenced;
   }
 
@@ -17,7 +17,7 @@ class ConsoleDebugger {
 }  
 
 const getConsoleDebugger = (): ConsoleDebugger => {
-  return new ConsoleDebugger(settings.DEBUG);
+  return new ConsoleDebugger(settings.DEBUG === false);
 }
 
 export const consoleDebugger = getConsoleDebugger();

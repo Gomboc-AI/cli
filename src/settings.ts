@@ -11,12 +11,12 @@ export type Settings = {
 }
 
 const getDebug = (): boolean => {
-  const debug = process.env.DEBUG;
-  return debug === 'true';
+  // If env GOMBOC_DEBUG has any value, it's true
+  return process.env.GOMBOC_DEBUG != null;
 }
 
 const getStage = (): Stage => {
-  const envStage = process.env.STAGE;
+  const envStage = process.env.GOMBOC_STAGE;
 
   switch (envStage) {
     case 'LOCAL':
@@ -26,7 +26,6 @@ const getStage = (): Stage => {
     case 'PROD':
       return Stage.PROD;
     default:
-      console.log(`Unknown stage ${envStage}, defaulting to PROD`)
       return Stage.PROD;
   }
 }

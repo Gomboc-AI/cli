@@ -7,7 +7,6 @@ import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, formatTitle } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
 import { RemediateRemoteTfHCL2_remediateRemoteTfHCL2 } from '../apiclient/__generated__/RemediateRemoteTfHCL2.js'
-import { settings } from '../settings.js'
 import { consoleDebugger } from '../utils/ConsoleDebugger.js'
 
 
