@@ -5,17 +5,18 @@ import { ApolloClient, InMemoryCache } from "@apollo/client/core/core.cjs"
 import { HttpLink } from "@apollo/client/link/http/http.cjs";
 // @ts-ignore
 import { setContext } from '@apollo/client/link/context/context.cjs'
-import { Action, GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './__generated__/GlobalTypes.js'
+import { Effect, GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './__generated__/GlobalTypes.js'
 import { ScanTfPlanExt, ScanTfPlanExtVariables, ScanTfPlanExt_scanTfPlanExt } from "./__generated__/ScanTfPlanExt.js";
 import { ScanCfnTemplateExt, ScanCfnTemplateExtVariables, ScanCfnTemplateExt_scanCfnTemplateExt } from "./__generated__/ScanCfnTemplateExt.js";
 import { ScanCfnTemplateExtQuery } from './scanCfnTemplateExt.js'
 import { ScanTfPlanExtQuery } from './scanTfPlanExt.js'
-import { RemediateRemoteTfCodeQuery } from './remediateRemoteTfCode.js'
 
 import { CLI_VERSION } from '../cli/version.js';
 import { Lighthouse, Lighthouse_lighthouse } from './__generated__/Lighthouse.js';
 import { LighthouseQuery } from './lighthouse.js';
-import { RemediateRemoteTfCode, RemediateRemoteTfCodeVariables, RemediateRemoteTfCode_remediateRemoteTfCode } from './__generated__/RemediateRemoteTfCode.js';
+import { RemediateRemoteTfHCL2, RemediateRemoteTfHCL2Variables, RemediateRemoteTfHCL2_remediateRemoteTfHCL2 } from './__generated__/RemediateRemoteTfHCL2.js';
+import { RemediateRemoteTfHCL2Mutation } from './remediateRemoteTfHCL2.js';
+import { consoleDebugger } from '../utils/ConsoleDebugger.js';
 
 export class Client {
     url: string
@@ -67,6 +68,7 @@ export class Client {
             query: ScanCfnTemplateExtQuery,
             variables
         })
+        consoleDebugger.log('scanCfnTemplateExtQueryCall', data)
         return data.scanCfnTemplateExt
     }
 
@@ -84,19 +86,21 @@ export class Client {
             query: ScanTfPlanExtQuery,
             variables
         })
+        consoleDebugger.log('scanTfPlanExtQueryCall', data)
         return data.scanTfPlanExt
     }
 
-    async remediateRemoteTfCodeQueryCall(workingDirectory: string, action: Action, accessToken: string ): Promise<RemediateRemoteTfCode_remediateRemoteTfCode> {
-        const variables: RemediateRemoteTfCodeVariables = {
+    async remediateRemoteTfHCL2MutationCall(workingDirectory: string, effect: Effect, accessToken: string ): Promise<RemediateRemoteTfHCL2_remediateRemoteTfHCL2> {
+        const variables: RemediateRemoteTfHCL2Variables = {
             workingDirectory,
-            action,
+            effect,
             accessToken
         }
-        const { data } : { data: RemediateRemoteTfCode} = await this.client.query<RemediateRemoteTfCode, RemediateRemoteTfCodeVariables>({
-            query: RemediateRemoteTfCodeQuery,
+        const { data } : { data: RemediateRemoteTfHCL2} = await this.client.mutate<RemediateRemoteTfHCL2, RemediateRemoteTfHCL2Variables>({
+            mutation: RemediateRemoteTfHCL2Mutation,
             variables
         })
-        return data.remediateRemoteTfCode
+        consoleDebugger.log('remediateRemoteTfHCL2MutationCall', data)
+        return data.remediateRemoteTfHCL2
     }
 }
