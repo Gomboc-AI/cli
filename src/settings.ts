@@ -1,16 +1,23 @@
-enum Stage {
+export enum Stage {
   LOCAL = 'LOCAL',
   BETA = 'BETA',
   PROD = 'PROD',
-};
+}
 
 export type Settings = {
   STAGE: Stage;
   SERVER_URL: string;
-};
+  DEBUG: boolean;
+}
+
+const getDebug = (): boolean => {
+  const debug = process.env.DEBUG;
+  return debug === 'true';
+}
 
 const getStage = (): Stage => {
   const envStage = process.env.STAGE;
+
   switch (envStage) {
     case 'LOCAL':
       return Stage.LOCAL;
@@ -22,7 +29,7 @@ const getStage = (): Stage => {
       console.log(`Unknown stage ${envStage}, defaulting to PROD`)
       return Stage.PROD;
   }
-};
+}
 
 const getServerUrl = (stage: Stage): string => {
   switch (stage) {
@@ -33,7 +40,7 @@ const getServerUrl = (stage: Stage): string => {
     case Stage.PROD:
       return 'https://scan.gomboc.ai/graphql';
   }
-};
+}
 
 export const getSettings = (): Settings => {
   const stage = getStage();
@@ -41,7 +48,8 @@ export const getSettings = (): Settings => {
   return {
     STAGE: stage,
     SERVER_URL: getServerUrl(stage),
-  };
-};
+    DEBUG: getDebug(),
+  }
+}
 
 export const settings = getSettings();

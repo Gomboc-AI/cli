@@ -14,7 +14,8 @@ export const RemediateRemoteTfHCL2Mutation = gql`
         generalCommentPlain
         files {
           filepath
-          observations {
+          newContent
+          fileComments {
             line
             commentPlain
           }

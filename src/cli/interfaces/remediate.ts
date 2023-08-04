@@ -5,14 +5,11 @@ import { ConsoleLogger } from "../../utils/ConsoleLogger.js"
 import { Arguments } from "yargs"
 import { Effect } from "../../apiclient/__generated__/GlobalTypes.js"
 import { settings } from "../../settings.js"
+import { consoleDebugger } from "../../utils/ConsoleDebugger.js"
 
 
 export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode> => {
   try {
-    if(process.env.API_URL){
-      console.log(`..:: Running against local URL: ${process.env.API_URL}!`)
-    }
-
     // argv._[0] -> ServiceCommand (cloudformation, terraform)
     // argv._[1] -> VerbCommand (scan, remediate)
     // argv._[2] -> SourceCommand (remote, local)
@@ -26,6 +23,8 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       effect: argv._[3]== EffectCommand.SUBMIT_FOR_REVIEW ? Effect.SubmitForReview : Effect.DirectApply,
       accessToken: argv.accessToken as string
     }
+
+    consoleDebugger.log('inputs', inputs)
 
     return await resolveRemediateRemoteTfHCL2(inputs)
 

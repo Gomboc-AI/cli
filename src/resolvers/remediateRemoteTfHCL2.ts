@@ -7,6 +7,8 @@ import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, formatTitle } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
 import { RemediateRemoteTfHCL2_remediateRemoteTfHCL2 } from '../apiclient/__generated__/RemediateRemoteTfHCL2.js'
+import { settings } from '../settings.js'
+import { consoleDebugger } from '../utils/ConsoleDebugger.js'
 
 
 export interface Inputs {
@@ -25,6 +27,8 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   let lighthouseMessages: Lighthouse_lighthouse[]
   try {
     lighthouseMessages = await client.lighthouseQueryCall()
+
+    consoleDebugger.log('lighthouse response', lighthouseMessages)
   } catch (e: any) {
     lighthouseMessages = []
   }
@@ -35,7 +39,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   cl._log(`Terraform directory: ${hl(inputs.workingDirectory)} ${checkMark}\n`)
 
-  cl._log(`Effect: ${hl(inputs.effect)}\n`)
+  cl._log(`Effect: ${hl(inputs.effect)}`)
 
   if (inputs.effect === Effect.DirectApply) {
     cl.__log(`Remediations will be committed to your current PR\n`)
@@ -50,6 +54,8 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   try {
     action = await client.remediateRemoteTfHCL2MutationCall(inputs.workingDirectory, inputs.effect, inputs.accessToken)
+
+    consoleDebugger.log('action response', action)
 
     if (action.__typename === 'AutoRemediateTfHCLFilesError') {
       // This is the error type response
@@ -73,18 +79,20 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   const actionStatus = action.success ? 'successfully' : 'unsuccesfully'
   cl.log(`Action ran ${hl(actionStatus)} (Trace ID: ${hl(action.traceId)})\n`)
 
+  
 
   for (const file of action.files) {
-    cl._log(hl(file.filepath))
+    // Log the name of the file
+    cl._log(`${hl(file.filepath)}\n`)
 
-    for (const observation of file.observations) {
-      cl.__log(`${hl(`l.${observation.line}`)} ${observation.commentPlain}`)
+    // Log each observation for the file
+    for (const observation of file.fileComments) {
+      cl.__log(`${hl(`l.${observation.line}`)} ${observation.commentPlain}\n`)
     }
 
-    if (file.observations.length === 0) {
-      cl.__log(`No observations for this file`)
+    if (file.fileComments.length === 0) {
+      cl.__log(`No observations for this file\n`)
     }
-    cl.___log('')
   }
 
   if (action.files.length === 0) {

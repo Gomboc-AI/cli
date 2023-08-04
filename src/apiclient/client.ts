@@ -16,6 +16,7 @@ import { Lighthouse, Lighthouse_lighthouse } from './__generated__/Lighthouse.js
 import { LighthouseQuery } from './lighthouse.js';
 import { RemediateRemoteTfHCL2, RemediateRemoteTfHCL2Variables, RemediateRemoteTfHCL2_remediateRemoteTfHCL2 } from './__generated__/RemediateRemoteTfHCL2.js';
 import { RemediateRemoteTfHCL2Mutation } from './remediateRemoteTfHCL2.js';
+import { consoleDebugger } from '../utils/ConsoleDebugger.js';
 
 export class Client {
     url: string
@@ -67,6 +68,7 @@ export class Client {
             query: ScanCfnTemplateExtQuery,
             variables
         })
+        consoleDebugger.log('scanCfnTemplateExtQueryCall', data)
         return data.scanCfnTemplateExt
     }
 
@@ -84,6 +86,7 @@ export class Client {
             query: ScanTfPlanExtQuery,
             variables
         })
+        consoleDebugger.log('scanTfPlanExtQueryCall', data)
         return data.scanTfPlanExt
     }
 
@@ -93,10 +96,11 @@ export class Client {
             effect,
             accessToken
         }
-        const { data } : { data: RemediateRemoteTfHCL2} = await this.client.mutation<RemediateRemoteTfHCL2, RemediateRemoteTfHCL2Variables>({
-            query: RemediateRemoteTfHCL2Mutation,
+        const { data } : { data: RemediateRemoteTfHCL2} = await this.client.mutate<RemediateRemoteTfHCL2, RemediateRemoteTfHCL2Variables>({
+            mutation: RemediateRemoteTfHCL2Mutation,
             variables
         })
+        consoleDebugger.log('remediateRemoteTfHCL2MutationCall', data)
         return data.remediateRemoteTfHCL2
     }
 }
