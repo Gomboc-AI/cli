@@ -1,13 +1,10 @@
-import { Effect } from '../apiclient/__generated__/GlobalTypes.js'
-import { Lighthouse_lighthouse } from '../apiclient/__generated__/Lighthouse.js'
-
 import { Client } from '../apiclient/client.js'
 import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, formatTitle } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
-import { RemediateRemoteTfHCL2_remediateRemoteTfHCL2 } from '../apiclient/__generated__/RemediateRemoteTfHCL2.js'
 import { consoleDebugger } from '../utils/ConsoleDebugger.js'
+import { AutoRemediateTfHclFilesResponse, AutoRemediateTfHclFilesSuccess, Effect, Lighthouse } from '../apiclient/gql/graphql.js'
 
 
 export interface Inputs {
@@ -23,11 +20,10 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   const client = new Client(inputs.serverUrl, inputs.authToken)
 
   // Call the lighthouse first
-  let lighthouseMessages: Lighthouse_lighthouse[]
+  let lighthouseMessages: Lighthouse[]
   try {
-    lighthouseMessages = await client.lighthouseQueryCall()
-
-    consoleDebugger.log('lighthouse response', lighthouseMessages)
+    const response = await client.lighthouseQueryCall()
+    lighthouseMessages = response.lighthouse as Lighthouse[]
   } catch (e: any) {
     lighthouseMessages = []
   }
@@ -49,30 +45,36 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   cl._log(`...\n`)
 
   // Resolve the action
-  let action: RemediateRemoteTfHCL2_remediateRemoteTfHCL2
+  let actionResponse: AutoRemediateTfHclFilesResponse
 
   try {
-    action = await client.remediateRemoteTfHCL2MutationCall(inputs.workingDirectory, inputs.effect, inputs.accessToken)
+    const response = await client.remediateRemoteTfHCL2MutationCall(inputs.workingDirectory, inputs.effect, inputs.accessToken)
+    actionResponse = response.remediateRemoteTfHCL2 as AutoRemediateTfHclFilesResponse
 
-    consoleDebugger.log('action response', action)
-
-    if (action.__typename === 'AutoRemediateTfHCLFilesError') {
+    if (actionResponse.__typename === 'AutoRemediateTfHCLFilesError') {
       // This is the error type response
-      throw new Error(action.message)
+      throw new Error(actionResponse.message)
     }
-
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
     return ExitCode.SERVER_ERROR
   }
 
+  const action = actionResponse as AutoRemediateTfHclFilesSuccess
+
+  // TODO: Today any fileComment refers to a violation
+  const atLeastOneViolation = action.files.some((file) => file.fileComments.length > 0)
+
+  consoleDebugger.log('action', action)
+
   if(inputs.output === 'json'){
+    // NOTE: In JSON mode, lighthouse messages are lost
     console.log(JSON.stringify(action!, null, 2))
-    if (action.success === true) {
-      // Note: Lighthouse messages are lost
-      return ExitCode.SUCCESS
+
+    if (atLeastOneViolation) {
+      return ExitCode.VIOLATIONS_FOUND
     }
-    return ExitCode.BUSINESS_ERROR
+    return ExitCode.SUCCESS
   }
 
   const actionStatus = action.success ? 'successfully' : 'unsuccesfully'
@@ -98,11 +100,11 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     cl._log(`No HCL files were found\n`)
   }
 
-  if (action.success === true) {
-    cl.log(`${action.message}\n`)
-    cl.allLighthouseMessages(lighthouseMessages)
-    return ExitCode.SUCCESS
+  if (atLeastOneViolation) {
+    cl.err(ExitCode.VIOLATIONS_FOUND, action.message, lighthouseMessages)
+    return ExitCode.VIOLATIONS_FOUND
   }
-  cl.err(ExitCode.BUSINESS_ERROR, action.message, lighthouseMessages)
-  return ExitCode.BUSINESS_ERROR
+  cl.log(`${action.message}\n`)
+  cl.allLighthouseMessages(lighthouseMessages)
+  return ExitCode.SUCCESS
 }

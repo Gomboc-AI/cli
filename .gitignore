@@ -7,7 +7,7 @@ bin/
 
 # generated types
 # graphql-schema.json
-src/apiclient/__generated__/
+/src/apiclient/gql/
 
 # Logs
 logs

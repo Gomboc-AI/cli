@@ -1,11 +1,12 @@
+import { Arguments } from "yargs"
+
 import { resolve as resolveRemediateRemoteTfHCL2, Inputs as RemediateRemoteTfHCL2Inputs } from "../../resolvers/remediateRemoteTfHCL2.js"
 import { ExitCode } from "../exitCodes.js"
 import { EffectCommand } from "../commands.js"
 import { ConsoleLogger } from "../../utils/ConsoleLogger.js"
-import { Arguments } from "yargs"
-import { Effect } from "../../apiclient/__generated__/GlobalTypes.js"
 import { settings } from "../../settings.js"
 import { consoleDebugger } from "../../utils/ConsoleDebugger.js"
+import { Effect } from "../../apiclient/gql/graphql.js"
 
 
 export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode> => {
@@ -24,7 +25,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       accessToken: argv.accessToken as string
     }
 
-    consoleDebugger.log('inputs', inputs)
+    consoleDebugger.log('CLI inputs', inputs)
 
     return await resolveRemediateRemoteTfHCL2(inputs)
 

@@ -1,11 +1,13 @@
+import { Arguments } from "yargs"
+
 import { resolve as resolveScanCfnTemplateExt, Inputs as ScanCfnTemplateExtInputs } from "../../resolvers/scanCfnTemplateExt.js"
 import { resolve as resolveScanTfPlanExt, Inputs as ScanTfPlanExtInputs } from "../../resolvers/scanTfPlanExt.js"
 import { ExitCode } from "../exitCodes.js"
-import { VerbCommand, ServiceCommand, ClientCommand, SourceCommand } from "../commands.js"
+import { VerbCommand, ServiceCommand, ClientCommand } from "../commands.js"
 import { getGitHubInfo, GitInfo } from "../../utils/gitUtils.js"
 import { ConsoleLogger } from "../../utils/ConsoleLogger.js"
 import { hl } from "../../utils/consoleUtils.js"
-import { Arguments } from "yargs"
+import { settings } from "../../settings.js"
 
 
 type ScanInputs = ScanCfnTemplateExtInputs | ScanTfPlanExtInputs
@@ -21,7 +23,7 @@ const getCommonScanInputs = (argv: Arguments): ScanInputs => {
     authToken: argv.authToken as string,
     secretAccessKey: argv.secretAccessKey as string,
     output: argv.output as string,
-    apiUrl: process.env.API_URL ?? "https://scan.gomboc.ai/graphql",
+    apiUrl: settings.SERVER_URL,
     config: argv.config as string,
   }
 }
