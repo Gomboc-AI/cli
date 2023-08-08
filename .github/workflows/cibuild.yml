@@ -32,6 +32,7 @@ jobs:
       INVALID_CONFIG_FILE: 10
       VIOLATIONS_FOUND: 20
       SIDE_EFFECTS_FAILED: 30
+      BUSINESS_ERROR: 90
       CLIENT_ERROR: 98
       SERVER_ERROR: 99
       NO_TEMPLATES_FOUND: 101
@@ -49,18 +50,17 @@ jobs:
         with:
           name: graphql-schema
       
-      - name: Generate types
-        run: |
-          npm install -g apollo
-          npm install -g graphql
-          apollo codegen:generate --localSchemaFile=schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
+      - run: npm install
 
-      - name: Build, lint and install CLI
-        run: |
-          npm i
-          npm run build
-          npm run lint
-          npm install -g .
+      - run: npm run generate
+        env:
+          SCHEMA_SOURCE: schema.graphql
+
+      - run: npm run build
+
+      - run: npm run lint
+
+      - run: npm install -g .
 
       - name: Get OIDC token 
         id: get-oidc-token
@@ -78,7 +78,7 @@ jobs:
         if: ${{ github.event.repository.name != env.CLI_REPO }}
         run: |
           EXIT_CODE=0
-          gomboc terraform remediate remote submit-for-review --config $TF_CONFIGS/001.yaml --wd $TF_FILES/violations-001/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} > output.json || EXIT_CODE=$?
+          gomboc terraform remediate remote submit-for-review --wd $TF_FILES/violations-001/tf --auth-token ${{ steps.get-oidc-token.outputs.ID_TOKEN }} --output json --access-token ${{ secrets.GITHUB_TOKEN }} > output.json || EXIT_CODE=$?
           $SCRIPTS/assert-code.sh $EXIT_CODE $VIOLATIONS_FOUND
 
       - name: scan terraform - Test single violation

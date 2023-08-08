@@ -3,19 +3,13 @@ import { glob } from 'glob'
 import { readFileSync } from 'fs'
 import { join, basename } from 'path'
 
-import { GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from '../apiclient/__generated__/GlobalTypes.js'
-import { CreateTransformationFragmentCfn } from '../apiclient/__generated__/CreateTransformationFragmentCfn.js'
-import { UpdateTransformationFragmentCfn } from '../apiclient/__generated__/UpdateTransformationFragmentCfn.js'
-import { DeleteTransformationFragmentCfn } from '../apiclient/__generated__/DeleteTransformationFragmentCfn.js'
-import { Lighthouse_lighthouse } from '../apiclient/__generated__/Lighthouse.js'
-import { ScanCfnTemplateExt_scanCfnTemplateExt, ScanCfnTemplateExt_scanCfnTemplateExt_results_complianceObservations_policyStatement, ScanCfnTemplateExt_scanCfnTemplateExt_results_violationObservations_policyStatement } from '../apiclient/__generated__/ScanCfnTemplateExt.js'
-
 import { Client } from '../apiclient/client.js'
 import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
 import { CLI_VERSION } from '../cli/version.js'
+import { CfnTransformation, GitHubOptions, GitLabOptions, Lighthouse, PolicyStatement, ScanCfnResultType, ScanPolicy, TemplatePayload } from '../apiclient/gql/graphql.js'
 
 
 export interface Inputs {
@@ -28,14 +22,14 @@ export interface Inputs {
   gitLabOptions?: GitLabOptions
 }
 
-const readablePolicyStatement = (policyStatement: ScanCfnTemplateExt_scanCfnTemplateExt_results_complianceObservations_policyStatement | ScanCfnTemplateExt_scanCfnTemplateExt_results_violationObservations_policyStatement): string => {
+const readablePolicyStatement = (policyStatement: PolicyStatement): string => {
   // Get a human readable policy statement
   const capability = policyStatement.capability.title
   if(policyStatement.__typename === 'MustImplementCapabilityPolicyStatement') { return `Must implement ${capability}` }
   return `unknown policy statement for ${capability}`
 }
 
-const readableTransformation = (transformation: CreateTransformationFragmentCfn | UpdateTransformationFragmentCfn | DeleteTransformationFragmentCfn, resourceFileName: string): string => {
+const readableTransformation = (transformation: CfnTransformation, resourceFileName: string): string => {
   // Cloudformation transformations receive the file name as a parameter
   // Get a human readable instruction for Create, Update, and Delete transformations
   const { line: resLine, name: resName } = transformation.logicalResource
@@ -61,9 +55,10 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   let exitCode = ExitCode.SUCCESS
 
   const client = new Client(inputs.apiUrl, inputs.authToken)
-  let lighthouseMessages: Lighthouse_lighthouse[]
+  let lighthouseMessages: Lighthouse[]
   try {
-    lighthouseMessages = await client.lighthouseQueryCall()
+    const response = await client.lighthouseQueryCall()
+    lighthouseMessages = response.lighthouse as Lighthouse[]
   } catch (e: any) {
     lighthouseMessages = []
   }
@@ -118,12 +113,14 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   })
   cl.log('')
 
-  const policy: ScanPolicy = { mustImplement: mustImplementCapabilities }
+  const policy: ScanPolicy = { mustImplement: mustImplementCapabilities };
 
-  let scan: ScanCfnTemplateExt_scanCfnTemplateExt
+  let scan: ScanCfnResultType;
 
   try {
-    scan = await client.scanCfnTemplateExtQueryCall(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
+    const response = await client.scanCfnTemplateExtQueryCall(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
+    scan = response.scanCfnTemplateExt as ScanCfnResultType
+
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
     return ExitCode.SERVER_ERROR

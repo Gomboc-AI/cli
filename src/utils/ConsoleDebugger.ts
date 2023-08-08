@@ -7,6 +7,9 @@ class ConsoleDebugger {
 
   constructor(isSilenced = true) {
     this.isSilenced = isSilenced;
+    if(!this.isSilenced){
+      console.log(hl(`..:: DEBUG IS ON`))
+    }
   }
 
   public log = (title: string, content: any) => {

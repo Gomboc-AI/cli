@@ -35,15 +35,15 @@ jobs:
         with:
           name: graphql-schema
       
-      - name: Generate types
-        run: |
-          npm install -g apollo
-          npm install -g graphql
-          apollo codegen:generate --localSchemaFile=schema.graphql --target=typescript --tagName=gql --queries='src/apiclient/*.ts' --globalTypesFile='src/apiclient/__generated__/GlobalTypes.ts'
-
-      - name: Build, lint and install CLI
+      - name: Install and generate types
+        env:
+          SCHEMA_SOURCE: schema.graphql
         run: |
           npm i
+          npm run generate
+
+      - name: Build
+        run: |
           npm run build
           
       - run: npm ci

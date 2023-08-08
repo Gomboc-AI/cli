@@ -5,21 +5,13 @@ import { dirname, join, extname, relative } from 'path'
 import { zip, COMPRESSION_LEVEL } from 'zip-a-folder'
 import { modifyPath } from 'ramda'
 
-import { GitHubOptions, GitLabOptions, ScanPolicy } from '../apiclient/__generated__/GlobalTypes.js'
-import { ScanTfPlanExt_scanTfPlanExt } from '../apiclient/__generated__/ScanTfPlanExt.js'
-import { ScanTfPlanExt_scanTfPlanExt_result_complianceObservations_policyStatement } from '../apiclient/__generated__/ScanTfPlanExt.js'
-import { ScanTfPlanExt_scanTfPlanExt_result_violationObservations_policyStatement } from '../apiclient/__generated__/ScanTfPlanExt.js'
-import { CreateTransformationFragmentTf } from '../apiclient/__generated__/CreateTransformationFragmentTf.js'
-import { UpdateTransformationFragmentTf } from '../apiclient/__generated__/UpdateTransformationFragmentTf.js'
-import { DeleteTransformationFragmentTf } from '../apiclient/__generated__/DeleteTransformationFragmentTf.js'
-import { Lighthouse_lighthouse } from '../apiclient/__generated__/Lighthouse.js'
-
 import { Client } from '../apiclient/client.js'
 import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils/consoleUtils.js'
 import { ConfigParser } from '../utils/ConfigParser.js'
 import { CLI_VERSION } from '../cli/version.js'
+import { GitHubOptions, GitLabOptions, Lighthouse, PolicyStatement, ScanPolicy, ScanTfResultType, TfTransformation } from '../apiclient/gql/graphql.js'
 
 
 export interface Inputs {
@@ -34,14 +26,14 @@ export interface Inputs {
   secretAccessKey?: string
 }
 
-const readablePolicyStatement = (policyStatement: ScanTfPlanExt_scanTfPlanExt_result_complianceObservations_policyStatement | ScanTfPlanExt_scanTfPlanExt_result_violationObservations_policyStatement): string => {
+const readablePolicyStatement = (policyStatement: PolicyStatement): string => {
   // Get a human readable policy statement
   const capability = policyStatement.capability.title
   if(policyStatement.__typename === 'MustImplementCapabilityPolicyStatement') { return `Must implement ${capability}` }
   return `unknown policy statement for ${capability}`
 }
 
-const readableTransformation = (transformation: CreateTransformationFragmentTf | UpdateTransformationFragmentTf | DeleteTransformationFragmentTf): string => {
+const readableTransformation = (transformation: TfTransformation): string => {
   // Get a human readable instruction for Create, Update and Delete transformations
   const { filePath: resFilePath, line: resLine, name: resName } = transformation.logicalResource
   const at = `At ${hl(resName)} (${resFilePath}:${resLine})`
@@ -106,9 +98,10 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   let exitCode = ExitCode.SUCCESS
   
   const client = new Client(inputs.apiUrl, inputs.authToken)
-  let lighthouseMessages: Lighthouse_lighthouse[]
+  let lighthouseMessages: Lighthouse[]
   try {
-    lighthouseMessages = await client.lighthouseQueryCall()
+    const response = await client.lighthouseQueryCall()
+    lighthouseMessages = response.lighthouse as Lighthouse[]
   } catch (e: any) {
     lighthouseMessages = []
   }
@@ -194,10 +187,11 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   const policy: ScanPolicy = { mustImplement: mustImplementCapabilities }
 
-  let scan: ScanTfPlanExt_scanTfPlanExt
+  let scan: ScanTfResultType
 
   try {
-    scan = await client.scanTfPlanExtQueryCall(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, cwd, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
+    const response = await client.scanTfPlanExtQueryCall(tfPlanObjectJsonB64, tfConfigFilesDirectoryContent, cwd, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
+    scan = response.scanTfPlanExt as ScanTfResultType
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
     return ExitCode.SERVER_ERROR

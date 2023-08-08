@@ -5,23 +5,20 @@ import { ApolloClient, InMemoryCache } from "@apollo/client/core/core.cjs"
 import { HttpLink } from "@apollo/client/link/http/http.cjs";
 // @ts-ignore
 import { setContext } from '@apollo/client/link/context/context.cjs'
-import { Effect, GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './__generated__/GlobalTypes.js'
-import { ScanTfPlanExt, ScanTfPlanExtVariables, ScanTfPlanExt_scanTfPlanExt } from "./__generated__/ScanTfPlanExt.js";
-import { ScanCfnTemplateExt, ScanCfnTemplateExtVariables, ScanCfnTemplateExt_scanCfnTemplateExt } from "./__generated__/ScanCfnTemplateExt.js";
-import { ScanCfnTemplateExtQuery } from './scanCfnTemplateExt.js'
-import { ScanTfPlanExtQuery } from './scanTfPlanExt.js'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { Lighthouse, Lighthouse_lighthouse } from './__generated__/Lighthouse.js';
-import { LighthouseQuery } from './lighthouse.js';
-import { RemediateRemoteTfHCL2, RemediateRemoteTfHCL2Variables, RemediateRemoteTfHCL2_remediateRemoteTfHCL2 } from './__generated__/RemediateRemoteTfHCL2.js';
-import { RemediateRemoteTfHCL2Mutation } from './remediateRemoteTfHCL2.js';
 import { consoleDebugger } from '../utils/ConsoleDebugger.js';
+import { Effect, GitHubOptions, GitLabOptions, LighthouseQuery, MutationRemediateRemoteTfHcl2Args, QueryScanCfnTemplateExtArgs, QueryScanTfPlanExtArgs, RemediateRemoteTfHcl2Document, RemediateRemoteTfHcl2Mutation, ScanCfnTemplateExtQuery, ScanPolicy, ScanTfPlanExtQuery, TemplatePayload } from './gql/graphql.js';
+
+import { LighthouseQuery as LighthouseQuerySelection } from './queries/lighthouse.js';
+import { ScanCfnTemplateExtQuery as ScanCfnTemplateExtQuerySelection } from './queries/scanCfnTemplateExt.js';
+import { ScanTfPlanExtQuery as ScanTfPlanExtQuerySelection } from './queries/scanTfPlanExt.js';
+import { RemediateRemoteTfHCL2Mutation as RemediateRemoteTfHCL2MutationSelection } from './mutations/remediateRemoteTfHCL2.js';
 
 export class Client {
     url: string
     authToken?: string
-    client: ApolloClient<any>
+    client: ApolloClient
 
     constructor(url: string, authToken?: string) {
         this.url = url
@@ -48,32 +45,32 @@ export class Client {
         })
     }
 
-    async lighthouseQueryCall(): Promise<Lighthouse_lighthouse[]> {
-        // Returns a list of lighthouse messages
-        const { data } : { data: Lighthouse} = await this.client.query<Lighthouse>({
-            query: LighthouseQuery
+    async lighthouseQueryCall(): Promise<LighthouseQuery> {
+        const { data }: { data: LighthouseQuery } = await this.client.query<LighthouseQuery>({
+            query: LighthouseQuerySelection
         })
-        return data.lighthouse
+        consoleDebugger.log('lighthouseQueryCall', data)
+        return data
     }
 
-    async scanCfnTemplateExtQueryCall(templates: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplateExt_scanCfnTemplateExt> {
-        const variables: ScanCfnTemplateExtVariables = {
+    async scanCfnTemplateExtQueryCall(templates: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplateExtQuery> {
+        const variables: QueryScanCfnTemplateExtArgs = {
             templates,
             policy,
             gitHubOptions,
             gitLabOptions,
             secretAccessKey
         }
-        const { data } : { data: ScanCfnTemplateExt} = await this.client.query<ScanCfnTemplateExt, ScanCfnTemplateExtVariables>({
-            query: ScanCfnTemplateExtQuery,
+        const { data } : { data: ScanCfnTemplateExtQuery } = await this.client.query<ScanCfnTemplateExtQuery, QueryScanCfnTemplateExtArgs>({
+            query: ScanCfnTemplateExtQuerySelection,
             variables
         })
         consoleDebugger.log('scanCfnTemplateExtQueryCall', data)
-        return data.scanCfnTemplateExt
+        return data
     }
 
-    async scanTfPlanExtQueryCall(plan: string, workingDirectory: string, tfWorkingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlanExt_scanTfPlanExt> {
-        const variables: ScanTfPlanExtVariables = {
+    async scanTfPlanExtQueryCall(plan: string, workingDirectory: string, tfWorkingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlanExtQuery> {
+        const variables: QueryScanTfPlanExtArgs = {
             plan,
             workingDirectory,
             tfWorkingDirectory,
@@ -82,25 +79,25 @@ export class Client {
             gitLabOptions,
             secretAccessKey
         }
-        const { data } : { data: ScanTfPlanExt} = await this.client.query<ScanTfPlanExt, ScanTfPlanExtVariables>({
-            query: ScanTfPlanExtQuery,
+        const { data } : { data: ScanTfPlanExtQuery} = await this.client.query<ScanTfPlanExtQuery, QueryScanTfPlanExtArgs>({
+            query: ScanTfPlanExtQuerySelection,
             variables
         })
         consoleDebugger.log('scanTfPlanExtQueryCall', data)
-        return data.scanTfPlanExt
+        return data
     }
 
-    async remediateRemoteTfHCL2MutationCall(workingDirectory: string, effect: Effect, accessToken: string ): Promise<RemediateRemoteTfHCL2_remediateRemoteTfHCL2> {
-        const variables: RemediateRemoteTfHCL2Variables = {
+    async remediateRemoteTfHCL2MutationCall(workingDirectory: string, effect: Effect, accessToken: string ): Promise<RemediateRemoteTfHcl2Mutation> {
+        const variables: MutationRemediateRemoteTfHcl2Args = {
             workingDirectory,
             effect,
             accessToken
         }
-        const { data } : { data: RemediateRemoteTfHCL2} = await this.client.mutate<RemediateRemoteTfHCL2, RemediateRemoteTfHCL2Variables>({
-            mutation: RemediateRemoteTfHCL2Mutation,
+        const { data } : { data: RemediateRemoteTfHcl2Mutation } = await this.client.mutate<RemediateRemoteTfHcl2Mutation, MutationRemediateRemoteTfHcl2Args>({
+            mutation: RemediateRemoteTfHCL2MutationSelection,
             variables
         })
         consoleDebugger.log('remediateRemoteTfHCL2MutationCall', data)
-        return data.remediateRemoteTfHCL2
+        return data
     }
 }
