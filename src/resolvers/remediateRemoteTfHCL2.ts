@@ -70,7 +70,6 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   if(inputs.output === 'json'){
     // NOTE: In JSON mode, lighthouse messages are lost
     console.log(JSON.stringify(action!, null, 2))
-
     if (atLeastOneViolation) {
       return ExitCode.VIOLATIONS_FOUND
     }
@@ -101,7 +100,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   }
 
   if (atLeastOneViolation) {
-    cl.err(ExitCode.VIOLATIONS_FOUND, action.message, lighthouseMessages)
+    cl.err(ExitCode.VIOLATIONS_FOUND, 'At least one violation was found', lighthouseMessages)
     return ExitCode.VIOLATIONS_FOUND
   }
   cl.log(`${action.message}\n`)
