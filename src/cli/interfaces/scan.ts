@@ -16,9 +16,6 @@ const getCommonScanInputs = (argv: Arguments): ScanInputs => {
   if(argv.authToken && argv.secretAccessKey) { throw new Error(`Conflicting options. Select ${hl('auth-token')} OR ${hl('secret-access-key')}`) }
   if(!argv.authToken && !argv.secretAccessKey) { throw new Error(`No auth credentials passed. Select ${hl('auth-token')} OR ${hl('secret-access-key')}`) }
 
-  if(process.env.API_URL){
-    console.log(`..:: Running against local URL: ${process.env.API_URL}!`)
-  }
   return {
     authToken: argv.authToken as string,
     secretAccessKey: argv.secretAccessKey as string,

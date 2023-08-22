@@ -1,0 +1,11 @@
+name: Update DevOps Work Item
+
+on:
+  pull_request:
+    branches: [main]
+
+#call the reusable azdo work item workflow
+jobs:
+  update-devops-workitem:
+    uses: Gomboc-AI/ReusableWorkflows/.github/workflows/devOpsWorkItemAction.yml@main
+    secrets: inherit
