@@ -10,6 +10,7 @@ import { hl, checkMark, crossMark, exclamationMark, formatTitle } from '../utils
 import { ConfigParser } from '../utils/ConfigParser.js'
 import { CLI_VERSION } from '../cli/version.js'
 import { CfnTransformation, GitHubOptions, GitLabOptions, Lighthouse, PolicyStatement, ScanCfnResultType, ScanPolicy, TemplatePayload } from '../apiclient/gql/graphql.js'
+import { settings } from '../settings.js'
 
 
 export interface Inputs {
@@ -63,7 +64,10 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     lighthouseMessages = []
   }
 
-  const cl = new ConsoleLogger(inputs.output !== 'text')
+  const outputTextMode = inputs.output === 'text'
+  const inCanaryMode = settings.CANARY_MODE
+  const cl = new ConsoleLogger(!outputTextMode || inCanaryMode)
+
 
   cl.log(formatTitle(`Running Gomboc.AI Scan for CloudFormation (v${CLI_VERSION})`))
 
@@ -121,6 +125,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     const response = await client.scanCfnTemplateExtQueryCall(templatePayloads, policy, inputs.gitHubOptions, inputs.gitLabOptions, inputs.secretAccessKey)
     scan = response.scanCfnTemplateExt as ScanCfnResultType
 
+    if (settings.CANARY_MODE){
+      return ExitCode.SUCCESS
+    }
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
     return ExitCode.SERVER_ERROR

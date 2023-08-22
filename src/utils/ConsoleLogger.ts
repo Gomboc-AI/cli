@@ -2,13 +2,15 @@ import chalk from 'chalk'
 
 import { ExitCode } from '../cli/exitCodes.js';
 import { Lighthouse, MessageLevel } from '../apiclient/gql/graphql.js';
+import { settings } from '../settings.js';
 
 
 export class ConsoleLogger {
   isSilenced: boolean
 
   constructor(isSilenced = false) {
-    this.isSilenced = isSilenced;
+    // CANARY_MODE shortcircuits the logger
+    this.isSilenced = isSilenced || settings.CANARY_MODE;
   }
 
   private logIndented = (message: string, indentation: number) => {

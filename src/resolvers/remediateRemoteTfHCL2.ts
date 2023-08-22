@@ -5,6 +5,7 @@ import { hl, checkMark, formatTitle } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
 import { consoleDebugger } from '../utils/ConsoleDebugger.js'
 import { AutoRemediateTfHclFilesResponse, AutoRemediateTfHclFilesSuccess, Effect, Lighthouse } from '../apiclient/gql/graphql.js'
+import { settings } from '../settings.js'
 
 
 export interface Inputs {
@@ -44,7 +45,6 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   cl._log(`...\n`)
 
-  // Resolve the action
   let actionResponse: AutoRemediateTfHclFilesResponse
 
   try {
@@ -54,6 +54,8 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     if (actionResponse.__typename === 'AutoRemediateTfHCLFilesError') {
       // This is the error type response
       throw new Error(actionResponse.message)
+    } else if (settings.CANARY_MODE){
+      return ExitCode.SUCCESS
     }
   } catch (e: any) {
     cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
@@ -78,8 +80,6 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   const actionStatus = action.success ? 'successfully' : 'unsuccesfully'
   cl.log(`Action ran ${hl(actionStatus)} (Trace ID: ${hl(action.traceId)})\n`)
-
-  
 
   for (const file of action.files) {
     // Log the name of the file

@@ -4,20 +4,34 @@ export enum Stage {
   PROD = 'PROD',
 }
 
+const TRUE_VALUE = 'true';
+
+// Environment variables:
+// GOMBOC_STAGE: LOCAL | BETA | PROD
+// GOMBOC_DEBUG: any value
+// GOMBOC_CANARY_MODE: any value
+
 export type Settings = {
   STAGE: Stage;
   SERVER_URL: string;
-  DEBUG: boolean;
+  DEBUG_MODE: boolean;
+  CANARY_MODE: boolean;
 }
 
-const getDebug = (): boolean => {
-  // If env GOMBOC_DEBUG has any value, it's true
-  return process.env.GOMBOC_DEBUG != null;
+const inDebugMode = (): boolean => {
+  return process.env.GOMBOC_DEBUG === TRUE_VALUE;
+}
+
+const inCanaryMode = (): boolean => {
+  // When in canary mode, the CLI will exit with a success code
+  // in any case where the server returns a success response.
+  // Nothing is printed to the console.
+  // TODO canary mode should send a side-effect dry mode to the server
+  return process.env.GOMBOC_CANARY_MODE === TRUE_VALUE;
 }
 
 const getStage = (): Stage => {
   const envStage = process.env.GOMBOC_STAGE;
-
   switch (envStage) {
     case 'LOCAL':
       return Stage.LOCAL;
@@ -47,7 +61,8 @@ export const getSettings = (): Settings => {
   return {
     STAGE: stage,
     SERVER_URL: getServerUrl(stage),
-    DEBUG: getDebug(),
+    DEBUG_MODE: inDebugMode(),
+    CANARY_MODE: inCanaryMode(),
   }
 }
 

@@ -5,8 +5,10 @@ import { hl } from './consoleUtils.js';
 class ConsoleDebugger {
   isSilenced: boolean
 
-  constructor(isSilenced = true) {
-    this.isSilenced = isSilenced;
+  constructor() {
+    // CANARY_MODE shortcircuits the logger
+    this.isSilenced = !settings.DEBUG_MODE || settings.CANARY_MODE;
+
     if(!this.isSilenced){
       console.log(hl(`..:: DEBUG IS ON`))
     }
@@ -19,8 +21,4 @@ class ConsoleDebugger {
   }
 }  
 
-const getConsoleDebugger = (): ConsoleDebugger => {
-  return new ConsoleDebugger(settings.DEBUG === false);
-}
-
-export const consoleDebugger = getConsoleDebugger();
+export const consoleDebugger = new ConsoleDebugger();
