@@ -1,5 +1,4 @@
 export enum VerbCommand {
-    SCAN = 'scan',
     REMEDIATE = 'remediate'
 }
 
