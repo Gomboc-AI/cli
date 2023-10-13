@@ -1,6 +1,6 @@
 {
   "name": "@gomboc-ai/cli",
-  "version": "0.5.14",
+  "version": "0.5.15",
   "description": "",
   "type": "module",
   "main": "bin/index.js",
@@ -12,7 +12,7 @@
     "gomboc": "bin/index.js"
   },
   "scripts": {
-    "bootstrap": "nvm use && npm i && npm run generate && npm run build",
+    "bootstrap": "npm i && npm run generate && npm run build",
     "test": "exit 0",
     "prebuild": "node -p \"'export const CLI_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/cli/version.ts",
     "lint": "eslint --ext .ts src",

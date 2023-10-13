@@ -51,7 +51,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     const response = await client.remediateRemoteTfHCL2MutationCall(inputs.workingDirectory, inputs.effect, inputs.accessToken)
     actionResponse = response.remediateRemoteTfHCL2 as AutoRemediateTfHclFilesResponse
 
-    if (actionResponse.__typename === 'AutoRemediateTfHCLFilesError') {
+    if (actionResponse.__typename !== 'AutoRemediateTfHCLFilesSuccess') {
       // This is the error type response
       throw new Error(actionResponse.message)
     } else if (settings.CANARY_MODE){
@@ -78,8 +78,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     return ExitCode.SUCCESS
   }
 
+  cl.log(`Action ID: ${hl(action.traceId)}\n`)
   const actionStatus = action.success ? 'successfully' : 'unsuccesfully'
-  cl.log(`Action ran ${hl(actionStatus)} (Trace ID: ${hl(action.traceId)})\n`)
+  cl.log(`Action ran ${hl(actionStatus)}`)
 
   for (const file of action.files) {
     // Log the name of the file
