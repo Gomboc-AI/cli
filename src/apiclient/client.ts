@@ -8,11 +8,9 @@ import { setContext } from '@apollo/client/link/context/context.cjs'
 
 import { CLI_VERSION } from '../cli/version.js';
 import { consoleDebugger } from '../utils/ConsoleDebugger.js';
-import { Effect, GitHubOptions, GitLabOptions, LighthouseQuery, MutationRemediateRemoteTfHcl2Args, QueryScanCfnTemplateExtArgs, QueryScanTfPlanExtArgs, RemediateRemoteTfHcl2Document, RemediateRemoteTfHcl2Mutation, ScanCfnTemplateExtQuery, ScanPolicy, ScanTfPlanExtQuery, TemplatePayload } from './gql/graphql.js';
+import { Effect, LighthouseQuery, MutationRemediateRemoteTfHcl2Args, RemediateRemoteTfHcl2Mutation } from './gql/graphql.js';
 
 import { LighthouseQuery as LighthouseQuerySelection } from './queries/lighthouse.js';
-import { ScanCfnTemplateExtQuery as ScanCfnTemplateExtQuerySelection } from './queries/scanCfnTemplateExt.js';
-import { ScanTfPlanExtQuery as ScanTfPlanExtQuerySelection } from './queries/scanTfPlanExt.js';
 import { RemediateRemoteTfHCL2Mutation as RemediateRemoteTfHCL2MutationSelection } from './mutations/remediateRemoteTfHCL2.js';
 
 export class Client {
@@ -50,40 +48,6 @@ export class Client {
             query: LighthouseQuerySelection
         })
         consoleDebugger.log('lighthouseQueryCall', data)
-        return data
-    }
-
-    async scanCfnTemplateExtQueryCall(templates: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplateExtQuery> {
-        const variables: QueryScanCfnTemplateExtArgs = {
-            templates,
-            policy,
-            gitHubOptions,
-            gitLabOptions,
-            secretAccessKey
-        }
-        const { data } : { data: ScanCfnTemplateExtQuery } = await this.client.query<ScanCfnTemplateExtQuery, QueryScanCfnTemplateExtArgs>({
-            query: ScanCfnTemplateExtQuerySelection,
-            variables
-        })
-        consoleDebugger.log('scanCfnTemplateExtQueryCall', data)
-        return data
-    }
-
-    async scanTfPlanExtQueryCall(plan: string, workingDirectory: string, tfWorkingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlanExtQuery> {
-        const variables: QueryScanTfPlanExtArgs = {
-            plan,
-            workingDirectory,
-            tfWorkingDirectory,
-            policy,
-            gitHubOptions,
-            gitLabOptions,
-            secretAccessKey
-        }
-        const { data } : { data: ScanTfPlanExtQuery} = await this.client.query<ScanTfPlanExtQuery, QueryScanTfPlanExtArgs>({
-            query: ScanTfPlanExtQuerySelection,
-            variables
-        })
-        consoleDebugger.log('scanTfPlanExtQueryCall', data)
         return data
     }
 
