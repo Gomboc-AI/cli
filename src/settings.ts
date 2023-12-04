@@ -45,6 +45,10 @@ const getStage = (): Stage => {
 }
 
 const getServerUrl = (stage: Stage): string => {
+  const urlOverride = process.env.GOMBOC_URL_OVERRIDE;
+  if (urlOverride) {
+    return urlOverride;
+  }
   switch (stage) {
     case Stage.LOCAL:
       return 'http://localhost:4000/graphql';
