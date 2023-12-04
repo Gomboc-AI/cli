@@ -5,7 +5,7 @@ import { addTypenameSelectionDocumentTransform } from '@graphql-codegen/client-p
 // https://the-guild.dev/graphql/codegen/plugins/presets/preset-client
 // https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#documentmode
 
-const SCHEMA_SOURCE = process.env.SCHEMA_SOURCE ?? 'http://localhost:14000/graphql';
+const SCHEMA_SOURCE = process.env.SCHEMA_SOURCE ?? 'http://0.0.0.0:4000/graphql';
 
 const config: CodegenConfig = {
   schema: [SCHEMA_SOURCE],
