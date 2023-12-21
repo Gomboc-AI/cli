@@ -5,22 +5,18 @@ import { ApolloClient, InMemoryCache } from "@apollo/client/core/core.cjs"
 import { HttpLink } from "@apollo/client/link/http/http.cjs";
 // @ts-ignore
 import { setContext } from '@apollo/client/link/context/context.cjs'
-import { Action, GitHubOptions, GitLabOptions, ScanPolicy, TemplatePayload } from './__generated__/GlobalTypes.js'
-import { ScanTfPlanExt, ScanTfPlanExtVariables, ScanTfPlanExt_scanTfPlanExt } from "./__generated__/ScanTfPlanExt.js";
-import { ScanCfnTemplateExt, ScanCfnTemplateExtVariables, ScanCfnTemplateExt_scanCfnTemplateExt } from "./__generated__/ScanCfnTemplateExt.js";
-import { ScanCfnTemplateExtQuery } from './scanCfnTemplateExt.js'
-import { ScanTfPlanExtQuery } from './scanTfPlanExt.js'
-import { RemediateRemoteTfCodeQuery } from './remediateRemoteTfCode.js'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { Lighthouse, Lighthouse_lighthouse } from './__generated__/Lighthouse.js';
-import { LighthouseQuery } from './lighthouse.js';
-import { RemediateRemoteTfCode, RemediateRemoteTfCodeVariables, RemediateRemoteTfCode_remediateRemoteTfCode } from './__generated__/RemediateRemoteTfCode.js';
+import { consoleDebugger } from '../utils/ConsoleDebugger.js';
+import { Effect, LighthouseQuery, MutationRemediateRemoteTfHcl2Args, RemediateRemoteTfHcl2Mutation } from './gql/graphql.js';
+
+import { LighthouseQuery as LighthouseQuerySelection } from './queries/lighthouse.js';
+import { RemediateRemoteTfHCL2Mutation as RemediateRemoteTfHCL2MutationSelection } from './mutations/remediateRemoteTfHCL2.js';
 
 export class Client {
     url: string
     authToken?: string
-    client: ApolloClient<any>
+    client: ApolloClient
 
     constructor(url: string, authToken?: string) {
         this.url = url
@@ -47,56 +43,25 @@ export class Client {
         })
     }
 
-    async lighthouseQueryCall(): Promise<Lighthouse_lighthouse[]> {
-        // Returns a list of lighthouse messages
-        const { data } : { data: Lighthouse} = await this.client.query<Lighthouse>({
-            query: LighthouseQuery
+    async lighthouseQueryCall(): Promise<LighthouseQuery> {
+        const { data }: { data: LighthouseQuery } = await this.client.query<LighthouseQuery>({
+            query: LighthouseQuerySelection
         })
-        return data.lighthouse
+        consoleDebugger.log('lighthouseQueryCall', data)
+        return data
     }
 
-    async scanCfnTemplateExtQueryCall(templates: TemplatePayload[], policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanCfnTemplateExt_scanCfnTemplateExt> {
-        const variables: ScanCfnTemplateExtVariables = {
-            templates,
-            policy,
-            gitHubOptions,
-            gitLabOptions,
-            secretAccessKey
-        }
-        const { data } : { data: ScanCfnTemplateExt} = await this.client.query<ScanCfnTemplateExt, ScanCfnTemplateExtVariables>({
-            query: ScanCfnTemplateExtQuery,
-            variables
-        })
-        return data.scanCfnTemplateExt
-    }
-
-    async scanTfPlanExtQueryCall(plan: string, workingDirectory: string, tfWorkingDirectory: string, policy: ScanPolicy, gitHubOptions?: GitHubOptions, gitLabOptions?: GitLabOptions, secretAccessKey?: string): Promise<ScanTfPlanExt_scanTfPlanExt> {
-        const variables: ScanTfPlanExtVariables = {
-            plan,
+    async remediateRemoteTfHCL2MutationCall(workingDirectory: string, effect: Effect, accessToken: string ): Promise<RemediateRemoteTfHcl2Mutation> {
+        const variables: MutationRemediateRemoteTfHcl2Args = {
             workingDirectory,
-            tfWorkingDirectory,
-            policy,
-            gitHubOptions,
-            gitLabOptions,
-            secretAccessKey
-        }
-        const { data } : { data: ScanTfPlanExt} = await this.client.query<ScanTfPlanExt, ScanTfPlanExtVariables>({
-            query: ScanTfPlanExtQuery,
-            variables
-        })
-        return data.scanTfPlanExt
-    }
-
-    async remediateRemoteTfCodeQueryCall(workingDirectory: string, action: Action, accessToken: string ): Promise<RemediateRemoteTfCode_remediateRemoteTfCode> {
-        const variables: RemediateRemoteTfCodeVariables = {
-            workingDirectory,
-            action,
+            effect,
             accessToken
         }
-        const { data } : { data: RemediateRemoteTfCode} = await this.client.query<RemediateRemoteTfCode, RemediateRemoteTfCodeVariables>({
-            query: RemediateRemoteTfCodeQuery,
+        const { data } : { data: RemediateRemoteTfHcl2Mutation } = await this.client.mutate<RemediateRemoteTfHcl2Mutation, MutationRemediateRemoteTfHcl2Args>({
+            mutation: RemediateRemoteTfHCL2MutationSelection,
             variables
         })
-        return data.remediateRemoteTfCode
+        consoleDebugger.log('remediateRemoteTfHCL2MutationCall', data)
+        return data
     }
 }

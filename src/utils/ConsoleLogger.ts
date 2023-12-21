@@ -1,15 +1,16 @@
 import chalk from 'chalk'
 
 import { ExitCode } from '../cli/exitCodes.js';
-import { MessageLevel } from '../apiclient/__generated__/GlobalTypes.js';
-import { Lighthouse_lighthouse } from '../apiclient/__generated__/Lighthouse.js';
+import { Lighthouse, MessageLevel } from '../apiclient/gql/graphql.js';
+import { settings } from '../settings.js';
 
 
 export class ConsoleLogger {
   isSilenced: boolean
 
   constructor(isSilenced = false) {
-    this.isSilenced = isSilenced;
+    // CANARY_MODE shortcircuits the logger
+    this.isSilenced = isSilenced || settings.CANARY_MODE;
   }
 
   private logIndented = (message: string, indentation: number) => {
@@ -23,7 +24,7 @@ export class ConsoleLogger {
   public __log = (message: string) => { this.logIndented(message, 2) }
   public ___log = (message: string) => { this.logIndented(message, 3) }
 
-  public err = (code: ExitCode, message: string, lighthouseMessages: Lighthouse_lighthouse[]) => {
+  public err = (code: ExitCode, message: string, lighthouseMessages: Lighthouse[]) => {
     this.log(`\n${chalk.red.bold(`Error ${code as number}`)}: ${message}`)
     // In any case, we want to log the lighthouse messages
     this.allLighthouseMessages(lighthouseMessages)
@@ -31,19 +32,19 @@ export class ConsoleLogger {
 
   public lighthouseMessage = (level: MessageLevel, message: string) => {
     switch(level){
-      case MessageLevel.ERROR:
+      case MessageLevel.Error:
         this.log(`${chalk.red.bold('ALERT')}\t${message}`)
       break
-      case MessageLevel.INFO:
+      case MessageLevel.Info:
         this.log(`${chalk.blue.bold('INFO')}\t${message}`)
       break
-      case MessageLevel.WARNING:
+      case MessageLevel.Warning:
         this.log(`${chalk.yellowBright.bold('WARNING')}\t${message}`)
       break
     }
   }
 
-  public allLighthouseMessages = (messages: Lighthouse_lighthouse[]) => {
+  public allLighthouseMessages = (messages: Lighthouse[]) => {
     messages.forEach((message) => {
       this.lighthouseMessage(message.level, message.message)
     })
