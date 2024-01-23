@@ -4,7 +4,7 @@ import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, formatTitle } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
 import { consoleDebugger } from '../utils/ConsoleDebugger.js'
-import { AutoRemediateTfHclFilesResponse, AutoRemediateTfHclFilesSuccess, Effect, Lighthouse } from '../apiclient/gql/graphql.js'
+import { AutoRemediateTfHclFilesResponse, AutoRemediateTfHclFilesSuccess, Effect } from '../apiclient/gql/graphql.js'
 import { settings } from '../settings.js'
 
 
@@ -14,20 +14,11 @@ export interface Inputs {
   output: string
   workingDirectory: string
   effect: Effect
-  accessToken: string
+  accessToken: string // deprecated
 }
 
 export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   const client = new Client(inputs.serverUrl, inputs.authToken)
-
-  // Call the lighthouse first
-  let lighthouseMessages: Lighthouse[]
-  try {
-    const response = await client.lighthouseQueryCall()
-    lighthouseMessages = response.lighthouse as Lighthouse[]
-  } catch (e: any) {
-    lighthouseMessages = []
-  }
 
   const cl = new ConsoleLogger(inputs.output !== 'text')
 
@@ -48,7 +39,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   let actionResponse: AutoRemediateTfHclFilesResponse
 
   try {
-    const response = await client.remediateRemoteTfHCL2MutationCall(inputs.workingDirectory, inputs.effect, inputs.accessToken)
+    const response = await client.remediateRemoteTfHCL2MutationCall(inputs.workingDirectory, inputs.effect)
     actionResponse = response.remediateRemoteTfHCL2 as AutoRemediateTfHclFilesResponse
 
     if (actionResponse.__typename !== 'AutoRemediateTfHCLFilesSuccess') {
@@ -58,7 +49,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       return ExitCode.SUCCESS
     }
   } catch (e: any) {
-    cl.err(ExitCode.SERVER_ERROR, e, lighthouseMessages)
+    cl.err(ExitCode.SERVER_ERROR, e)
     return ExitCode.SERVER_ERROR
   }
 
@@ -70,7 +61,6 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   consoleDebugger.log('action', action)
 
   if(inputs.output === 'json'){
-    // NOTE: In JSON mode, lighthouse messages are lost
     console.log(JSON.stringify(action!, null, 2))
     if (atLeastOneViolation) {
       return ExitCode.VIOLATIONS_FOUND
@@ -101,10 +91,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   }
 
   if (atLeastOneViolation) {
-    cl.err(ExitCode.VIOLATIONS_FOUND, 'At least one violation was found', lighthouseMessages)
+    cl.err(ExitCode.VIOLATIONS_FOUND, 'At least one violation was found')
     return ExitCode.VIOLATIONS_FOUND
   }
   cl.log(`${action.message}\n`)
-  cl.allLighthouseMessages(lighthouseMessages)
   return ExitCode.SUCCESS
 }

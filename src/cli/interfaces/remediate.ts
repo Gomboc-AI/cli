@@ -31,7 +31,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
 
   } catch (error: any) {
     const cl = new ConsoleLogger()
-    cl.err(ExitCode.COMMAND_ERROR, error.message, [])
+    cl.err(ExitCode.COMMAND_ERROR, error.message)
     return new Promise(() => { ExitCode.COMMAND_ERROR })
   }
 }
