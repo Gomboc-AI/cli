@@ -32,11 +32,13 @@ const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
   })
 }
 
-const addAccessTokenOption = (argv: Argv, demandOption: boolean) => {
+const addAccessTokenOption = (argv: Argv) => {
   argv.option("access-token", {
     describe: "Access token to perform action to actions",
     type: "string",
-    demandOption,
+    demandOption: false,
+    hidden: true,
+    deprecated: 'Not needed -- will be removed in future versions',
   })
 }
 
@@ -71,7 +73,7 @@ await yargs(hideBin(process.argv))
               yargs.demandCommand(1, 'Specify an action [direct-apply, submit-for-review]')
             }
           )
-          addAccessTokenOption(yargs, true)
+          addAccessTokenOption(yargs)
           yargs.demandCommand(1, 'Specify a source [remote]')
         }
       )
