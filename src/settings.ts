@@ -55,7 +55,7 @@ const getServerUrl = (stage: Stage): string => {
     case Stage.BETA:
       return 'https://scan.beta.gomboc.ai/graphql';
     case Stage.PROD:
-      return 'https://scan.gomboc.ai/graphql';
+      return 'https://scan.app.gomboc.ai/graphql';
   }
 }
 
