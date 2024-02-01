@@ -1,15 +1,12 @@
 import chalk from 'chalk'
-
 import { ExitCode } from '../cli/exitCodes.js';
-import { settings } from '../settings.js';
 
 
 export class ConsoleLogger {
   isSilenced: boolean
 
   constructor(isSilenced = false) {
-    // CANARY_MODE shortcircuits the logger
-    this.isSilenced = isSilenced || settings.CANARY_MODE;
+    this.isSilenced = isSilenced;
   }
 
   private logIndented = (message: string, indentation: number) => {
