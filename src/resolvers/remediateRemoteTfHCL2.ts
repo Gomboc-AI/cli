@@ -47,12 +47,8 @@ const responseHasViolations = (response: AutoRemediateTfHclFilesSuccess, console
     consoleLogger._log(`No HCL files were found\n`)
   }
 
-  if (atLeastOneViolation) {
-    consoleLogger.err(ExitCode.VIOLATIONS_FOUND, 'At least one violation was found')
-    return ExitCode.VIOLATIONS_FOUND
-  }
   consoleLogger.log(`${response.message}\n`)
-  return ExitCode.SUCCESS
+  return atLeastOneViolation
 }
 
 export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
@@ -111,12 +107,15 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   // Fail first by server errors, then by client errors, then by violations
   if (serverErrorResponses.length > 0) {
+    cl.err(ExitCode.SERVER_ERROR, `Server errors: ${serverErrorResponses.length}`)
     return ExitCode.SERVER_ERROR
   }
   if (gombocErrorResponses.length > 0) {
+    cl.err(ExitCode.CLIENT_ERROR, `Client errors: ${gombocErrorResponses.length}`)
     return ExitCode.CLIENT_ERROR
   }
   if (atLeastOneViolation) {
+    cl.err(ExitCode.VIOLATIONS_FOUND, 'At least one violation was found')
     return ExitCode.VIOLATIONS_FOUND
   }
 
