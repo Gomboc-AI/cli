@@ -2,12 +2,12 @@ import { Arguments } from "yargs"
 
 import { resolve as resolveRemediateRemoteTfHCL2, Inputs as RemediateRemoteTfHCL2Inputs } from "../../resolvers/remediateRemoteTfHCL2.js"
 import { ExitCode } from "../exitCodes.js"
-import { EffectCommand } from "../commands.js"
 import { ConsoleLogger } from "../../utils/ConsoleLogger.js"
 import { settings } from "../../settings.js"
 import { consoleDebugger } from "../../utils/ConsoleDebugger.js"
 import { Effect } from "../../apiclient/gql/graphql.js"
 import { hl } from "../../utils/consoleUtils.js"
+import { EffectCommand } from "../commands.js"
 
 
 export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode> => {
@@ -19,24 +19,42 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
 
     const cl = new ConsoleLogger(false)
 
-    const workingDirectoryOption = argv.workingDirectory ? argv.workingDirectory as string : undefined
-    const targetDirectoriesOption = argv.targetDirectotries ? argv.targetDirectories as string[] : undefined
+    const workingDirectoryOption = argv.workingDirectory ? argv.workingDirectory as string : null
+    const targetDirectoriesOption = argv.targetDirectotries ? argv.targetDirectories as string[] : null
 
-    const getTargetDirectories = (workingDirectoryOption: string | undefined, targetDirectoriesOption: string[] | undefined): string[] => {
-      const wdPresent = workingDirectoryOption != null
-      const tdPresent = targetDirectoriesOption != null
-      if (wdPresent && tdPresent) {
+    const getDesiredEffect = (effect: string): Effect => {
+      switch (effect as EffectCommand) {
+        case EffectCommand.SUBMIT_FOR_REVIEW:
+          return Effect.SubmitForReview
+        case EffectCommand.DIRECT_APPLY:
+          return Effect.DirectApply
+        default:
+          throw new Error(`Invalid effect: ${effect}.`)
+      }
+    }
+
+    /**
+     * We want to make sure that only one of these two options is used
+     * @param workingDirectoryOption string -- is the old option that will be removed in the future
+     * @param targetDirectoriesOption string[] -- is the new option
+     */
+    const getTargetDirectories = (workingDirectoryOption: string | null, targetDirectoriesOption: string[] | null): string[] => {
+      const bothOptionsArePresent = workingDirectoryOption != null && targetDirectoriesOption != null
+      const bothOptionsAreMissing = workingDirectoryOption == null && targetDirectoriesOption == null
+      const onlyOldOptionPresent = workingDirectoryOption != null && targetDirectoriesOption == null
+
+      if (bothOptionsArePresent) {
         const msg = 'Cannot use both working-directory and target-directories options. Please use target-directories only'
         cl.err(ExitCode.INVALID_ARGUMENTS, msg)
-      } else if (!wdPresent && !tdPresent) {
+      } else if (bothOptionsAreMissing) {
         const msg = 'Please specify a least one target directory'
         cl.err(ExitCode.INVALID_ARGUMENTS, msg)
-      } else if (wdPresent && !tdPresent) {
+      } else if (onlyOldOptionPresent) {
         cl.log(hl('DEPRECATION NOTICE: working-directory is deprecated and will be removed in the future. Please use target-directories instead'))
         return [workingDirectoryOption]
       }
-      // One case left: !wdPresent && tdPresent
-      return targetDirectoriesOption as string[]
+      // One case left: only the new option was passed
+      return targetDirectoriesOption as string[] // safe to coerce, TS cannot infer
     }
 
     if (argv.accessToken){
@@ -47,7 +65,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       authToken: argv.authToken as string,
       serverUrl: settings.SERVER_URL,
       targetDirectories: getTargetDirectories(workingDirectoryOption, targetDirectoriesOption),
-      effect: argv._[3] == EffectCommand.SUBMIT_FOR_REVIEW ? Effect.SubmitForReview : Effect.DirectApply,
+      effect: getDesiredEffect(argv._[3] as string),
     }
 
     consoleDebugger.log('CLI inputs', inputs)
