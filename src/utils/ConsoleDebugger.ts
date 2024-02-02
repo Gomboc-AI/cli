@@ -6,8 +6,7 @@ class ConsoleDebugger {
   isSilenced: boolean
 
   constructor() {
-    // CANARY_MODE shortcircuits the logger
-    this.isSilenced = !settings.DEBUG_MODE || settings.CANARY_MODE;
+    this.isSilenced = !settings.DEBUG_MODE;
 
     if(!this.isSilenced){
       console.log(hl(`..:: DEBUG IS ON`))
