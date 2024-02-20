@@ -14,16 +14,6 @@ const addExecuteCheck = (argv: Argv, callableCheck: CallableFunction) => {
   }, false)
 }
 
-const addOutputOption = (argv: Argv) => {
-  argv.option("output", {
-    describe: "What format to output",
-    type: "string",
-    default: "text",
-    demandOption: false,
-    choices: ['text', 'json'],
-  })
-}
-
 const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
   argv.option("auth-token", {
     describe: "An authentication auth token",
@@ -32,11 +22,34 @@ const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
   })
 }
 
-const addAccessTokenOption = (argv: Argv, demandOption: boolean) => {
+const addAccessTokenOption = (argv: Argv) => {
   argv.option("access-token", {
     describe: "Access token to perform action to actions",
     type: "string",
-    demandOption,
+    demandOption: false,
+    hidden: true,
+    deprecated: 'Not needed -- will be removed in future versions',
+  })
+}
+
+const addWorkingDirectoryOption = (argv: Argv) => {
+  argv.option("working-directory", {
+    alias: "wd",
+    describe: "The root directory for the Terraform configuration",
+    type: "string",
+    demandOption: false,
+    hidden: true,
+    deprecated: 'Not needed -- will be removed in future versions',
+  })
+}
+
+const addTargetDirectoriesOption = (argv: Argv) => {
+  argv.option("target-directories", {
+    alias: "td",
+    describe: "The target directories with IaC files",
+    array: true,
+    type: "string",
+    demandOption: false // Change to true in the future when we remove the working-directory option
   })
 }
 
@@ -71,20 +84,13 @@ await yargs(hideBin(process.argv))
               yargs.demandCommand(1, 'Specify an action [direct-apply, submit-for-review]')
             }
           )
-          addAccessTokenOption(yargs, true)
+          addAccessTokenOption(yargs)
           yargs.demandCommand(1, 'Specify a source [remote]')
         }
       )
-      yargs.option("working-directory", {
-          alias: "wd",
-          describe: "The root directory for the Terraform configuration",
-          type: "string",
-          default: "",
-          demandOption: true
-        }
-      )
+      addTargetDirectoriesOption(yargs)
+      addWorkingDirectoryOption(yargs)
       addAuthTokenOption(yargs, true)
-      addOutputOption(yargs)
       yargs.demandCommand(1, 'Specify a verb [remediate]')
     }
   )
