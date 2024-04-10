@@ -45,28 +45,30 @@ export class Client {
         })
     }
 
-    /**
-     * @deprecated Remove in next version
-     */
-    async remediateRemoteTfHCL2MutationCall(workingDirectory: string, effect: Effect): Promise<RemediateRemoteTfHcl2Mutation> {
-        const { data } : { data: RemediateRemoteTfHcl2Mutation } = await this.client.mutate<RemediateRemoteTfHcl2Mutation, MutationRemediateRemoteTfHcl2Args>({
-            mutation: RemediateRemoteTfHCL2MutationSelection,
-            variables: {
-                workingDirectory,
-                effect,
-                accessToken: 'deprecated'
-            }
-        })
-        consoleDebugger.log('remediateRemoteTfHCL2MutationCall', data)
-        return data
-    }
+    // /**
+    //  * @deprecated Remove in next version
+    //  */
+    // async remediateRemoteTfHCL2MutationCall(workingDirectory: string, effect: Effect): Promise<RemediateRemoteTfHcl2Mutation> {
+    //     const { data } : { data: RemediateRemoteTfHcl2Mutation } = await this.client.mutate<RemediateRemoteTfHcl2Mutation, MutationRemediateRemoteTfHcl2Args>({
+    //         mutation: RemediateRemoteTfHCL2MutationSelection,
+    //         variables: {
+    //             workingDirectory,
+    //             effect,
+    //             accessToken: 'deprecated'
+    //         }
+    //     })
+    //     consoleDebugger.log('remediateRemoteTfHCL2MutationCall', data)
+    //     return data
+    // }
 
-    async scanRemoteTfHCL2MutationCall(workingDirectory: string, effect: Effect): Promise<ScanRemoteTfHcl2Mutation> {
+    async scanRemoteTfHCL2MutationCall(workingDirectories: string[], effect: Effect): Promise<ScanRemoteTfHcl2Mutation> {
         const { data } : { data: ScanRemoteTfHcl2Mutation} = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
             mutation: RemediateRemoteTfHCL2MutationSelection,
             variables: {
-                workingDirectory,
-                effect,
+                input: {
+                    workingDirectories,
+                    effect,
+                }
             }
         })
         return data

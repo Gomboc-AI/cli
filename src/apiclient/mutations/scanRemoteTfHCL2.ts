@@ -2,7 +2,7 @@ import gql from 'graphql-tag'
 
 
 export const ScanRemoteTfHCL2Mutation = gql` 
-  mutation ScanRemoteTfHCL2 ($workingDirectory: String!, $effect: Effect!) {
-    scanRemoteTfHCL2 (workingDirectory: $workingDirectory, effect: $effect)
+  mutation ScanRemoteTfHCL2 ($input: ScanRemoteTfHCL2Input!) {
+    scanRemoteTfHCL2 (input: $input)
   }
 `
