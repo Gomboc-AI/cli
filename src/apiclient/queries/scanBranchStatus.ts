@@ -1,11 +1,10 @@
 import gql from 'graphql-tag'
 
 
-export const ScanRemoteTfHCL2Mutation = gql` 
-  query scanBranchQuery ($scanRequestId: ID!) {
+export const ScanBranchStatusQuery = gql` 
+  query scanBranchStatus ($scanRequestId: ID!) {
     scanBranch(scanRequestId: $scanRequestId) {
       ... on ScanBranch {
-        id
         childrenCompleted
         childrenError
         childrenExpected

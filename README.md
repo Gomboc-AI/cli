@@ -15,11 +15,14 @@ Manually update the package version in `package.json`
 
 `npm run bootstrap`
 
+If you need to pull the schema, do it with `npm run generate`
+
 go on
 
-### GitHub Action
+`npm pack` to generate an installable
 
-If you plan on using this from your GitHub deployment pipeline, we recommend using one of the [Gomboc.ai Action](https://github.com/Gomboc-AI/actions) instead
+### As of v0.7.0
+
 
 ### CLI
 
