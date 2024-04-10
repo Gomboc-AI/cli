@@ -8,7 +8,7 @@ import { setContext } from '@apollo/client/link/context/context.cjs'
 
 import { CLI_VERSION } from '../cli/version.js';
 import { consoleDebugger } from '../utils/ConsoleDebugger.js';
-import { Effect, MutationRemediateRemoteTfHcl2Args, RemediateRemoteTfHcl2Mutation, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
+import { Effect, MutationRemediateRemoteTfHcl2Args, RemediateRemoteTfHcl2Mutation, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
 
 import { RemediateRemoteTfHCL2Mutation as RemediateRemoteTfHCL2MutationSelection } from './mutations/remediateRemoteTfHCL2.js';
 import { ScanRemoteTfHCL2Mutation as ScanRemoteTfHCL2MutationSelection } from './mutations/scanRemoteTfHCL2.js';
@@ -83,11 +83,12 @@ export class Client {
         })
         return data
     }
-    async scanBranchActionResultsQueryCall(scanRequestId: string): Promise<ScanBranchStatusQuery> {
-        const { data } : { data: ScanBranchStatusQuery} = await this.client.query<ScanBranchStatusQuery, ScanBranchActionResultsQueryVariables>({
+    async scanBranchActionResultsQueryCall(scanRequestId: string, pageSize: number): Promise<ScanBranchActionResultsQuery> {
+        const { data } : { data: ScanBranchActionResultsQuery} = await this.client.query<ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables>({
             query: ScanBranchActionResultsQuerySelection,
             variables: {
                 scanRequestId,
+                pageSize,
             }
         })
         return data

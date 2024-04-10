@@ -3,8 +3,7 @@ import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, formatTitle } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
-import { consoleDebugger } from '../utils/ConsoleDebugger.js'
-import { AutoRemediateTfHclFilesResponse, AutoRemediateTfHclFilesSuccess, Effect, GombocError, RemediateRemoteTfHcl2Mutation } from '../apiclient/gql/graphql.js'
+import { Effect } from '../apiclient/gql/graphql.js'
 
 
 export interface Inputs {
@@ -14,41 +13,10 @@ export interface Inputs {
   effect: Effect
 }
 
-type ServerError = {
-  __typename: 'ServerError'
+type ClientError = {
+  __typename: 'ClientError'
+  code: ExitCode
   message: string
-}
-
-const responseHasViolations = (response: AutoRemediateTfHclFilesSuccess, consoleLogger: ConsoleLogger) => {
-  // TODO: Today any fileComment refers to a violation
-  const atLeastOneViolation = response.files.some((file) => file.fileComments.length > 0)
-
-  consoleDebugger.log('..:: Success response', response)
-
-  consoleLogger.log(`Action ID: ${hl(response.traceId)}\n`)
-  const actionStatus = response.success ? 'successfully' : 'unsuccesfully'
-  consoleLogger.log(`Action ran ${hl(actionStatus)}`)
-
-  for (const file of response.files) {
-    // Log the name of the file
-    consoleLogger._log(`${hl(file.filepath)}\n`)
-
-    // Log each observation for the file
-    for (const observation of file.fileComments) {
-      consoleLogger.__log(`${hl(`l.${observation.line}`)} ${observation.commentPlain}\n`)
-    }
-
-    if (file.fileComments.length === 0) {
-      consoleLogger.__log(`No observations for this file\n`)
-    }
-  }
-
-  if (response.files.length === 0) {
-    consoleLogger._log(`No HCL files were found\n`)
-  }
-
-  consoleLogger.log(`${response.message}\n`)
-  return atLeastOneViolation
 }
 
 export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
@@ -73,49 +41,136 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   cl._log(`...\n`)
 
-  const handleMutation = async (targetDirectory: string) => {
+  // This will call the mutation to trigger a scan, and handle a server error
+  const handleScanRequest = async () => {
     try {
-      return client.remediateRemoteTfHCL2MutationCall(targetDirectory, inputs.effect)
+      return client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect)
     } catch (e: any) {
-      return {__typename: 'ServerError', message: e.message} as ServerError
+      return {code: ExitCode.SERVER_ERROR, message: e.message} as ClientError
     }
   }
 
-  // Run the API calls in parallel
-  const allResponses = await Promise.all(
-    inputs.targetDirectories.map(targetDirectory => handleMutation(targetDirectory))
-  )
+  // This will call the query to check the status of a scan, and handle a server error and a failed scan error
+  const handleScanStatusPoll = async (scanRequestId: string) => {
+    try {
+      const poll = await client.scanBranchStatusQueryCall(scanRequestId)
+      if (poll.scanBranch.__typename === 'FailedScan') {
+        return {code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})`} as ClientError
+      }
+      return poll.scanBranch
+    } catch (e: any) {
+      return {code: ExitCode.SERVER_ERROR, message: e.message} as ClientError
+    }
+  }
 
-  // At the top level, we can have either a mutation response or a server error
-  const mutationResponses = allResponses.filter((r): r is RemediateRemoteTfHcl2Mutation => r.__typename === 'Mutation')
-  const serverErrorResponses = allResponses.filter((r): r is ServerError => r.__typename === 'ServerError')
+  // We will get a single page of RELEVANT (i.e. with violations) policy observations to avoid overwhelming the user
+  // Getting at least one of these is sufficient for the CLI to fail in signal of action required
+  // If we get a full page, we'll print a little message saying there could be more.
+  // In any case, we'll print out the url to the action result page with all the policy observations
+  const POLICY_OBSERVATIONS_PAGE_SIZE = 10
 
-  // For mutation responses, we can have either a success response or a GombocError
-  const remediateResponses = mutationResponses.map(response => response.remediateRemoteTfHCL2) as AutoRemediateTfHclFilesResponse[]
-  const successResponses = remediateResponses.filter((r): r is AutoRemediateTfHclFilesSuccess => r.__typename === 'AutoRemediateTfHCLFilesSuccess')
-  const gombocErrorResponses = remediateResponses.filter((r): r is GombocError => r.__typename === 'GombocError')
+  // This will call final query to get the action results of a scan, and handle a server error and a failed scan error
+  const handleScanActionResultsRequest = async (scanRequestId: string) => {
+    try {
+      const poll = await client.scanBranchActionResultsQueryCall(scanRequestId, POLICY_OBSERVATIONS_PAGE_SIZE)
+      if (poll.scanBranch.__typename === 'FailedScan') {
+        return {code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})`} as ClientError
+      }
+      return poll.scanBranch
+    } catch (e: any) {
+      return {code: ExitCode.SERVER_ERROR, message: e.message} as ClientError
+    }
+  }
 
-  // Check if there are any violations among the success responses
-  const atLeastOneViolation = successResponses.some((response) => responseHasViolations(response, cl))
+  const scanRequestResponse = await handleScanRequest()
 
-  // Log the gomboc (client) error quantities and messages
-  cl.log(`Client errors: ${gombocErrorResponses.length}\n`)
-  gombocErrorResponses.forEach((error) => cl._log(`${error.message}\n`))
-  
-  // Log the server error quantities
-  cl.log(`Server errors: ${gombocErrorResponses.length}\n`)
+  if (scanRequestResponse.__typename === 'ClientError') {
+    cl.err(scanRequestResponse.code, scanRequestResponse.message)
+    return scanRequestResponse.code
+  }
 
-  // Fail first by server errors, then by client errors, then by violations
-  if (serverErrorResponses.length > 0) {
-    cl.err(ExitCode.SERVER_ERROR, `Server errors: ${serverErrorResponses.length}`)
+  const scanRequestId = scanRequestResponse.scanRemoteTfHCL2
+
+  cl._log(`Scan request accepted by server: ${scanRequestId} \n`)
+
+  // Temporal naive implementation of a polling mechanism. Will be replaced by a GraphQL subscription
+  // In the grand scheme of CI/CD pipeline times, this is not terrible
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  // Start polling mechanism
+  const INITIAL_INTERVAL = 4 * 1000
+  const POLLING_INTERVAL = 2 * 1000
+  const TIMEOUT_LIMIT = 5 * 60 * 1000
+
+  // Initial sleep to give the server time to digest the request
+  sleep(INITIAL_INTERVAL)
+
+  // Initial call to check the status of the scan
+  let scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
+  if (scanStatusPollResult.__typename === 'ClientError') {
+    cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
+    return scanStatusPollResult.code
+  }
+
+  let attempts = 1
+
+  // While there are still children scans being processed
+  while (scanStatusPollResult.childrenExpected != scanStatusPollResult.childrenCompleted + scanStatusPollResult.childrenError) {
+    // Server is still working on the children scan
+    const totalAwaitedTime = INITIAL_INTERVAL + attempts * POLLING_INTERVAL
+    if (totalAwaitedTime > TIMEOUT_LIMIT) {
+      const timeoutMinutes = Math.floor(TIMEOUT_LIMIT / 60000)
+      cl.err(ExitCode.SERVER_TIMEOUT_ERROR, `Scan timed out after ${timeoutMinutes} min. Please try again later`)
+      return ExitCode.SERVER_TIMEOUT_ERROR
+    }
+
+    sleep(POLLING_INTERVAL)
+    attempts ++
+
+    let scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
+    if (scanStatusPollResult.__typename === 'ClientError') {
+      cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
+      return scanStatusPollResult.code
+    }
+  }
+
+  // Server has finished the scan, now we can request the results
+  let scanActionResults = await handleScanActionResultsRequest(scanRequestId)
+  if (scanActionResults.__typename === 'ClientError') {
+    cl.err(scanActionResults.code, scanActionResults.message)
+    return scanActionResults.code
+  }
+
+  // Final check to see if everything is in order with the final query
+  if (scanActionResults.childrenExpected != scanActionResults.childrenCompleted + scanActionResults.childrenError) {
+    cl.err(ExitCode.SERVER_ERROR, 'Status reverted to NOT OK in final validation')
     return ExitCode.SERVER_ERROR
   }
-  if (gombocErrorResponses.length > 0) {
-    cl.err(ExitCode.CLIENT_ERROR, `Client errors: ${gombocErrorResponses.length}`)
-    return ExitCode.CLIENT_ERROR
-  }
-  if (atLeastOneViolation) {
-    cl.err(ExitCode.VIOLATIONS_FOUND, 'At least one violation was found')
+
+  // Keep track of whether there are any violations or failed scans to prevent or not deployment
+  let atLeastOneViolationOrError = false
+
+  // Check if there are any violations or failed scans
+  // If an action result has a policy observation with disposition AUTO_REMEDIATED or COULD_NOT_REMEDIATE, it is considered a violation
+  // We can only get those observations because we are excluding all other dispositions in the query
+  scanActionResults.children.map((child) => {
+    if(child.__typename === 'FailedScan') {
+      cl.err(ExitCode.FAILED_SCAN, `${child.message} (Scan ID: ${child.id})`)
+      atLeastOneViolationOrError = true
+    } else {
+      // child is a valid ScanScenario object
+      child.result.observations.forEach((obs) => {
+        const location = `${obs.filepath}, ln ${obs.lineNumber}`
+        cl._log(`${hl(location)}: Resource ${hl(obs.resourceName)} (${obs.resourceType})\n`)
+      })
+      if(child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
+        cl._log(`...and possibly more\n`)
+      }
+      cl._log(`Find the complete action result here https://app.gomboc.ai/actions/${(child.id)} \n`)
+    }
+  })
+
+  if(atLeastOneViolationOrError) {
+    cl.err(ExitCode.VIOLATIONS_FOUND, 'At least one violation or error was found')
     return ExitCode.VIOLATIONS_FOUND
   }
 

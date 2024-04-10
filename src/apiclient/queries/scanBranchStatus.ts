@@ -5,12 +5,13 @@ export const ScanBranchStatusQuery = gql`
   query scanBranchStatus ($scanRequestId: ID!) {
     scanBranch(scanRequestId: $scanRequestId) {
       ... on ScanBranch {
+        id
         childrenCompleted
         childrenError
         childrenExpected
       }
-      ... on GombocError {
-        code
+      ... on FailedScan {
+        id
         message
       }
     }
