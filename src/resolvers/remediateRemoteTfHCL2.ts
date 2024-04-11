@@ -165,7 +165,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       if(child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
         cl._log(`...and possibly more\n`)
       }
-      cl._log(`Find the complete action result here https://app.gomboc.ai/actions/${(child.id)} \n`)
+      cl._log(`Find the complete action result here https://app.gomboc.ai/actions/${(child.id)}\n`)
     }
   })
 
