@@ -7,11 +7,9 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { consoleDebugger } from '../utils/ConsoleDebugger.js';
-import { Effect, MutationRemediateRemoteTfHcl2Args, RemediateRemoteTfHcl2Mutation, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
+import { Effect, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
 
 import { RemediateRemoteTfHCL2Mutation as RemediateRemoteTfHCL2MutationSelection } from './mutations/remediateRemoteTfHCL2.js';
-import { ScanRemoteTfHCL2Mutation as ScanRemoteTfHCL2MutationSelection } from './mutations/scanRemoteTfHCL2.js';
 import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus.js';
 import { ScanBranchActionResultsQuery as ScanBranchActionResultsQuerySelection } from './queries/scanBranchActionResults.js';
 
@@ -44,22 +42,6 @@ export class Client {
             cache: new InMemoryCache()
         })
     }
-
-    // /**
-    //  * @deprecated Remove in next version
-    //  */
-    // async remediateRemoteTfHCL2MutationCall(workingDirectory: string, effect: Effect): Promise<RemediateRemoteTfHcl2Mutation> {
-    //     const { data } : { data: RemediateRemoteTfHcl2Mutation } = await this.client.mutate<RemediateRemoteTfHcl2Mutation, MutationRemediateRemoteTfHcl2Args>({
-    //         mutation: RemediateRemoteTfHCL2MutationSelection,
-    //         variables: {
-    //             workingDirectory,
-    //             effect,
-    //             accessToken: 'deprecated'
-    //         }
-    //     })
-    //     consoleDebugger.log('remediateRemoteTfHCL2MutationCall', data)
-    //     return data
-    // }
 
     async scanRemoteTfHCL2MutationCall(workingDirectories: string[], effect: Effect): Promise<ScanRemoteTfHcl2Mutation> {
         const { data } : { data: ScanRemoteTfHcl2Mutation} = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({

@@ -17,7 +17,7 @@ Manually update the package version in `package.json`
 
 If you need to pull the schema, have ScanAPI running in port 4000 and run `npm run generate`
 
-`npm pack` to generate an installable
+`npm pack` to generate a tarball
 
 ### Modus Operandi
 
