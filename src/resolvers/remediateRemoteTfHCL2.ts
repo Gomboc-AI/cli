@@ -4,6 +4,7 @@ import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, formatTitle } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
 import { Effect } from '../apiclient/gql/graphql.js'
+import { settings } from '../settings.js'
 
 
 export interface Inputs {
@@ -165,7 +166,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       if(child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
         cl._log(`...and possibly more\n`)
       }
-      cl._log(`Find the complete action result here https://app.gomboc.ai/actions/${(child.id)}\n`)
+      cl._log(`Find the complete action result here ${settings.CLIENT_URL}/actions/${child.id}\n`)
     }
   })
 

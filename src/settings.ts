@@ -4,8 +4,6 @@ export enum Stage {
   PROD = 'PROD',
 }
 
-const TRUE_VALUE = 'true';
-
 // Environment variables:
 // GOMBOC_STAGE: LOCAL | BETA | PROD
 // GOMBOC_DEBUG: any value
@@ -13,11 +11,12 @@ const TRUE_VALUE = 'true';
 export type Settings = {
   STAGE: Stage;
   SERVER_URL: string;
+  CLIENT_URL: string;
   DEBUG_MODE: boolean;
 }
 
 const inDebugMode = (): boolean => {
-  return process.env.GOMBOC_DEBUG === TRUE_VALUE;
+  return process.env.GOMBOC_DEBUG != null;
 }
 
 const getStage = (): Stage => {
@@ -35,7 +34,7 @@ const getStage = (): Stage => {
 }
 
 const getServerUrl = (stage: Stage): string => {
-  const urlOverride = process.env.GOMBOC_URL_OVERRIDE;
+  const urlOverride = process.env.GOMBOC_SERVER_URL_OVERRIDE;
   if (urlOverride) {
     return urlOverride;
   }
@@ -49,12 +48,28 @@ const getServerUrl = (stage: Stage): string => {
   }
 }
 
+const getClientUrl = (stage: Stage): string => {
+  const urlOverride = process.env.GOMBOC_CLIENT_URL_OVERRIDE;
+  if (urlOverride) {
+    return urlOverride;
+  }
+  switch (stage) {
+    case Stage.LOCAL:
+      return 'http://localhost:3000/graphql';
+    case Stage.BETA:
+      return 'https://app.beta.gomboc.ai/graphql';
+    case Stage.PROD:
+      return 'https://app.gomboc.ai/graphql';
+  }
+}
+
 export const getSettings = (): Settings => {
   const stage = getStage();
 
   return {
     STAGE: stage,
     SERVER_URL: getServerUrl(stage),
+    CLIENT_URL: getClientUrl(stage),
     DEBUG_MODE: inDebugMode(),
   }
 }
