@@ -160,14 +160,15 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // If an action result has a policy observation with disposition AUTO_REMEDIATED or COULD_NOT_REMEDIATE, it is considered a violation
   // We can only get those observations because we are excluding all other dispositions in the query
   scanActionResults.children.map((child) => {
+    cl._log(`Scan result:\n`)
     if(child.__typename === 'FailedScan') {
-      cl.err(ExitCode.FAILED_SCAN, `${child.message} (Scan ID: ${child.id})`)
+      cl.err(ExitCode.FAILED_SCAN, `${child.message} (Scan ID: ${child.id})\n`)
       atLeastOneViolationOrError = true
     } else if (child.__typename === 'GombocError') {
-      return {code: ExitCode.SERVER_ERROR, message: `${child.message} (Code: ${child.code ?? 'Unknown'})`} as ClientError
+      cl.err(ExitCode.SERVER_ERROR, `${child.message} (Code: ${child.code ?? 'Unknown'})\n`)
+      atLeastOneViolationOrError = true
     } else {
       // child is a valid ScanScenario object
-      cl._log(`Scan result:`)
       child.result.observations.forEach((obs) => {
         const location = `${obs.filepath}, ln ${obs.lineNumber}`
         cl.__log(`... at ${hl(location)}: ${hl(obs.disposition)} resource ${hl(obs.resourceName)} (${obs.resourceType})`)
