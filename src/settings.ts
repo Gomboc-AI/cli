@@ -55,11 +55,11 @@ const getClientUrl = (stage: Stage): string => {
   }
   switch (stage) {
     case Stage.LOCAL:
-      return 'http://localhost:3000/graphql';
+      return 'http://localhost:3000';
     case Stage.BETA:
-      return 'https://app.beta.gomboc.ai/graphql';
+      return 'https://app.beta.gomboc.ai';
     case Stage.PROD:
-      return 'https://app.gomboc.ai/graphql';
+      return 'https://app.gomboc.ai';
   }
 }
 

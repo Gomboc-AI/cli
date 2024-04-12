@@ -58,6 +58,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       if (poll.scanBranch.__typename === 'FailedScan') {
         return {code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})`} as ClientError
       }
+      if (poll.scanBranch.__typename === 'GombocError') {
+        return {code: ExitCode.SERVER_ERROR, message: `${poll.scanBranch.message} (Code: ${poll.scanBranch.code ?? 'Unknown'})`} as ClientError
+      }
       return poll.scanBranch
     } catch (e: any) {
       return {code: ExitCode.SERVER_ERROR, message: e.message} as ClientError
@@ -76,6 +79,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       const poll = await client.scanBranchActionResultsQueryCall(scanRequestId, POLICY_OBSERVATIONS_PAGE_SIZE)
       if (poll.scanBranch.__typename === 'FailedScan') {
         return {code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})`} as ClientError
+      }
+      if (poll.scanBranch.__typename === 'GombocError') {
+        return {code: ExitCode.SERVER_ERROR, message: `${poll.scanBranch.message} (Code: ${poll.scanBranch.code ?? 'Unknown'})`} as ClientError
       }
       return poll.scanBranch
     } catch (e: any) {
@@ -157,16 +163,20 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     if(child.__typename === 'FailedScan') {
       cl.err(ExitCode.FAILED_SCAN, `${child.message} (Scan ID: ${child.id})`)
       atLeastOneViolationOrError = true
+    } else if (child.__typename === 'GombocError') {
+      return {code: ExitCode.SERVER_ERROR, message: `${child.message} (Code: ${child.code ?? 'Unknown'})`} as ClientError
     } else {
       // child is a valid ScanScenario object
+      cl._log(`Scan result:`)
       child.result.observations.forEach((obs) => {
         const location = `${obs.filepath}, ln ${obs.lineNumber}`
-        cl._log(`${hl(location)}: Resource ${hl(obs.resourceName)} (${obs.resourceType})\n`)
+        cl.__log(`... at ${hl(location)}: ${hl(obs.disposition)} resource ${hl(obs.resourceName)} (${obs.resourceType})`)
+        atLeastOneViolationOrError = true
       })
       if(child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
-        cl._log(`...and possibly more\n`)
+        cl.__log(`... and possibly more`)
       }
-      cl._log(`Find the complete action result here ${settings.CLIENT_URL}/actions/${child.id}\n`)
+      cl._log(`\nFind the complete action result here ${settings.CLIENT_URL}/actions/${child.id}\n`)
     }
   })
 

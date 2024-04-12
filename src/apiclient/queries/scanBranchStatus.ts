@@ -14,6 +14,10 @@ export const ScanBranchStatusQuery = gql`
         id
         message
       }
+      ... on GombocError {
+        code
+        message
+      }
     }
   }
 `

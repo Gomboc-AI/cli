@@ -18,6 +18,7 @@ export const ScanBranchActionResultsQuery = gql`
                 lineNumber
                 resourceName
                 resourceType
+                disposition
               }
             }
           }
@@ -25,10 +26,18 @@ export const ScanBranchActionResultsQuery = gql`
             id
             message
           }
+          ... on GombocError {
+            code
+            message
+          }
         }
       }
       ... on FailedScan {
         id
+        message
+      }
+      ... on GombocError {
+        code
         message
       }
     }
