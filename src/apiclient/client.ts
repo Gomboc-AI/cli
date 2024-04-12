@@ -7,11 +7,13 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { Effect, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
+import { Effect, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Document, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
 
-import { RemediateRemoteTfHCL2Mutation as RemediateRemoteTfHCL2MutationSelection } from './mutations/remediateRemoteTfHCL2.js';
 import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus.js';
 import { ScanBranchActionResultsQuery as ScanBranchActionResultsQuerySelection } from './queries/scanBranchActionResults.js';
+import { ScanRemoteTfHCL2Mutation as ScanRemoteTfHCL2MutationSelection } from './mutations/scanRemoteTfHCL2.js';
+
+import { consoleDebugger } from '../utils/ConsoleDebugger.js';
 
 export class Client {
     url: string
@@ -44,8 +46,10 @@ export class Client {
     }
 
     async scanRemoteTfHCL2MutationCall(workingDirectories: string[], effect: Effect): Promise<ScanRemoteTfHcl2Mutation> {
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- workingDirectories: ', workingDirectories)
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- effect: ', effect)
         const { data } : { data: ScanRemoteTfHcl2Mutation} = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
-            mutation: RemediateRemoteTfHCL2MutationSelection,
+            mutation: ScanRemoteTfHCL2MutationSelection,
             variables: {
                 input: {
                     workingDirectories,
@@ -53,19 +57,24 @@ export class Client {
                 }
             }
         })
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data: ', JSON.stringify(data))
         return data
     }
 
     async scanBranchStatusQueryCall(scanRequestId: string): Promise<ScanBranchStatusQuery> {
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- scanRequestId:', scanRequestId)
         const { data } : { data: ScanBranchStatusQuery} = await this.client.query<ScanBranchStatusQuery, ScanBranchActionResultsQueryVariables>({
             query: ScanBranchStatusQuerySelection,
             variables: {
                 scanRequestId,
             }
         })
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data:', JSON.stringify(data))
         return data
     }
     async scanBranchActionResultsQueryCall(scanRequestId: string, pageSize: number): Promise<ScanBranchActionResultsQuery> {
+        consoleDebugger.log('scanBranchActionResultsQueryCall -- scanRequestId:', scanRequestId)
+        consoleDebugger.log('scanBranchActionResultsQueryCall -- pageSize:', pageSize)
         const { data } : { data: ScanBranchActionResultsQuery} = await this.client.query<ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables>({
             query: ScanBranchActionResultsQuerySelection,
             variables: {
@@ -73,6 +82,7 @@ export class Client {
                 pageSize,
             }
         })
+        consoleDebugger.log('scanBranchActionResultsQueryCall -- data:', JSON.stringify(data))
         return data
     }
 }

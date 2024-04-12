@@ -20,7 +20,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
     const cl = new ConsoleLogger(false)
 
     const workingDirectoryOption = argv.workingDirectory ? argv.workingDirectory as string : null
-    const targetDirectoriesOption = argv.targetDirectotries ? argv.targetDirectories as string[] : null
+    const targetDirectoriesOption = argv.targetDirectories ? argv.targetDirectories as string[] : null
 
     const getDesiredEffect = (effect: string): Effect => {
       switch (effect as EffectCommand) {
@@ -33,6 +33,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       }
     }
 
+    consoleDebugger.log('CLI arguments', argv)
     /**
      * We want to make sure that only one of these two options is used
      * @param workingDirectoryOption string -- is the old option that will be removed in the future
