@@ -45,7 +45,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // This will call the mutation to trigger a scan, and handle a server error
   const handleScanRequest = async () => {
     try {
-      return client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect)
+      return await client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect)
     } catch (e: any) {
       return {code: ExitCode.SERVER_ERROR, message: e.message} as ClientError
     }
@@ -103,7 +103,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   const TIMEOUT_LIMIT = 5 * 60 * 1000
 
   // Initial sleep to give the server time to digest the request
-  sleep(INITIAL_INTERVAL)
+  await sleep(INITIAL_INTERVAL)
 
   // Initial call to check the status of the scan
   let scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
@@ -124,7 +124,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       return ExitCode.SERVER_TIMEOUT_ERROR
     }
 
-    sleep(POLLING_INTERVAL)
+    await sleep(POLLING_INTERVAL)
     attempts ++
 
     let scanStatusPollResult = await handleScanStatusPoll(scanRequestId)

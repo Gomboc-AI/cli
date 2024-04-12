@@ -63,7 +63,7 @@ export class Client {
 
     async scanBranchStatusQueryCall(scanRequestId: string): Promise<ScanBranchStatusQuery> {
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- scanRequestId:', scanRequestId)
-        const { data } : { data: ScanBranchStatusQuery} = await this.client.query<ScanBranchStatusQuery, ScanBranchActionResultsQueryVariables>({
+        const { data } : { data: ScanBranchStatusQuery} = await this.client.query<ScanBranchStatusQuery, ScanBranchStatusQuery>({
             query: ScanBranchStatusQuerySelection,
             variables: {
                 scanRequestId,
@@ -72,6 +72,7 @@ export class Client {
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data:', JSON.stringify(data))
         return data
     }
+
     async scanBranchActionResultsQueryCall(scanRequestId: string, pageSize: number): Promise<ScanBranchActionResultsQuery> {
         consoleDebugger.log('scanBranchActionResultsQueryCall -- scanRequestId:', scanRequestId)
         consoleDebugger.log('scanBranchActionResultsQueryCall -- pageSize:', pageSize)
