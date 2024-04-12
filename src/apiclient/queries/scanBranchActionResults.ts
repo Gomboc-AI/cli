@@ -18,7 +18,6 @@ export const ScanBranchActionResultsQuery = gql`
                 lineNumber
                 resourceName
                 resourceType
-                disposition
               }
             }
           }
