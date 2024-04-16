@@ -171,14 +171,14 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       // child is a valid ScanScenario object
       child.result.observations.forEach((obs) => {
         const location = `${obs.filepath}, ln ${obs.lineNumber}`
-        // cl.__log(`... at ${hl(location)}: ${hl(obs.disposition)} resource ${hl(obs.resourceName)} (${obs.resourceType})`)
-        cl.__log(`... at ${hl(location)}: Resource ${hl(obs.resourceName)} (${obs.resourceType})`)
+        cl.__log(`... at ${hl(location)}: Resource ${hl(obs.resourceName)} (${obs.resourceType}) --> ${hl(obs.disposition)}`)
+        // cl.__log(`...at ${hl(location)}: Resource ${hl(obs.resourceName)} (${obs.resourceType})`)
         atLeastOneViolationOrError = true
       })
       if(child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
-        cl.__log(`... and possibly more`)
+        cl.__log(`...and possibly more`)
       }
-      cl._log(`\nFind the complete action result here ${settings.CLIENT_URL}/actions/${child.id}\n`)
+      cl._log(`\nFind the complete action result here ${settings.CLIENT_URL}/actions/${child.result.id}\n\n`)
     }
   })
 

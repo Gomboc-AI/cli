@@ -13,11 +13,13 @@ export const ScanBranchActionResultsQuery = gql`
           ... on ScanScenario {
             id
             result {
+              id
               observations(exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE], page: 1, size: $pageSize) {
                 filepath
                 lineNumber
                 resourceName
                 resourceType
+                disposition
               }
             }
           }
