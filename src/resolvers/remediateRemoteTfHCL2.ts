@@ -1,7 +1,7 @@
 import { Client } from '../apiclient/client.js'
 import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
-import { hl, checkMark, formatTitle } from '../utils/consoleUtils.js'
+import { hl, checkMark, formatTitle, hlSuccess, hlError } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
 import { Effect } from '../apiclient/gql/graphql.js'
 import { settings } from '../settings.js'
@@ -174,13 +174,14 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
         cl.__log(`Policy observation at ${hl(location)}:`)
         cl.___log(`Resource: ${hl(obs.resourceName)} (${obs.resourceType})`)
         cl.___log(`Policy: All resources must implement ${hl(obs.capabilityTitle)}`)
-        cl.___log(`Status: ${hl(obs.disposition)}`)
+        const dispositionHighlight = obs.disposition === 'AUTO_REMEDIATED' ? hlSuccess : hlError
+        cl.___log(`Status: ${dispositionHighlight(obs.disposition)}`)
         atLeastOneViolationOrError = true
       })
       if(child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
         cl.__log(`...and possibly more`)
       }
-      cl.__log(`\nFind the detailed result at ${settings.CLIENT_URL}/actions/${child.result.id}\n\n`)
+      cl.__log(`\nFind the detailed result at ${settings.CLIENT_URL}/actions/${child.result.id}\n`)
     }
   })
 
