@@ -20,6 +20,7 @@ export const ScanBranchActionResultsQuery = gql`
                 resourceName
                 resourceType
                 disposition
+                capabilityTitle
               }
             }
           }

@@ -112,7 +112,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   await sleep(INITIAL_INTERVAL)
 
   // Initial call to check the status of the scan
-  let scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
+  const scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
   if (scanStatusPollResult.__typename === 'ClientError') {
     cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
     return scanStatusPollResult.code
@@ -133,7 +133,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     await sleep(POLLING_INTERVAL)
     attempts ++
 
-    let scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
+    const scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
     if (scanStatusPollResult.__typename === 'ClientError') {
       cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
       return scanStatusPollResult.code
@@ -141,7 +141,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   }
 
   // Server has finished the scan, now we can request the results
-  let scanActionResults = await handleScanActionResultsRequest(scanRequestId)
+  const scanActionResults = await handleScanActionResultsRequest(scanRequestId)
   if (scanActionResults.__typename === 'ClientError') {
     cl.err(scanActionResults.code, scanActionResults.message)
     return scanActionResults.code
@@ -160,7 +160,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // If an action result has a policy observation with disposition AUTO_REMEDIATED or COULD_NOT_REMEDIATE, it is considered a violation
   // We can only get those observations because we are excluding all other dispositions in the query
   scanActionResults.children.map((child) => {
-    cl._log(`Scan result:\n`)
+    cl._log(`\nScan result:\n`)
     if(child.__typename === 'FailedScan') {
       cl.err(ExitCode.FAILED_SCAN, `${child.message} (Scan ID: ${child.id})\n`)
       atLeastOneViolationOrError = true
@@ -171,14 +171,16 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       // child is a valid ScanScenario object
       child.result.observations.forEach((obs) => {
         const location = `${obs.filepath}, ln ${obs.lineNumber}`
-        cl.__log(`... at ${hl(location)}: Resource ${hl(obs.resourceName)} (${obs.resourceType}) --> ${hl(obs.disposition)}`)
-        // cl.__log(`...at ${hl(location)}: Resource ${hl(obs.resourceName)} (${obs.resourceType})`)
+        cl.__log(`Policy observation at ${hl(location)}:`)
+        cl.___log(`Resource: ${hl(obs.resourceName)} (${obs.resourceType})`)
+        cl.___log(`Policy: All resources must implement ${hl(obs.capabilityTitle)}`)
+        cl.___log(`Status: ${hl(obs.disposition)}`)
         atLeastOneViolationOrError = true
       })
       if(child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
         cl.__log(`...and possibly more`)
       }
-      cl._log(`\nFind the complete action result here ${settings.CLIENT_URL}/actions/${child.result.id}\n\n`)
+      cl.__log(`\nFind the detailed result at ${settings.CLIENT_URL}/actions/${child.result.id}\n\n`)
     }
   })
 
