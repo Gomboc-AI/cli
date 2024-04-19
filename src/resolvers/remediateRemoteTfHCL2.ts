@@ -190,5 +190,6 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     return ExitCode.VIOLATIONS_FOUND
   }
 
+  cl.log(hlSuccess(`No violations or errors found`))
   return ExitCode.SUCCESS
 }
