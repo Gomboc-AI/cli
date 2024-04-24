@@ -1,5 +1,16 @@
 module.exports = {
-    extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+  extends: [
+    'eslint:recommended',
+        'plugin:@typescript-eslint/recommended',
+        'prettier',
+    ],
+    parser: '@typescript-eslint/parser',
+    plugins: [
+      '@typescript-eslint/eslint-plugin',
+      'prettier',
+      '@graphql-eslint/eslint-plugin',
+      'eslint-plugin-import',
+    ],
     parserOptions: {
         ecmaVersion: 2020,
         project: ['tsconfig.json'],
