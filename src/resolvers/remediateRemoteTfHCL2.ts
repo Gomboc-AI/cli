@@ -98,6 +98,12 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   const scanRequestId = scanRequestResponse.scanRemoteTfHCL2
 
+  if (scanRequestId == null) {
+    cl.err(ExitCode.SERVER_ERROR, 'Scan request was rejected by the server. Make sure that you have defined a security policy and that this repository has been linked to a project\n')
+    cl.log(`Aborting...\n`)
+    return ExitCode.SUCCESS
+  }
+  
   cl._log(`Scan request accepted by server: ${scanRequestId} \n`)
 
   // Temporal naive implementation of a polling mechanism. Will be replaced by a GraphQL subscription
