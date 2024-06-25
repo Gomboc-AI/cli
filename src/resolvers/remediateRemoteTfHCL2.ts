@@ -47,7 +47,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     try {
       return await client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect)
     } catch (e: any) {
-      return {code: ExitCode.SERVER_ERROR, message: e.message} as ClientError
+      return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
   }
 
@@ -56,14 +56,14 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     try {
       const poll = await client.scanBranchStatusQueryCall(scanRequestId)
       if (poll.scanBranch.__typename === 'FailedScan') {
-        return {code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})`} as ClientError
+        return { code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})` } as ClientError
       }
       if (poll.scanBranch.__typename === 'GombocError') {
-        return {code: ExitCode.SERVER_ERROR, message: `${poll.scanBranch.message} (Code: ${poll.scanBranch.code ?? 'Unknown'})`} as ClientError
+        return { code: ExitCode.SERVER_ERROR, message: `${poll.scanBranch.message} (Code: ${poll.scanBranch.code ?? 'Unknown'})` } as ClientError
       }
       return poll.scanBranch
     } catch (e: any) {
-      return {code: ExitCode.SERVER_ERROR, message: e.message} as ClientError
+      return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
   }
 
@@ -78,14 +78,14 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     try {
       const poll = await client.scanBranchActionResultsQueryCall(scanRequestId, POLICY_OBSERVATIONS_PAGE_SIZE)
       if (poll.scanBranch.__typename === 'FailedScan') {
-        return {code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})`} as ClientError
+        return { code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})` } as ClientError
       }
       if (poll.scanBranch.__typename === 'GombocError') {
-        return {code: ExitCode.SERVER_ERROR, message: `${poll.scanBranch.message} (Code: ${poll.scanBranch.code ?? 'Unknown'})`} as ClientError
+        return { code: ExitCode.SERVER_ERROR, message: `${poll.scanBranch.message} (Code: ${poll.scanBranch.code ?? 'Unknown'})` } as ClientError
       }
       return poll.scanBranch
     } catch (e: any) {
-      return {code: ExitCode.SERVER_ERROR, message: e.message} as ClientError
+      return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
   }
 
@@ -103,7 +103,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     cl.log(`Aborting...\n`)
     return ExitCode.SUCCESS
   }
-  
+
   cl._log(`Scan request accepted by server: ${scanRequestId} \n`)
 
   // Temporal naive implementation of a polling mechanism. Will be replaced by a GraphQL subscription
@@ -118,7 +118,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   await sleep(INITIAL_INTERVAL)
 
   // Initial call to check the status of the scan
-  const scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
+  let scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
   if (scanStatusPollResult.__typename === 'ClientError') {
     cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
     return scanStatusPollResult.code
@@ -137,9 +137,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     }
 
     await sleep(POLLING_INTERVAL)
-    attempts ++
+    attempts++
 
-    const scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
+    scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
     if (scanStatusPollResult.__typename === 'ClientError') {
       cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
       return scanStatusPollResult.code
@@ -168,7 +168,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   scanActionResults.children.map((child) => {
     cl._log('\n')
     cl._log(`Scan result:\n`)
-    if(child.__typename === 'FailedScan') {
+    if (child.__typename === 'FailedScan') {
       cl.err(ExitCode.FAILED_SCAN, `${child.message} (Scan ID: ${child.id})\n`)
       atLeastOneViolationOrError = true
     } else if (child.__typename === 'GombocError') {
@@ -185,7 +185,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
         cl.___log(`Status: ${dispositionHighlight(obs.disposition)}`)
         atLeastOneViolationOrError = true
       })
-      if(child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
+      if (child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
         cl.__log(`...and possibly more`)
       }
       cl._log('\n')
@@ -193,7 +193,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     }
   })
 
-  if(atLeastOneViolationOrError) {
+  if (atLeastOneViolationOrError) {
     cl.err(ExitCode.VIOLATIONS_FOUND, 'At least one violation or error was found')
     return ExitCode.VIOLATIONS_FOUND
   }
