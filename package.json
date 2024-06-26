@@ -1,6 +1,6 @@
 {
   "name": "@gomboc-ai/cli",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "",
   "type": "module",
   "main": "bin/index.js",
@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.8",
+    "@gomboc-ai/cli": "file:gomboc-ai-cli-0.7.2.tar",
     "chalk": "^5.2.0",
     "cross-fetch": "^3.1.5",
     "glob": "^10.2.2",
