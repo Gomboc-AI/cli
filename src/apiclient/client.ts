@@ -30,7 +30,7 @@ export class Client {
                 'X-GOMBOC-RUNNER-PATH': process.env._,
                 ...headers
             }
-            if(this.authToken != null) {
+            if (this.authToken != null) {
                 headers = {
                     'Authorization': `Bearer ${this.authToken}`,
                     ...headers
@@ -48,7 +48,7 @@ export class Client {
     async scanRemoteTfHCL2MutationCall(workingDirectories: string[], effect: Effect): Promise<ScanRemoteTfHcl2Mutation> {
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- workingDirectories: ', workingDirectories)
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- effect: ', effect)
-        const { data } : { data: ScanRemoteTfHcl2Mutation} = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
+        const { data }: { data: ScanRemoteTfHcl2Mutation } = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
             mutation: ScanRemoteTfHCL2MutationSelection,
             variables: {
                 input: {
@@ -59,15 +59,17 @@ export class Client {
         })
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data: ', JSON.stringify(data))
         return data
+
     }
 
     async scanBranchStatusQueryCall(scanRequestId: string): Promise<ScanBranchStatusQuery> {
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- scanRequestId:', scanRequestId)
-        const { data } : { data: ScanBranchStatusQuery} = await this.client.query<ScanBranchStatusQuery, ScanBranchStatusQuery>({
+        const { data }: { data: ScanBranchStatusQuery } = await this.client.query<ScanBranchStatusQuery, ScanBranchStatusQuery>({
             query: ScanBranchStatusQuerySelection,
             variables: {
                 scanRequestId,
-            }
+            },
+            fetchPolicy: 'no-cache'
         })
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data:', JSON.stringify(data))
         return data
@@ -76,7 +78,7 @@ export class Client {
     async scanBranchActionResultsQueryCall(scanRequestId: string, pageSize: number): Promise<ScanBranchActionResultsQuery> {
         consoleDebugger.log('scanBranchActionResultsQueryCall -- scanRequestId:', scanRequestId)
         consoleDebugger.log('scanBranchActionResultsQueryCall -- pageSize:', pageSize)
-        const { data } : { data: ScanBranchActionResultsQuery} = await this.client.query<ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables>({
+        const { data }: { data: ScanBranchActionResultsQuery } = await this.client.query<ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables>({
             query: ScanBranchActionResultsQuerySelection,
             variables: {
                 scanRequestId,
