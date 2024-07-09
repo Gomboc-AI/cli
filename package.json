@@ -1,6 +1,5 @@
 {
   "name": "@gomboc-ai/cli",
-  "version": "0.7.3",
   "description": "",
   "type": "module",
   "main": "bin/index.js",
