@@ -165,7 +165,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // Check if there are any violations or failed scans
   // If an action result has a policy observation with disposition AUTO_REMEDIATED or COULD_NOT_REMEDIATE, it is considered a violation
   // We can only get those observations because we are excluding all other dispositions in the query
-  scanActionResults.children.map((child) => {
+  scanActionResults.children.map((child: any) => {
     cl._log('\n')
     cl._log(`Scan result:\n`)
     if (child.__typename === 'FailedScan') {
@@ -176,7 +176,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       atLeastOneViolationOrError = true
     } else {
       // child is a valid ScanScenario object
-      child.result.observations.forEach((obs) => {
+      child.result.observations.forEach((obs: any) => {
         const location = `${obs.filepath}, line ${obs.lineNumber}`
         cl.__log(`Policy observation at ${hl(location)}:`)
         cl.___log(`Resource: ${hl(obs.resourceName)} (${obs.resourceType})`)
