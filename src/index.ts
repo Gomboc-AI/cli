@@ -53,7 +53,7 @@ const addTargetDirectoriesOption = (argv: Argv) => {
   })
 }
 
-const addAzureTeamFoundationCollectionUriOption = (argv: Argv) => {
+const addAzdoCollectionUriOption = (argv: Argv) => {
   argv.option("azdo-collection-uri", {
     alias: "azuri",
     describe: "The base URI that is in the form https://dev.azure.com/{organizationName}/",
@@ -99,7 +99,7 @@ await yargs(hideBin(process.argv))
       )
       addTargetDirectoriesOption(yargs)
       addWorkingDirectoryOption(yargs)
-      addAzureTeamFoundationCollectionUriOption(yargs)
+      addAzdoCollectionUriOption(yargs)
       addAuthTokenOption(yargs, true)
       yargs.demandCommand(1, 'Specify a verb [remediate]')
     }
