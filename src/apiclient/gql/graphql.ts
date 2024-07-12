@@ -59,6 +59,13 @@ export type Capability = {
   title: Scalars['String']['output'];
 };
 
+export type CreateAzdoProviderInput = {
+  organization: Scalars['String']['input'];
+  personalAccessToken: Scalars['String']['input'];
+};
+
+export type CreateAzdoProviderOutput = GitProvider | GombocError;
+
 export type CreateBitBucketProviderInput = {
   accessToken: Scalars['String']['input'];
   apiVersion: BitBucketApiVersion;
@@ -350,6 +357,7 @@ export type ProjectScansArgs = {
 export type ProjectResponse = NotFoundError | Project | UnauthorizedError;
 
 export enum ProviderName {
+  Azdo = 'AZDO',
   Bitbucket = 'BITBUCKET',
   Github = 'GITHUB',
   Gitlab = 'GITLAB'
@@ -428,6 +436,7 @@ export type ScanBranch = {
 export type ScanBranchResponse = FailedScan | GombocError | ScanBranch;
 
 export type ScanRemoteTfHcl2Input = {
+  azureBaseUri?: InputMaybe<Scalars['String']['input']>;
   effect: Effect;
   workingDirectories: Array<Scalars['String']['input']>;
 };

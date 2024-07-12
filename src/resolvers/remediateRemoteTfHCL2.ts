@@ -12,6 +12,7 @@ export interface Inputs {
   serverUrl: string
   targetDirectories: string[]
   effect: Effect
+  azdoCollectionUri: string
 }
 
 type ClientError = {

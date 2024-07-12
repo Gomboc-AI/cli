@@ -58,7 +58,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       return targetDirectoriesOption as string[] // safe to coerce, TS cannot infer
     }
 
-    if (argv.accessToken){
+    if (argv.accessToken) {
       cl.log(hl('DEPRECATION NOTICE: access-token is deprecated and will be removed in the future'))
     }
 
@@ -67,6 +67,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       serverUrl: settings.SERVER_URL,
       targetDirectories: getTargetDirectories(workingDirectoryOption, targetDirectoriesOption),
       effect: getDesiredEffect(argv._[3] as string),
+      azdoCollectionUri: argv.azdoCollectionUri as string
     }
 
     consoleDebugger.log('CLI inputs', inputs)
