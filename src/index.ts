@@ -56,7 +56,7 @@ const addTargetDirectoriesOption = (argv: Argv) => {
 const addAzdoCollectionUriOption = (argv: Argv) => {
   argv.option("azdo-collection-uri", {
     alias: "azuri",
-    describe: "The base URI that is in the form https://dev.azure.com/{organizationName}/",
+    describe: "The base URI that is in the form https://dev.azure.com/{organizationName}/ and is provided by the System.TeamFoundationCollectionUri variable",
     type: "string",
     demandOption: false
   })
