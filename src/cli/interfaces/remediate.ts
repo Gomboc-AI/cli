@@ -67,7 +67,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       serverUrl: settings.SERVER_URL,
       targetDirectories: getTargetDirectories(workingDirectoryOption, targetDirectoriesOption),
       effect: getDesiredEffect(argv._[3] as string),
-      azdoCollectionUri: argv.azdoCollectionUri as string
+      azdoCollectionUri: argv.azdoCollectionUri == null ? null : argv.azdoCollectionUri as string
     }
 
     consoleDebugger.log('CLI inputs', inputs)

@@ -7,7 +7,7 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { Effect, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Document, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
+import { Effect, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
 
 import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus.js';
 import { ScanBranchActionResultsQuery as ScanBranchActionResultsQuerySelection } from './queries/scanBranchActionResults.js';
@@ -45,7 +45,7 @@ export class Client {
         })
     }
 
-    async scanRemoteTfHCL2MutationCall(workingDirectories: string[], effect: Effect): Promise<ScanRemoteTfHcl2Mutation> {
+    async scanRemoteTfHCL2MutationCall(workingDirectories: string[], effect: Effect, azdoBaseUrl?: string | null): Promise<ScanRemoteTfHcl2Mutation> {
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- workingDirectories: ', workingDirectories)
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- effect: ', effect)
         const { data }: { data: ScanRemoteTfHcl2Mutation } = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
@@ -54,6 +54,7 @@ export class Client {
                 input: {
                     workingDirectories,
                     effect,
+                    azdoBaseUrl
                 }
             }
         })

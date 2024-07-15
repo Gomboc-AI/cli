@@ -436,7 +436,7 @@ export type ScanBranch = {
 export type ScanBranchResponse = FailedScan | GombocError | ScanBranch;
 
 export type ScanRemoteTfHcl2Input = {
-  azureBaseUri?: InputMaybe<Scalars['String']['input']>;
+  azdoBaseUrl?: InputMaybe<Scalars['String']['input']>;
   effect: Effect;
   workingDirectories: Array<Scalars['String']['input']>;
 };

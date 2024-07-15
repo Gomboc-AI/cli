@@ -12,7 +12,7 @@ export interface Inputs {
   serverUrl: string
   targetDirectories: string[]
   effect: Effect
-  azdoCollectionUri: string
+  azdoCollectionUri?: string | null
 }
 
 type ClientError = {
@@ -46,7 +46,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // This will call the mutation to trigger a scan, and handle a server error
   const handleScanRequest = async () => {
     try {
-      return await client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect)
+      return await client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect, inputs.azdoCollectionUri)
     } catch (e: any) {
       return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
