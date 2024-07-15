@@ -12,8 +12,12 @@ export interface Inputs {
   serverUrl: string
   targetDirectories: string[]
   effect: Effect
-  azdoCollectionUri?: string | null
+  azdoOptions?: {
+    azdoBaseUrl: string
+    azdoOrganizationName: string
+  }
 }
+
 
 type ClientError = {
   __typename: 'ClientError'
@@ -22,7 +26,12 @@ type ClientError = {
 }
 
 export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
-  const client = new Client(inputs.serverUrl, inputs.authToken)
+  let azdoOptions;
+  if (inputs.azdoOptions != null) {
+    azdoOptions = inputs.azdoOptions
+  }
+  // The case where one AZDO option is provided and the other is handled in 
+  const client = new Client(inputs.serverUrl, inputs.authToken, azdoOptions)
 
   const cl = new ConsoleLogger()
 
@@ -46,7 +55,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // This will call the mutation to trigger a scan, and handle a server error
   const handleScanRequest = async () => {
     try {
-      return await client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect, inputs.azdoCollectionUri)
+      return await client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect)
     } catch (e: any) {
       return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }

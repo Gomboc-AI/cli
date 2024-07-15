@@ -22,6 +22,19 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
     const workingDirectoryOption = argv.workingDirectory ? argv.workingDirectory as string : null
     const targetDirectoriesOption = argv.targetDirectories ? argv.targetDirectories as string[] : null
 
+    const getAzdoOptions = () => {
+      const organizationName = argv.azdoOrganizationName
+      const collectionUri = argv.azdoCollectionUri
+      if ((organizationName == null || collectionUri == null)) {
+        return undefined
+      } else {
+        return {
+          azdoOrganizationName: organizationName as string,
+          azdoBaseUrl: collectionUri as string
+        }
+      }
+    }
+
     const getDesiredEffect = (effect: string): Effect => {
       switch (effect as EffectCommand) {
         case EffectCommand.SUBMIT_FOR_REVIEW:
@@ -67,7 +80,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       serverUrl: settings.SERVER_URL,
       targetDirectories: getTargetDirectories(workingDirectoryOption, targetDirectoriesOption),
       effect: getDesiredEffect(argv._[3] as string),
-      azdoCollectionUri: argv.azdoCollectionUri == null ? null : argv.azdoCollectionUri as string
+      azdoOptions: getAzdoOptions()
     }
 
     consoleDebugger.log('CLI inputs', inputs)
