@@ -30,14 +30,16 @@ export class Client {
         this.authToken = authToken
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
         const authLink = setContext((_: any, { headers }: any) => {
-            if (azdoOptions != null) {
-                headers['X-AZDO-ORGANIZATION-NAME'] = azdoOptions.azdoOrganizationName
-                headers['X-AZDO-BASE-URL'] = azdoOptions.azdoBaseUrl
-            }
             headers = {
                 'X-GOMBOC-CLI-VERSION': CLI_VERSION,
                 'X-GOMBOC-RUNNER-PATH': process.env._,
                 ...headers
+            }
+            if (azdoOptions != null) {
+                Object.assign(headers, {
+                    'X-AZDO-ORGANIZATION-NAME': azdoOptions.azdoOrganizationName,
+                    'X-AZDO-BASE-URL': azdoOptions.azdoBaseUrl
+                })
             }
             if (this.authToken != null) {
                 headers = {
@@ -57,17 +59,22 @@ export class Client {
     async scanRemoteTfHCL2MutationCall(workingDirectories: string[], effect: Effect): Promise<ScanRemoteTfHcl2Mutation> {
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- workingDirectories: ', workingDirectories)
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- effect: ', effect)
-        const { data }: { data: ScanRemoteTfHcl2Mutation } = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
-            mutation: ScanRemoteTfHCL2MutationSelection,
-            variables: {
-                input: {
-                    workingDirectories,
-                    effect
+        try {
+            const { data }: { data: ScanRemoteTfHcl2Mutation } = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
+                mutation: ScanRemoteTfHCL2MutationSelection,
+                variables: {
+                    input: {
+                        workingDirectories,
+                        effect
+                    }
                 }
-            }
-        })
-        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data: ', JSON.stringify(data))
-        return data
+            })
+            consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data: ', JSON.stringify(data))
+            return data
+        } catch (e) {
+            console.log(e)
+            throw e
+        }
 
     }
 
