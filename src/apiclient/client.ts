@@ -63,22 +63,17 @@ export class Client {
     async scanRemoteTfHCL2MutationCall(workingDirectories: string[], effect: Effect): Promise<ScanRemoteTfHcl2Mutation> {
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- workingDirectories: ', workingDirectories)
         consoleDebugger.log('scanRemoteTfHCL2MutationCall -- effect: ', effect)
-        try {
-            const { data }: { data: ScanRemoteTfHcl2Mutation } = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
-                mutation: ScanRemoteTfHCL2MutationSelection,
-                variables: {
-                    input: {
-                        workingDirectories,
-                        effect
-                    }
+        const { data }: { data: ScanRemoteTfHcl2Mutation } = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
+            mutation: ScanRemoteTfHCL2MutationSelection,
+            variables: {
+                input: {
+                    workingDirectories,
+                    effect
                 }
-            })
-            consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data: ', JSON.stringify(data))
-            return data
-        } catch (e) {
-            console.log(e)
-            throw e
-        }
+            }
+        })
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data: ', JSON.stringify(data))
+        return data
 
     }
 
