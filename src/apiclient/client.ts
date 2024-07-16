@@ -30,6 +30,10 @@ export class Client {
         this.authToken = authToken
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
         const authLink = setContext((_: any, { headers }: any) => {
+            if (azdoOptions != null) {
+                headers['X-AZDO-ORGANIZATION-NAME'] = azdoOptions.azdoOrganizationName
+                headers['X-AZDO-BASE-URL'] = azdoOptions.azdoBaseUrl
+            }
             headers = {
                 'X-GOMBOC-CLI-VERSION': CLI_VERSION,
                 'X-GOMBOC-RUNNER-PATH': process.env._,
