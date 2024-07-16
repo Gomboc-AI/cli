@@ -2,7 +2,7 @@ FROM node:18.17.0
 WORKDIR /app
 COPY . .
 
-ARG packageVersion=0.7.5
+ARG packageVersion=0.7.6
 ENV tarballFileName="gomboc-ai-cli-$packageVersion.tgz"
 ENV tarFileName="gomboc-ai-cli-$packageVersion.tar"
 
