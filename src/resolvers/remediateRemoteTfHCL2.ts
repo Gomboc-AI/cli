@@ -26,12 +26,8 @@ type ClientError = {
 }
 
 export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
-  let azdoOptions;
-  if (inputs.azdoOptions != null) {
-    azdoOptions = inputs.azdoOptions
-  }
   // The case where one AZDO option is provided and the other is handled in 
-  const client = new Client(inputs.serverUrl, inputs.authToken, azdoOptions)
+  const client = new Client(inputs.serverUrl, inputs.authToken, inputs.azdoOptions)
 
   const cl = new ConsoleLogger()
 

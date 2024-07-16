@@ -39,6 +39,12 @@ export class Client {
                 'X-GOMBOC-RUNNER-PATH': process.env._,
                 ...headers
             }
+            if (azdoOptions != null) {
+                Object.assign(headers, {
+                    'X-AZDO-ORGANIZATION-NAME': azdoOptions.azdoOrganizationName,
+                    'X-AZDO-BASE-URL': azdoOptions.azdoBaseUrl
+                })
+            }
             if (this.authToken != null) {
                 headers = {
                     'Authorization': `Bearer ${this.authToken}`,

@@ -26,7 +26,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       const organizationName = argv.azdoOrganizationName
       const collectionUri = argv.azdoCollectionUri
       if ((organizationName == null || collectionUri == null)) {
-        return undefined
+        return
       } else {
         return {
           azdoOrganizationName: organizationName as string,
