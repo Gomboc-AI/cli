@@ -7,7 +7,7 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { Effect, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Document, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
+import { Effect, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
 
 import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus.js';
 import { ScanBranchActionResultsQuery as ScanBranchActionResultsQuerySelection } from './queries/scanBranchActionResults.js';
@@ -15,16 +15,25 @@ import { ScanRemoteTfHCL2Mutation as ScanRemoteTfHCL2MutationSelection } from '.
 
 import { consoleDebugger } from '../utils/ConsoleDebugger.js';
 
+type AzdoOptions = {
+    azdoBaseUrl: string,
+    azdoOrganizationName: string
+}
+
 export class Client {
     url: string
     authToken?: string
     client: ApolloClient
 
-    constructor(url: string, authToken?: string) {
+    constructor(url: string, authToken?: string, azdoOptions?: AzdoOptions) {
         this.url = url
         this.authToken = authToken
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
         const authLink = setContext((_: any, { headers }: any) => {
+            if (azdoOptions != null) {
+                headers['X-AZDO-ORGANIZATION-NAME'] = azdoOptions.azdoOrganizationName
+                headers['X-AZDO-BASE-URL'] = azdoOptions.azdoBaseUrl
+            }
             headers = {
                 'X-GOMBOC-CLI-VERSION': CLI_VERSION,
                 'X-GOMBOC-RUNNER-PATH': process.env._,
@@ -53,7 +62,7 @@ export class Client {
             variables: {
                 input: {
                     workingDirectories,
-                    effect,
+                    effect
                 }
             }
         })

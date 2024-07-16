@@ -12,8 +12,12 @@ export interface Inputs {
   serverUrl: string
   targetDirectories: string[]
   effect: Effect
-  azdoCollectionUri: string
+  azdoOptions?: {
+    azdoBaseUrl: string
+    azdoOrganizationName: string
+  }
 }
+
 
 type ClientError = {
   __typename: 'ClientError'
@@ -22,7 +26,12 @@ type ClientError = {
 }
 
 export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
-  const client = new Client(inputs.serverUrl, inputs.authToken)
+  let azdoOptions;
+  if (inputs.azdoOptions != null) {
+    azdoOptions = inputs.azdoOptions
+  }
+  // The case where one AZDO option is provided and the other is handled in 
+  const client = new Client(inputs.serverUrl, inputs.authToken, azdoOptions)
 
   const cl = new ConsoleLogger()
 

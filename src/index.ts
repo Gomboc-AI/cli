@@ -56,7 +56,16 @@ const addTargetDirectoriesOption = (argv: Argv) => {
 const addAzdoCollectionUriOption = (argv: Argv) => {
   argv.option("azdo-collection-uri", {
     alias: "azuri",
-    describe: "The base URI that is in the form https://dev.azure.com/{organizationName}/",
+    describe: "The base URI that is in the form https://dev.azure.com/{organizationName}/ and is provided by the System.TeamFoundationCollectionUri variable",
+    type: "string",
+    demandOption: false
+  })
+}
+
+const addAzdoOrganizationNameOption = (argv: Argv) => {
+  argv.option("azdo-organization-name", {
+    alias: "azname",
+    describe: "The Azdo organization name",
     type: "string",
     demandOption: false
   })
@@ -100,6 +109,7 @@ await yargs(hideBin(process.argv))
       addTargetDirectoriesOption(yargs)
       addWorkingDirectoryOption(yargs)
       addAzdoCollectionUriOption(yargs)
+      addAzdoOrganizationNameOption(yargs)
       addAuthTokenOption(yargs, true)
       yargs.demandCommand(1, 'Specify a verb [remediate]')
     }
