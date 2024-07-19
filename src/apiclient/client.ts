@@ -7,18 +7,25 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { consoleDebugger } from '../utils/ConsoleDebugger.js';
-import { Effect, LighthouseQuery, MutationRemediateRemoteTfHcl2Args, RemediateRemoteTfHcl2Mutation } from './gql/graphql.js';
+import { Effect, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables } from './gql/graphql.js';
 
-import { LighthouseQuery as LighthouseQuerySelection } from './queries/lighthouse.js';
-import { RemediateRemoteTfHCL2Mutation as RemediateRemoteTfHCL2MutationSelection } from './mutations/remediateRemoteTfHCL2.js';
+import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus.js';
+import { ScanBranchActionResultsQuery as ScanBranchActionResultsQuerySelection } from './queries/scanBranchActionResults.js';
+import { ScanRemoteTfHCL2Mutation as ScanRemoteTfHCL2MutationSelection } from './mutations/scanRemoteTfHCL2.js';
+
+import { consoleDebugger } from '../utils/ConsoleDebugger.js';
+
+type AzdoOptions = {
+    azdoBaseUrl: string,
+    azdoOrganizationName: string
+}
 
 export class Client {
     url: string
     authToken?: string
     client: ApolloClient
 
-    constructor(url: string, authToken?: string) {
+    constructor(url: string, authToken?: string, azdoOptions?: AzdoOptions) {
         this.url = url
         this.authToken = authToken
         const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
@@ -28,7 +35,13 @@ export class Client {
                 'X-GOMBOC-RUNNER-PATH': process.env._,
                 ...headers
             }
-            if(this.authToken != null) {
+            if (azdoOptions != null) {
+                Object.assign(headers, {
+                    'X-AZDO-ORGANIZATION-NAME': azdoOptions.azdoOrganizationName,
+                    'X-AZDO-BASE-URL': azdoOptions.azdoBaseUrl
+                })
+            }
+            if (this.authToken != null) {
                 headers = {
                     'Authorization': `Bearer ${this.authToken}`,
                     ...headers
@@ -43,25 +56,47 @@ export class Client {
         })
     }
 
-    async lighthouseQueryCall(): Promise<LighthouseQuery> {
-        const { data }: { data: LighthouseQuery } = await this.client.query<LighthouseQuery>({
-            query: LighthouseQuerySelection
+    async scanRemoteTfHCL2MutationCall(workingDirectories: string[], effect: Effect): Promise<ScanRemoteTfHcl2Mutation> {
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- workingDirectories: ', workingDirectories)
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- effect: ', effect)
+        const { data }: { data: ScanRemoteTfHcl2Mutation } = await this.client.mutate<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>({
+            mutation: ScanRemoteTfHCL2MutationSelection,
+            variables: {
+                input: {
+                    workingDirectories,
+                    effect
+                }
+            }
         })
-        consoleDebugger.log('lighthouseQueryCall', data)
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data: ', JSON.stringify(data))
+        return data
+
+    }
+
+    async scanBranchStatusQueryCall(scanRequestId: string): Promise<ScanBranchStatusQuery> {
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- scanRequestId:', scanRequestId)
+        const { data }: { data: ScanBranchStatusQuery } = await this.client.query<ScanBranchStatusQuery, ScanBranchStatusQuery>({
+            query: ScanBranchStatusQuerySelection,
+            variables: {
+                scanRequestId,
+            },
+            fetchPolicy: 'no-cache'
+        })
+        consoleDebugger.log('scanRemoteTfHCL2MutationCall -- data:', JSON.stringify(data))
         return data
     }
 
-    async remediateRemoteTfHCL2MutationCall(workingDirectory: string, effect: Effect, accessToken: string ): Promise<RemediateRemoteTfHcl2Mutation> {
-        const variables: MutationRemediateRemoteTfHcl2Args = {
-            workingDirectory,
-            effect,
-            accessToken
-        }
-        const { data } : { data: RemediateRemoteTfHcl2Mutation } = await this.client.mutate<RemediateRemoteTfHcl2Mutation, MutationRemediateRemoteTfHcl2Args>({
-            mutation: RemediateRemoteTfHCL2MutationSelection,
-            variables
+    async scanBranchActionResultsQueryCall(scanRequestId: string, pageSize: number): Promise<ScanBranchActionResultsQuery> {
+        consoleDebugger.log('scanBranchActionResultsQueryCall -- scanRequestId:', scanRequestId)
+        consoleDebugger.log('scanBranchActionResultsQueryCall -- pageSize:', pageSize)
+        const { data }: { data: ScanBranchActionResultsQuery } = await this.client.query<ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables>({
+            query: ScanBranchActionResultsQuerySelection,
+            variables: {
+                scanRequestId,
+                pageSize,
+            }
         })
-        consoleDebugger.log('remediateRemoteTfHCL2MutationCall', data)
+        consoleDebugger.log('scanBranchActionResultsQueryCall -- data:', JSON.stringify(data))
         return data
     }
 }

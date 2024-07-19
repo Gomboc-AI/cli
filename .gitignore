@@ -5,9 +5,9 @@ bin/
 **/.terraform*
 **/*_FUTURE*
 
-# generated types
-# graphql-schema.json
-/src/apiclient/gql/
+*.tar
+*.tgz
+
 
 # Logs
 logs
