@@ -5,7 +5,7 @@
   "type": "module",
   "main": "bin/index.js",
   "engines": {
-    "node": "v18.17.0",
+    "node": "~v18",
     "npm": ">=8.1.0"
   },
   "bin": {
