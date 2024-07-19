@@ -125,7 +125,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   // Initial call to check the status of the scan
   let scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
-  if (scanStatusPollResult.__typename === 'ClientError') {
+  if (scanStatusPollResult.__typename !== 'ScanBranch') {
     cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
     return scanStatusPollResult.code
   }
