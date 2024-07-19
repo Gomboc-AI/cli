@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/nodejs18-debian12
+FROM node:18 as build-env
 WORKDIR /app
 COPY . .
 
@@ -11,3 +11,7 @@ RUN npm run build
 RUN npm pack
 RUN gzip -d $tarballFileName
 RUN npm install -g $tarFileName
+
+FROM gcr.io/distroless/nodejs18-debian12
+
+COPY --from=build-env /app /app
