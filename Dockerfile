@@ -1,4 +1,4 @@
-FROM node:18.17.0
+FROM gcr.io/distroless/nodejs18-debian12
 WORKDIR /app
 COPY . .
 
