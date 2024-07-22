@@ -41,5 +41,5 @@ jobs:
       - name: run structure tests
         uses: plexsystems/container-structure-test-action@v0.1.0
         with:
-          image: gombocai/cli:latestß
+          image: gombocai/cli:latest
           config: test/container-structure-test.yaml
