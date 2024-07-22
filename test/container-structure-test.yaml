@@ -1,0 +1,12 @@
+fileExistenceTests:
+- name: 'App directory'
+  path: '/app'
+  shouldExist: true
+  permissions: '-rw-r--r--'
+  uid: 1000
+  gid: 1000
+  isExecutableBy: 'group'
+
+metadataTest:
+  entrypoint: ['node', '/app/gomboc']
+  cmd: ['-v']
