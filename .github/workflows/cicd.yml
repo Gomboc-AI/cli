@@ -1,5 +1,5 @@
 # Build container and perform health check
-name: Skaffold Pipeline
+name: Build and push
 
 permissions:
   contents: read
