@@ -19,8 +19,7 @@ RUN npm ci --only=production
 FROM gcr.io/distroless/nodejs18-debian12
 WORKDIR /app
 
-COPY package*.json .
-COPY --from=build /app/bin ./bin
+COPY --from=build /app/bin /app/package*.json ./bin
 COPY --from=prod-modules /app/node_modules ./bin/node_modules
 
 CMD ["/app/bin/index.js"]
