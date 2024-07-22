@@ -14,7 +14,11 @@ on:
   push:
     branches:
       - main
-      
+
+env:
+  TEST_TAG: 'cli:test'
+  LATEST_TAG: 'gombocai/cli:latest'
+
 jobs:
   build:
     name: Build and Push Image
@@ -35,24 +39,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and load
         uses: docker/build-push-action@v6
         with:
-          push: ${{ github.event_name == 'push' }}
-          tags: gombocai/cli:latest
+          load: true
+          tags: ${{ env.TEST_TAG }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          image-ref: 'gombocai/cli:latest'
+          image-ref: ${{ env.TEST_TAG }}
           format: 'table'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-          
+
       - name: run structure tests
         uses: plexsystems/container-structure-test-action@v0.1.0
         with:
-          image: gombocai/cli:latest
+          image: ${{ env.TEST_TAG }}
           config: test/container-structure-test.yaml
           
+      - name: Push
+        uses: docker/build-push-action@v6
+        with:
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ env.LATEST_TAG }}
