@@ -3,13 +3,14 @@ FROM node:18.17.0-slim as build
 WORKDIR /app
 COPY . .
 
-RUN npm install
-RUN npm run build 
+# Create the necessary bin file for the application
+RUN npm install \
+    && npm run build 
 
 # Prod modules
 FROM node:18.17.0-slim as prod-modules
 WORKDIR /app
-COPY --from=build /app ./
+COPY --from=build /app .
 RUN npm ci --omit=dev
 
 RUN apt-get -y update \

@@ -12,3 +12,9 @@ fileExistenceTests:
 
 metadataTest:
   entrypoint: ['/nodejs/bin/node']
+
+commandTests:
+  - name: "Smoke Test"
+    command: "gomboc --version"
+    exitCode: 0
+    expectedOutput: ["*"]
