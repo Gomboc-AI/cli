@@ -4,3 +4,11 @@ scripts/
 tsconfig.json
 .github/
 .eslintrc.js
+.eslintrc.cjs
+.dockerignore
+Dockerfile
+README.md
+test
+codegen.ts
+tsconfig.json
+src/apiclient
