@@ -11,5 +11,4 @@ fileExistenceTests:
     isExecutableBy: 'group'
 
 metadataTest:
-  entrypoint: ['node', '/app/gomboc']
-  cmd: ['-v']
+  entrypoint: ['/nodejs/bin/node']
