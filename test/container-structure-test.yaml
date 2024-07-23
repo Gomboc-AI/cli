@@ -15,6 +15,6 @@ metadataTest:
 
 commandTests:
   - name: "Smoke Test"
-    command: "gomboc --version"
+    command: "/nodejs/bin/node gomboc --version"
     exitCode: 0
     expectedOutput: ["*"]
