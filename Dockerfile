@@ -15,20 +15,21 @@ RUN npm ci --omit=dev
 
 RUN apt-get -y update \
     && apt-get -y install git \
+    && apt install -y grep mlocate \
     && npm link 
 
-# Production
+# # Production
 FROM gcr.io/distroless/nodejs18-debian12
-WORKDIR /app
 
 # Application copy
 COPY --from=prod-modules /usr/bin /usr/bin
+COPY --from=prod-modules /usr/lib /usr/lib
 COPY --from=prod-modules /usr/include /usr/include
 COPY --from=prod-modules /usr/local/bin /usr/local/bin
 COPY --from=prod-modules /usr/local/lib/node_modules/@gomboc-ai /usr/local/lib/node_modules/@gomboc-ai
 COPY --from=prod-modules /usr/share /usr/share
 
-COPY --from=prod-modules /app ./
-COPY --from=prod-modules /bin/sh /bin/git /bin/echo /bin/
+COPY --from=prod-modules /app /app
+COPY --from=prod-modules /bin/sh /bin/echo /bin/
 
 ENTRYPOINT ["/nodejs/bin/node"]
