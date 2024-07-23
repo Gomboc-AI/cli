@@ -7,21 +7,10 @@ Please refer to the internal Gomboc Wiki if you need to work on this repo
 
 ## Development instructions:
 
-Clone `cli` repo
-
-`nvm use`
-
-Manually update the package version in `package.json`
-
-`npm run bootstrap`
-
-If you need to pull the schema, have ScanAPI running in port 4000 and run `npm run generate`
-
-Don't forget to `npm run build` after you've made changes!
-
-`npm pack` to generate a compressed tarball (`.tgz`)
-
-Decompress it with `gzip -d <tarball>` then it's ready to be installed
+1. Open in a dev-container.
+2. Run `npm *` is needed
+3. Run `gomboc`
+4. Adjust `.env` as needed and restart the container
 
 ### Modus operandi
 
