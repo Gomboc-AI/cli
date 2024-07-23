@@ -8,6 +8,9 @@ bin/
 *.tar
 *.tgz
 
+# ignore the env file
+.env
+
 
 # Logs
 logs
