@@ -18,7 +18,7 @@ RUN apt-get -y update \
     && apt install -y grep mlocate \
     && npm link 
 
-# # Production
+# Production
 FROM gcr.io/distroless/nodejs18-debian12
 
 # Application copy
