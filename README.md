@@ -8,7 +8,7 @@ Please refer to the internal Gomboc Wiki if you need to work on this repo
 ## Development instructions:
 
 1. Open in a dev-container.
-2. Run `npm *` is needed
+2. Run `npm install` is needed
 3. Run `gomboc`
 4. Adjust `.env` as needed and restart the container
 
