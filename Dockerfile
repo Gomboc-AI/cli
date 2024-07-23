@@ -31,6 +31,6 @@ COPY --from=prod-modules /usr/share /usr/share
 
 COPY --from=prod-modules /app /app
 COPY --from=prod-modules /bin/sh /bin/echo /bin/
-COPY --from=prod-modules /bin/sh /bin/echo /bin/grep /bin/git /app/
+COPY --from=prod-modules /bin/sh /bin/echo /bin/grep /bin/git /
 
 ENTRYPOINT ["/nodejs/bin/node"]
