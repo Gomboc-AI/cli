@@ -10,7 +10,7 @@ RUN npm install \
 # Prod modules
 FROM node:18.17.0-slim as prod-modules
 WORKDIR /app
-COPY --from=build /app .
+COPY --from=build /app ./
 RUN npm ci --omit=dev
 
 RUN apt-get -y update \
