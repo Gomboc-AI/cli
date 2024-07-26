@@ -19,8 +19,6 @@ RUN apt-get update \
         bash \
         sudo \
         passwd \
-    # && which sudo \
-    # && exit 1 \
     && npm link
 
 # Production
