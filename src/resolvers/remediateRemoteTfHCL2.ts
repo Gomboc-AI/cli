@@ -65,7 +65,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
         return { code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})` } as ClientError
       }
       if (poll.scanBranch.__typename === 'GombocError') {
-        return { code: ExitCode.SERVER_ERROR, message: `${poll.scanBranch.message} (Code: ${poll.scanBranch.code ?? 'Unknown'})` } as ClientError
+        return
       }
       return poll.scanBranch
     } catch (e: any) {
@@ -120,20 +120,27 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   const POLLING_INTERVAL = 2 * 1000
   const TIMEOUT_LIMIT = 5 * 60 * 1000
 
-  // Initial sleep to give the server time to digest the request
-  await sleep(INITIAL_INTERVAL)
-
   // Initial call to check the status of the scan
-  let scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
-  if (scanStatusPollResult.__typename !== 'ScanBranch') {
-    cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
-    return scanStatusPollResult.code
-  }
-
+  let scanStatusPollResult
   let attempts = 1
 
+  cl.log('Retrieving scan status...')
   // While there are still children scans being processed
-  while (scanStatusPollResult.childrenExpected != scanStatusPollResult.childrenCompleted + scanStatusPollResult.childrenError) {
+  do {
+    await sleep(POLLING_INTERVAL)
+    scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
+
+    if (scanStatusPollResult != null) {
+      if (
+        scanStatusPollResult?.__typename === 'ScanBranch' &&
+        (scanStatusPollResult.childrenExpected == scanStatusPollResult.childrenCompleted + scanStatusPollResult.childrenError)) {
+        break;
+      } else if (scanStatusPollResult?.__typename === 'ClientError') {
+        cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
+        return scanStatusPollResult.code
+      }
+    }
+
     // Server is still working on the children scan
     const totalAwaitedTime = INITIAL_INTERVAL + attempts * POLLING_INTERVAL
     if (totalAwaitedTime > TIMEOUT_LIMIT) {
@@ -142,15 +149,8 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       return ExitCode.SERVER_TIMEOUT_ERROR
     }
 
-    await sleep(POLLING_INTERVAL)
     attempts++
-
-    scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
-    if (scanStatusPollResult.__typename === 'ClientError') {
-      cl.err(scanStatusPollResult.code, scanStatusPollResult.message)
-      return scanStatusPollResult.code
-    }
-  }
+  } while (true)
 
   // Server has finished the scan, now we can request the results
   const scanActionResults = await handleScanActionResultsRequest(scanRequestId)
