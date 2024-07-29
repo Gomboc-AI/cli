@@ -120,9 +120,6 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   const POLLING_INTERVAL = 2 * 1000
   const TIMEOUT_LIMIT = 5 * 60 * 1000
 
-  // Initial sleep to give the server time to digest the request
-  await sleep(INITIAL_INTERVAL)
-
   // Initial call to check the status of the scan
   let scanStatusPollResult
   let attempts = 1
@@ -130,6 +127,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   cl.log('Retrieving scan status...')
   // While there are still children scans being processed
   do {
+    await sleep(POLLING_INTERVAL)
     scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
 
     if (scanStatusPollResult != null) {
@@ -151,7 +149,6 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       return ExitCode.SERVER_TIMEOUT_ERROR
     }
 
-    await sleep(POLLING_INTERVAL)
     attempts++
   } while (true)
 
