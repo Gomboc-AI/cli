@@ -16,7 +16,8 @@ on:
       - main
 
 env:
-  TEST_TAG: 'cli:test'
+  # TODO: Change this based on the PR-number or event type 
+  TEST_TAG: 'gombocai/cli:dev'
   LATEST_TAG: 'gombocai/cli:latest'
 
 jobs:
@@ -59,9 +60,25 @@ jobs:
         with:
           image: ${{ env.TEST_TAG }}
           config: test/container-structure-test.yaml
-          
+
+      - name: Push-dev
+        uses: docker/build-push-action@v6
+        with:
+          push: ${{ github.event_name != 'push' }}
+          tags: ${{ env.TEST_TAG }}
+        
       - name: Push
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ env.LATEST_TAG }}
+
+
+
+
+
+
+
+
+
+          
