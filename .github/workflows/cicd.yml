@@ -64,6 +64,7 @@ jobs:
       - name: Push-dev
         uses: docker/build-push-action@v6
         with:
+          platforms: "linux/amd64,linux/arm64"
           push: ${{ github.event_name != 'push' }}
           tags: ${{ env.TEST_TAG }}
         
