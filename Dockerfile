@@ -21,24 +21,30 @@ RUN apt-get update \
         passwd \
     && npm link
 
+RUN rm -r /usr/local/lib/node_modules/corepack
+RUN rm -r /usr/local/lib/node_modules/npm
+
 # Production
 FROM gcr.io/distroless/nodejs18-debian12
 
 LABEL "com.azure.dev.pipelines.agent.handler.node.path"="/nodejs/bin/node"
 # Application copy
-COPY --from=prod-modules /usr/bin /usr/bin
-COPY --from=prod-modules /usr/sbin /usr/sbin
-COPY --from=prod-modules /usr/include /usr/include
-COPY --from=prod-modules /usr/lib /usr/lib
-COPY --from=prod-modules /usr/libexec /usr/libexec
-COPY --from=prod-modules /etc /etc
-COPY --from=prod-modules /usr/include /usr/include
-COPY --from=prod-modules /usr/local/bin /usr/local/bin
-COPY --from=prod-modules /usr/local/lib/node_modules/@gomboc-ai /usr/local/lib/node_modules/@gomboc-ai
-COPY --from=prod-modules /usr/share /usr/share
 
-COPY --from=prod-modules /app /app
+COPY --from=prod-modules /app /app 
+COPY --from=prod-modules /boot /boot
+COPY --from=prod-modules /dev /dev
+COPY --from=prod-modules /etc /etc 
+COPY --from=prod-modules /home /home
+COPY --from=prod-modules /lib /lib
+COPY --from=prod-modules /opt /opt
+COPY --from=prod-modules /proc /proc
+COPY --from=prod-modules /root /root 
+COPY --from=prod-modules /run /run
 COPY --from=prod-modules /bin /bin
 COPY --from=prod-modules /sbin /sbin
+COPY --from=prod-modules /tmp /tmp 
+COPY --from=prod-modules /sys /sys
+COPY --from=prod-modules /usr /usr
+
 
 ENTRYPOINT ["/nodejs/bin/node"]
