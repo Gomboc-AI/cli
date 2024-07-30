@@ -48,9 +48,4 @@ COPY --from=prod-modules /usr /usr
 
 USER root
 
-RUN groupadd -g 1234 customgroup && \
-    useradd -m -u 1234 -g customgroup user
-
-USER user
-
 ENTRYPOINT []
