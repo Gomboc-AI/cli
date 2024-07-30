@@ -1,1 +1,8 @@
 node_modules
+**/corepack
+**/npm
+*.tar
+.dockerignore
+Dockerfile
+codgen.ts
+.devcontainer
