@@ -25,7 +25,7 @@ RUN rm -r /usr/local/lib/node_modules/corepack
 RUN rm -r /usr/local/lib/node_modules/npm
 
 # Production
-FROM gcr.io/distroless/nodejs18-debian12
+FROM gcr.io/distroless/nodejs18-debian12:nonroot
 
 LABEL "com.azure.dev.pipelines.agent.handler.node.path"="/nodejs/bin/node"
 # Application copy
@@ -46,5 +46,9 @@ COPY --from=prod-modules /tmp /tmp
 COPY --from=prod-modules /sys /sys
 COPY --from=prod-modules /usr /usr
 
+RUN groupadd -g 1234 customgroup && \
+    useradd -m -u 1234 -g customgroup user
 
-ENTRYPOINT ["/nodejs/bin/node"]
+USER user
+
+ENTRYPOINT []
