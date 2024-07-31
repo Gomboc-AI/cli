@@ -11,7 +11,7 @@ fileExistenceTests:
     isExecutableBy: 'group'
 
 metadataTest:
-  entrypoint: ['/nodejs/bin/node']
+  entrypoint: []
 
 commandTests:
   - name: "Smoke Test"
