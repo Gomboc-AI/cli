@@ -26,7 +26,7 @@ type ClientError = {
 }
 
 export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
-  // The case where one AZDO option is provided and the other is handled in 
+  // The case where one AZDO option is provided and the other is handled in
   const client = new Client(inputs.serverUrl, inputs.authToken, inputs.azdoOptions)
 
   const cl = new ConsoleLogger()
@@ -110,7 +110,8 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     return ExitCode.SUCCESS
   }
 
-  cl._log(`Scan request accepted by server: ${scanRequestId} \n`)
+  const scanRequestUrl = `${settings.CLIENT_URL}/scan-requests/${scanRequestId}`
+  cl._log(`Scan request accepted by server: ${scanRequestUrl} \n`)
 
   // Temporal naive implementation of a polling mechanism. Will be replaced by a GraphQL subscription
   // In the grand scheme of CI/CD pipeline times, this is not terrible
