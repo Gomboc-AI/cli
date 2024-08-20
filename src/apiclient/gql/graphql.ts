@@ -43,15 +43,18 @@ export type AdoptFrameworkControlsIntoOrganizationInput = {
   resetPolicy: Scalars['Boolean']['input'];
 };
 
-export type AlreadyExistsError = {
-  __typename?: 'AlreadyExistsError';
-  /** @deprecated Use GombocError instead */
-  message: Scalars['String']['output'];
-};
-
 export enum BitBucketApiVersion {
   V2_0 = 'V2_0'
 }
+
+export type BulkLinkScanRemoteInput = {
+  iacTool: InfrastructureTool;
+  linkIds: Array<Scalars['ID']['input']>;
+};
+
+export type BulkLinkScanRemoteTfHcl2Input = {
+  linkIds: Array<Scalars['ID']['input']>;
+};
 
 export type Capability = {
   __typename?: 'Capability';
@@ -74,7 +77,7 @@ export type CreateBitBucketProviderInput = {
 
 export type CreateBitBucketProviderOutput = GitProvider | GombocError;
 
-export type CreateGitHubProviderResponse = AlreadyExistsError | GitProvider | InvalidArgumentError | UnauthorizedError;
+export type CreateGitHubProviderResponse = GitProvider | GombocError;
 
 export type CreateGitLabProviderInput = {
   apiUrl: Scalars['String']['input'];
@@ -84,9 +87,16 @@ export type CreateGitLabProviderInput = {
 
 export type CreateGitLabProviderOutput = GitProvider | GombocError;
 
-export type CreatePolicyStatementResponse = InvalidArgumentError | NotFoundError | PolicyStatement | UnauthorizedError;
+export type CreatePolicyStatementResponse = GombocError | PolicyStatement;
 
-export type CreateProjectResponse = AlreadyExistsError | InvalidArgumentError | NotFoundError | Project | UnauthorizedError;
+export type CreateProjectResponse = GombocError | Project;
+
+export type CreateTicketInput = {
+  actionResultId: Scalars['ID']['input'];
+  externalUrl: Scalars['String']['input'];
+};
+
+export type CreateTicketOutput = GombocError | Ticket;
 
 export type CustomerApi_PolicyStatementPayloadMustImplementType = {
   __typename?: 'CustomerAPI_PolicyStatementPayloadMustImplementType';
@@ -101,7 +111,9 @@ export type DeletePolicyStatementsInput = {
   policyStatementIds: Array<Scalars['ID']['input']>;
 };
 
-export type DeletionResponse = NotFoundError | Success | UnauthorizedError;
+export type DeleteTicketInput = {
+  ticketId: Scalars['ID']['input'];
+};
 
 export enum Disposition {
   AlreadyCompliant = 'ALREADY_COMPLIANT',
@@ -146,7 +158,7 @@ export type GitProviderRepositoriesArgs = {
   selection?: InputMaybe<RepositorySelection>;
 };
 
-export type GitProviderResponse = GitProvider | NotFoundError | UnauthorizedError;
+export type GitProviderResponse = GitProvider | GombocError;
 
 export type GombocError = {
   __typename?: 'GombocError';
@@ -162,18 +174,17 @@ export enum GombocErrorCode {
   Unauthorized = 'UNAUTHORIZED'
 }
 
-export type ImportPolicyStatementsResponse = ImportedPolicyStatementSuccess | InvalidArgumentError | NotFoundError | UnauthorizedError;
+export type ImportPolicyStatementsResponse = GombocError | ImportedPolicyStatementSuccess;
 
 export type ImportedPolicyStatementSuccess = {
   __typename?: 'ImportedPolicyStatementSuccess';
   statements: Array<PolicyStatement>;
 };
 
-export type InvalidArgumentError = {
-  __typename?: 'InvalidArgumentError';
-  /** @deprecated Use GombocError instead */
-  message: Scalars['String']['output'];
-};
+export enum InfrastructureTool {
+  Cloudformation = 'CLOUDFORMATION',
+  Terraform = 'TERRAFORM'
+}
 
 export type Lighthouse = {
   __typename?: 'Lighthouse';
@@ -187,22 +198,15 @@ export type Link = {
   createdAt: Scalars['String']['output'];
   createdBy: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  lastActionResult?: Maybe<ActionResult>;
-  lastScan?: Maybe<ScanRequest>;
+  lastScanRequest?: Maybe<ScanRequest>;
   project: Project;
   providerName: ProviderName;
   repository: LinkedRepository;
-  scans: Array<ScanRequest>;
+  slug: Scalars['ID']['output'];
 };
 
 
 export type LinkActionResultsArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type LinkScansArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -219,7 +223,26 @@ export type LinkRepositoriesProviderInput = {
 
 export type LinkRepositoryResponse = GombocError | Link;
 
-export type LinkResponse = Link | NotFoundError | UnauthorizedError;
+export type LinkResponse = GombocError | Link;
+
+export type LinkScanRemoteInput = {
+  branchName?: InputMaybe<Scalars['String']['input']>;
+  effect: Effect;
+  iacTool: InfrastructureTool;
+  linkId: Scalars['ID']['input'];
+  pullRequestTitle?: InputMaybe<Scalars['String']['input']>;
+  recurse?: InputMaybe<Scalars['Boolean']['input']>;
+  workingDirectory?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type LinkScanRemoteTfHcl2Input = {
+  branchName?: InputMaybe<Scalars['String']['input']>;
+  effect: Effect;
+  linkId: Scalars['ID']['input'];
+  pullRequestTitle?: InputMaybe<Scalars['String']['input']>;
+  recurse?: InputMaybe<Scalars['Boolean']['input']>;
+  workingDirectory?: InputMaybe<Scalars['String']['input']>;
+};
 
 export type LinkedRepository = Repository | UnreachableRepository;
 
@@ -245,18 +268,12 @@ export enum MessageLevel {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  scanRemoteTfHCL2: Scalars['ID']['output'];
+  scanRemote: Scalars['ID']['output'];
 };
 
 
-export type MutationScanRemoteTfHcl2Args = {
-  input: ScanRemoteTfHcl2Input;
-};
-
-export type NotFoundError = {
-  __typename?: 'NotFoundError';
-  /** @deprecated Use GombocError instead */
-  message: Scalars['String']['output'];
+export type MutationScanRemoteArgs = {
+  input: ScanRemoteInput;
 };
 
 export type Organization = {
@@ -290,7 +307,7 @@ export type OrganizationScansArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type OrganizationResponse = NotFoundError | Organization | UnauthorizedError;
+export type OrganizationResponse = GombocError | Organization;
 
 export type Policy = {
   __typename?: 'Policy';
@@ -325,16 +342,15 @@ export type Project = {
   createdAt: Scalars['String']['output'];
   createdBy: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  lastActionResult?: Maybe<ActionResult>;
-  lastScan?: Maybe<ScanRequest>;
+  lastScanRequest?: Maybe<ScanRequest>;
   link: LinkResponse;
+  linkBySlug: LinkResponse;
   linkCount: Scalars['Int']['output'];
   /** @deprecated No longer supported */
   links: Array<Link>;
   linksPage: LinksPage;
   name: Scalars['String']['output'];
   policy: Policy;
-  scans: Array<ScanRequest>;
   slug: Scalars['String']['output'];
 };
 
@@ -344,17 +360,16 @@ export type ProjectLinkArgs = {
 };
 
 
+export type ProjectLinkBySlugArgs = {
+  slug: Scalars['ID']['input'];
+};
+
+
 export type ProjectLinksPageArgs = {
   startKey?: InputMaybe<Scalars['ID']['input']>;
 };
 
-
-export type ProjectScansArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type ProjectResponse = NotFoundError | Project | UnauthorizedError;
+export type ProjectResponse = GombocError | Project;
 
 export enum ProviderName {
   Azdo = 'AZDO',
@@ -424,6 +439,25 @@ export enum RequestOrigin {
   Workflow = 'WORKFLOW'
 }
 
+export type Scan = {
+  __typename?: 'Scan';
+  actionResult?: Maybe<ActionResult>;
+  children: ScanPage;
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  metadata: Scalars['String']['output'];
+  parent?: Maybe<Scan>;
+  scanRequestId: Scalars['ID']['output'];
+  scanScope: Scalars['String']['output'];
+};
+
+
+export type ScanChildrenArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type ScanBranch = {
   __typename?: 'ScanBranch';
   children: Array<ScanScenarioResponse>;
@@ -434,6 +468,20 @@ export type ScanBranch = {
 };
 
 export type ScanBranchResponse = FailedScan | GombocError | ScanBranch;
+
+export type ScanPage = {
+  __typename?: 'ScanPage';
+  page: Scalars['Int']['output'];
+  results: Array<Scan>;
+  size: Scalars['Int']['output'];
+  totalCount: Scalars['Int']['output'];
+};
+
+export type ScanRemoteInput = {
+  effect: Effect;
+  iacTool: InfrastructureTool;
+  workingDirectories: Array<Scalars['String']['input']>;
+};
 
 export type ScanRemoteTfHcl2Input = {
   effect: Effect;
@@ -457,18 +505,27 @@ export type ScanRepositoryResponse = FailedScan | GombocError | ScanRepository;
 export type ScanRequest = {
   __typename?: 'ScanRequest';
   actionResults: ActionResultPage;
+  /** @deprecated No longer supported */
   children: Array<ScanRepositoryResponse>;
   childrenCompleted: Scalars['Int']['output'];
   childrenError: Scalars['Int']['output'];
   childrenExpected: Scalars['Int']['output'];
   createdAt: Scalars['String']['output'];
   createdBy: Scalars['String']['output'];
+  effect: Effect;
   id: Scalars['ID']['output'];
   requestOrigin: RequestOrigin;
+  scans: ScanPage;
 };
 
 
 export type ScanRequestActionResultsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ScanRequestScansArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -480,6 +537,8 @@ export type ScanRequestResponseType = {
   errors: Array<Maybe<GombocError>>;
   scanRequestId: Scalars['ID']['output'];
 };
+
+export type ScanResponse = FailedScan | GombocError | Scan;
 
 export type ScanScenario = {
   __typename?: 'ScanScenario';
@@ -510,15 +569,19 @@ export type SendSupportRequestInput = {
   message: Scalars['String']['input'];
 };
 
-export type Success = {
-  __typename?: 'Success';
-  message: Scalars['String']['output'];
+export type Ticket = {
+  __typename?: 'Ticket';
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  externalUrl: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
 };
 
-export type UnauthorizedError = {
-  __typename?: 'UnauthorizedError';
-  /** @deprecated Use GombocError instead */
-  message: Scalars['String']['output'];
+export type TicketPage = {
+  __typename?: 'TicketPage';
+  page: Scalars['Int']['output'];
+  results: Array<Ticket>;
+  totalCount: Scalars['Int']['output'];
 };
 
 export type UnreachableRepository = {
@@ -526,21 +589,12 @@ export type UnreachableRepository = {
   id: Scalars['ID']['output'];
 };
 
-export type User = {
-  __typename?: 'User';
-  email: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  organizations: Array<Organization>;
-  pictureUrl: Scalars['String']['output'];
-  username: Scalars['String']['output'];
-};
-
-export type ScanRemoteTfHcl2MutationVariables = Exact<{
-  input: ScanRemoteTfHcl2Input;
+export type ScanRemoteMutationVariables = Exact<{
+  input: ScanRemoteInput;
 }>;
 
 
-export type ScanRemoteTfHcl2Mutation = { __typename: 'Mutation', scanRemoteTfHCL2: string };
+export type ScanRemoteMutation = { __typename: 'Mutation', scanRemote: string };
 
 export type ScanBranchActionResultsQueryVariables = Exact<{
   scanRequestId: Scalars['ID']['input'];
@@ -572,12 +626,12 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
-export const ScanRemoteTfHcl2Document = new TypedDocumentString(`
-    mutation ScanRemoteTfHCL2($input: ScanRemoteTfHCL2Input!) {
+export const ScanRemoteDocument = new TypedDocumentString(`
+    mutation ScanRemote($input: ScanRemoteInput!) {
   __typename
-  scanRemoteTfHCL2(input: $input)
+  scanRemote(input: $input)
 }
-    `) as unknown as TypedDocumentString<ScanRemoteTfHcl2Mutation, ScanRemoteTfHcl2MutationVariables>;
+    `) as unknown as TypedDocumentString<ScanRemoteMutation, ScanRemoteMutationVariables>;
 export const ScanBranchActionResultsDocument = new TypedDocumentString(`
     query scanBranchActionResults($scanRequestId: ID!, $pageSize: Int!) {
   __typename

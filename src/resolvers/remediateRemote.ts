@@ -3,11 +3,12 @@ import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, formatTitle, hlSuccess, hlError } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
-import { Effect } from '../apiclient/gql/graphql.js'
+import { Effect, InfrastructureTool } from '../apiclient/gql/graphql.js'
 import { settings } from '../settings.js'
 
 
 export interface Inputs {
+  iacTool: InfrastructureTool
   authToken: string
   serverUrl: string
   targetDirectories: string[]
@@ -27,7 +28,7 @@ type ClientError = {
 
 export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // The case where one AZDO option is provided and the other is handled in
-  const client = new Client(inputs.serverUrl, inputs.authToken, inputs.azdoOptions)
+  const client = new Client(inputs.serverUrl, inputs.iacTool, inputs.authToken, inputs.azdoOptions)
 
   const cl = new ConsoleLogger()
 
@@ -51,7 +52,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // This will call the mutation to trigger a scan, and handle a server error
   const handleScanRequest = async () => {
     try {
-      return await client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect)
+      return await client.scanRemoteMutationCall(inputs.targetDirectories, inputs.effect)
     } catch (e: any) {
       return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
@@ -102,7 +103,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     return scanRequestResponse.code
   }
 
-  const scanRequestId = scanRequestResponse.scanRemoteTfHCL2
+  const scanRequestId = scanRequestResponse.scanRemote
 
   if (scanRequestId == null) {
     cl.err(ExitCode.SERVER_ERROR, 'Scan request was rejected by the server. Make sure that you have defined a security policy and that this repository has been linked to a project\n')
