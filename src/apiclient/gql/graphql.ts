@@ -393,10 +393,16 @@ export type Query = {
   __typename?: 'Query';
   lighthouse: Array<Lighthouse>;
   scanBranch: ScanBranchResponse;
+  scanDirectory: ScanDirectoryResponse;
 };
 
 
 export type QueryScanBranchArgs = {
+  scanRequestId: Scalars['ID']['input'];
+};
+
+
+export type QueryScanDirectoryArgs = {
   scanRequestId: Scalars['ID']['input'];
 };
 
@@ -468,6 +474,20 @@ export type ScanBranch = {
 };
 
 export type ScanBranchResponse = FailedScan | GombocError | ScanBranch;
+
+export type ScanDirectory = {
+  __typename?: 'ScanDirectory';
+  children: Array<ScanScenarioResponse>;
+  childrenCompleted: Scalars['Int']['output'];
+  childrenError: Scalars['Int']['output'];
+  childrenExpected: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  parent: ScanBranch;
+};
+
+export type ScanDirectoryResponse = FailedScan | GombocError | ScanDirectory;
 
 export type ScanPage = {
   __typename?: 'ScanPage';
@@ -543,7 +563,7 @@ export type ScanResponse = FailedScan | GombocError | Scan;
 export type ScanScenario = {
   __typename?: 'ScanScenario';
   id: Scalars['ID']['output'];
-  result: ActionResult;
+  result?: Maybe<ActionResult>;
 };
 
 export type ScanScenarioResponse = FailedScan | GombocError | ScanScenario;
@@ -602,7 +622,7 @@ export type ScanBranchActionResultsQueryVariables = Exact<{
 }>;
 
 
-export type ScanBranchActionResultsQuery = { __typename: 'Query', scanBranch: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanBranch', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number, children: Array<{ __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanScenario', id: string, result: { __typename: 'ActionResult', id: string, observations: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle: string }> } }> } };
+export type ScanBranchActionResultsQuery = { __typename: 'Query', scanBranch: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanBranch', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number, children: Array<{ __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanScenario', id: string, result?: { __typename: 'ActionResult', id: string, observations: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle: string }> } | null }> } };
 
 export type ScanBranchStatusQueryVariables = Exact<{
   scanRequestId: Scalars['ID']['input'];
@@ -610,6 +630,21 @@ export type ScanBranchStatusQueryVariables = Exact<{
 
 
 export type ScanBranchStatusQuery = { __typename: 'Query', scanBranch: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanBranch', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number } };
+
+export type ScanDirectoryActionResultsQueryVariables = Exact<{
+  scanRequestId: Scalars['ID']['input'];
+  pageSize: Scalars['Int']['input'];
+}>;
+
+
+export type ScanDirectoryActionResultsQuery = { __typename: 'Query', scanDirectory: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanDirectory', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number, children: Array<{ __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanScenario', id: string, result?: { __typename: 'ActionResult', id: string, observations: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle: string }> } | null }> } };
+
+export type ScanDirectoryStatusQueryVariables = Exact<{
+  scanRequestId: Scalars['ID']['input'];
+}>;
+
+
+export type ScanDirectoryStatusQuery = { __typename: 'Query', scanDirectory: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanDirectory', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -716,3 +751,87 @@ export const ScanBranchStatusDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ScanBranchStatusQuery, ScanBranchStatusQueryVariables>;
+export const ScanDirectoryActionResultsDocument = new TypedDocumentString(`
+    query scanDirectoryActionResults($scanRequestId: ID!, $pageSize: Int!) {
+  __typename
+  scanDirectory(scanRequestId: $scanRequestId) {
+    __typename
+    ... on ScanDirectory {
+      __typename
+      id
+      childrenCompleted
+      childrenError
+      childrenExpected
+      children {
+        __typename
+        ... on ScanScenario {
+          __typename
+          id
+          result {
+            __typename
+            id
+            observations(
+              exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE]
+              page: 1
+              size: $pageSize
+            ) {
+              __typename
+              filepath
+              lineNumber
+              resourceName
+              resourceType
+              disposition
+              capabilityTitle
+            }
+          }
+        }
+        ... on FailedScan {
+          __typename
+          id
+          message
+        }
+        ... on GombocError {
+          __typename
+          code
+          message
+        }
+      }
+    }
+    ... on FailedScan {
+      __typename
+      id
+      message
+    }
+    ... on GombocError {
+      __typename
+      code
+      message
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ScanDirectoryActionResultsQuery, ScanDirectoryActionResultsQueryVariables>;
+export const ScanDirectoryStatusDocument = new TypedDocumentString(`
+    query scanDirectoryStatus($scanRequestId: ID!) {
+  __typename
+  scanDirectory(scanRequestId: $scanRequestId) {
+    __typename
+    ... on ScanDirectory {
+      __typename
+      id
+      childrenCompleted
+      childrenError
+      childrenExpected
+    }
+    ... on FailedScan {
+      __typename
+      id
+      message
+    }
+    ... on GombocError {
+      __typename
+      code
+      message
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ScanDirectoryStatusQuery, ScanDirectoryStatusQueryVariables>;

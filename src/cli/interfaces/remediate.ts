@@ -95,6 +95,7 @@ export const clRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode>
     }
 
     consoleDebugger.log('CLI inputs', inputs)
+    consoleDebugger.log('CLI inputs', settings.SERVER_URL)
 
     return await resolveRemediateRemote(inputs)
 
