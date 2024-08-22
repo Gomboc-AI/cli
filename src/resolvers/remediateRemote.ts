@@ -194,7 +194,6 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     return scanActionResults.code
   }
 
-  console.log('---scanActionResults', scanActionResults)
   // Final check to see if everything is in order with the final query
   if (scanActionResults.childrenExpected != scanActionResults.childrenCompleted + scanActionResults.childrenError) {
     cl.err(ExitCode.SERVER_ERROR, 'Status reverted to NOT OK in final validation')
@@ -217,28 +216,19 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       cl.err(ExitCode.SERVER_ERROR, `${child.message} (Code: ${child.code ?? 'Unknown'})\n`)
       atLeastOneViolationOrError = true
     } else {
-      if (child.__typename === 'ScanDirectory') {
-        child.children.foreach((dirChild: any) => {
-          const location = `${dirChild.filepath}, line ${dirChild.lineNumber}`
-          cl.__log(`Policy observation at ${hl(location)}:`)
-          cl.___log(`Resource: ${hl(dirChild.resourceName)} (${dirChild.resourceType})`)
-          cl.___log(`Policy: All resources must implement ${hl(dirChild.capabilityTitle)}`)
-          const dispositionHighlight = dirChild.disposition === 'AUTO_REMEDIATED' ? hlSuccess : hlError
-          cl.___log(`Status: ${dispositionHighlight(dirChild.disposition)}`)
-          atLeastOneViolationOrError = true
-        })
-      } else {
-        // child is a valid ScanScenario object
-        child.result.observations.forEach((obs: any) => {
-          const location = `${obs.filepath}, line ${obs.lineNumber}`
-          cl.__log(`Policy observation at ${hl(location)}:`)
-          cl.___log(`Resource: ${hl(obs.resourceName)} (${obs.resourceType})`)
-          cl.___log(`Policy: All resources must implement ${hl(obs.capabilityTitle)}`)
-          const dispositionHighlight = obs.disposition === 'AUTO_REMEDIATED' ? hlSuccess : hlError
-          cl.___log(`Status: ${dispositionHighlight(obs.disposition)}`)
-          atLeastOneViolationOrError = true
-        })
+      if (child.result == null || child.result.observations == null || child.result.observations.length === 0) {
+        return
       }
+
+      child.result.observations.forEach((obs: any) => {
+        const location = `${obs.filepath}, line ${obs.lineNumber}`
+        cl.__log(`Policy observation at ${hl(location)}:`)
+        cl.___log(`Resource: ${hl(obs.resourceName)} (${obs.resourceType})`)
+        cl.___log(`Policy: All resources must implement ${hl(obs.capabilityTitle)}`)
+        const dispositionHighlight = obs.disposition === 'AUTO_REMEDIATED' ? hlSuccess : hlError
+        cl.___log(`Status: ${dispositionHighlight(obs.disposition)}`)
+        atLeastOneViolationOrError = true
+      })
       if (child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
         cl.__log(`...and possibly more`)
       }
