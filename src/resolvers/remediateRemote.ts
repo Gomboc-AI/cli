@@ -3,11 +3,12 @@ import { ConsoleLogger } from '../utils/ConsoleLogger.js'
 import { ExitCode } from '../cli/exitCodes.js'
 import { hl, checkMark, formatTitle, hlSuccess, hlError } from '../utils/consoleUtils.js'
 import { CLI_VERSION } from '../cli/version.js'
-import { Effect } from '../apiclient/gql/graphql.js'
+import { Effect, InfrastructureTool, } from '../apiclient/gql/graphql.js'
 import { settings } from '../settings.js'
 
 
 export interface Inputs {
+  iacTool: InfrastructureTool
   authToken: string
   serverUrl: string
   targetDirectories: string[]
@@ -27,7 +28,8 @@ type ClientError = {
 
 export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // The case where one AZDO option is provided and the other is handled in
-  const client = new Client(inputs.serverUrl, inputs.authToken, inputs.azdoOptions)
+
+  const client = new Client(inputs.serverUrl, inputs.iacTool, inputs.authToken, inputs.azdoOptions)
 
   const cl = new ConsoleLogger()
 
@@ -51,23 +53,35 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // This will call the mutation to trigger a scan, and handle a server error
   const handleScanRequest = async () => {
     try {
-      return await client.scanRemoteTfHCL2MutationCall(inputs.targetDirectories, inputs.effect)
+      return await client.scanRemoteMutationCall(inputs.targetDirectories, inputs.effect)
     } catch (e: any) {
       return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
   }
 
   // This will call the query to check the status of a scan, and handle a server error and a failed scan error
-  const handleScanStatusPoll = async (scanRequestId: string) => {
+  const handleScanStatusPoll = async (scanRequestId: string, iacTool: InfrastructureTool) => {
     try {
-      const poll = await client.scanBranchStatusQueryCall(scanRequestId)
-      if (poll.scanBranch.__typename === 'FailedScan') {
-        return { code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})` } as ClientError
+      if (iacTool === InfrastructureTool.Terraform) {
+        const poll = await client.scanBranchStatusQueryCall(scanRequestId)
+        if (poll.scanBranch.__typename === 'FailedScan') {
+          return { code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})` } as ClientError
+        }
+        if (poll.scanBranch.__typename === 'GombocError') {
+          return
+        }
+        return poll.scanBranch
       }
-      if (poll.scanBranch.__typename === 'GombocError') {
-        return
+      if (iacTool === InfrastructureTool.Cloudformation) {
+        const poll = await client.scanDirectoryStatusQueryCall(scanRequestId)
+        if (poll.scanDirectory.__typename === 'FailedScan') {
+          return { code: ExitCode.BUSINESS_ERROR, message: `${poll.scanDirectory.message} (Scan ID: ${poll.scanDirectory.id})` } as ClientError
+        }
+        if (poll.scanDirectory.__typename === 'GombocError') {
+          return
+        }
+        return poll.scanDirectory
       }
-      return poll.scanBranch
     } catch (e: any) {
       return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
@@ -82,14 +96,30 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // This will call final query to get the action results of a scan, and handle a server error and a failed scan error
   const handleScanActionResultsRequest = async (scanRequestId: string) => {
     try {
-      const poll = await client.scanBranchActionResultsQueryCall(scanRequestId, POLICY_OBSERVATIONS_PAGE_SIZE)
-      if (poll.scanBranch.__typename === 'FailedScan') {
-        return { code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})` } as ClientError
+      if (inputs.iacTool === InfrastructureTool.Terraform) {
+        const poll = await client.scanBranchActionResultsQueryCall(scanRequestId, POLICY_OBSERVATIONS_PAGE_SIZE)
+        if (poll.scanBranch.__typename === 'FailedScan') {
+          return { code: ExitCode.BUSINESS_ERROR, message: `${poll.scanBranch.message} (Scan ID: ${poll.scanBranch.id})` } as ClientError
+        }
+        if (poll.scanBranch.__typename === 'GombocError') {
+          return { code: ExitCode.SERVER_ERROR, message: `${poll.scanBranch.message} (Code: ${poll.scanBranch.code ?? 'Unknown'})` } as ClientError
+        }
+        return poll.scanBranch
+      } else {
+        const poll = await client.scanDirectoryActionResultsQueryCall(scanRequestId, POLICY_OBSERVATIONS_PAGE_SIZE)
+        if (poll.scanDirectory.__typename === 'FailedScan') {
+          return { code: ExitCode.BUSINESS_ERROR, message: `${poll.scanDirectory.message} (Scan ID: ${poll.scanDirectory.id})` } as ClientError
+        }
+        if (poll.scanDirectory.__typename === 'GombocError') {
+          return { code: ExitCode.SERVER_ERROR, message: `${poll.scanDirectory.message} (Code: ${poll.scanDirectory.code ?? 'Unknown'})` } as ClientError
+        }
+        if (poll.scanDirectory.__typename === 'ScanDirectory') {
+          return poll.scanDirectory
+        } else {
+          throw new Error()
+        }
       }
-      if (poll.scanBranch.__typename === 'GombocError') {
-        return { code: ExitCode.SERVER_ERROR, message: `${poll.scanBranch.message} (Code: ${poll.scanBranch.code ?? 'Unknown'})` } as ClientError
-      }
-      return poll.scanBranch
+
     } catch (e: any) {
       return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
@@ -102,7 +132,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     return scanRequestResponse.code
   }
 
-  const scanRequestId = scanRequestResponse.scanRemoteTfHCL2
+  const scanRequestId = scanRequestResponse.scanRemote
 
   if (scanRequestId == null) {
     cl.err(ExitCode.SERVER_ERROR, 'Scan request was rejected by the server. Make sure that you have defined a security policy and that this repository has been linked to a project\n')
@@ -129,11 +159,15 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // While there are still children scans being processed
   do {
     await sleep(POLLING_INTERVAL)
-    scanStatusPollResult = await handleScanStatusPoll(scanRequestId)
+    scanStatusPollResult = await handleScanStatusPoll(scanRequestId, inputs.iacTool)
 
     if (scanStatusPollResult != null) {
       if (
         scanStatusPollResult?.__typename === 'ScanBranch' &&
+        (scanStatusPollResult.childrenExpected == scanStatusPollResult.childrenCompleted + scanStatusPollResult.childrenError)) {
+        break;
+      } else if (
+        scanStatusPollResult?.__typename === 'ScanDirectory' &&
         (scanStatusPollResult.childrenExpected == scanStatusPollResult.childrenCompleted + scanStatusPollResult.childrenError)) {
         break;
       } else if (scanStatusPollResult?.__typename === 'ClientError') {
@@ -172,7 +206,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // Check if there are any violations or failed scans
   // If an action result has a policy observation with disposition AUTO_REMEDIATED or COULD_NOT_REMEDIATE, it is considered a violation
   // We can only get those observations because we are excluding all other dispositions in the query
-  scanActionResults.children.map((child: any) => {
+  scanActionResults.children.forEach((child: any) => {
     cl._log('\n')
     cl._log(`Scan result:\n`)
     if (child.__typename === 'FailedScan') {
@@ -182,7 +216,10 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
       cl.err(ExitCode.SERVER_ERROR, `${child.message} (Code: ${child.code ?? 'Unknown'})\n`)
       atLeastOneViolationOrError = true
     } else {
-      // child is a valid ScanScenario object
+      if (child.result == null || child.result.observations == null || child.result.observations.length === 0) {
+        return
+      }
+
       child.result.observations.forEach((obs: any) => {
         const location = `${obs.filepath}, line ${obs.lineNumber}`
         cl.__log(`Policy observation at ${hl(location)}:`)
