@@ -1,0 +1,85 @@
+# Build container and perform health check
+name: Build and push
+
+permissions:
+  contents: read
+  id-token: write # for AWS Assume Role
+  packages: read
+  pull-requests: write
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+env:
+  # TODO: Change this based on the PR-number or event type 
+  TEST_TAG: 'gombocai/cli:dev'
+  LATEST_TAG: 'gombocai/cli:latest'
+
+jobs:
+  build:
+    name: Build and Push Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and load
+        uses: docker/build-push-action@v6
+        with:
+          load: true
+          tags: ${{ env.TEST_TAG }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ env.TEST_TAG }}
+          format: 'table'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: run structure tests
+        uses: plexsystems/container-structure-test-action@v0.1.0
+        with:
+          image: ${{ env.TEST_TAG }}
+          config: test/container-structure-test.yaml
+
+      - name: Push-dev
+        uses: docker/build-push-action@v6
+        with:
+          platforms: "linux/amd64,linux/arm64"
+          push: ${{ github.event_name != 'push' }}
+          tags: ${{ env.TEST_TAG }}
+        
+      - name: Push
+        uses: docker/build-push-action@v6
+        with:
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ env.LATEST_TAG }}
+
+
+
+
+
+
+
+
+
+          

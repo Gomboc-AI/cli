@@ -1,26 +1,38 @@
 import { Arguments } from "yargs"
 
-import { resolve as resolveRemediateRemoteTfHCL2, Inputs as RemediateRemoteTfHCL2Inputs } from "../../resolvers/remediateRemoteTfHCL2.js"
+import { resolve as resolveRemediateRemote, Inputs as RemediateRemoteInputs } from "../../resolvers/remediateRemote.js"
 import { ExitCode } from "../exitCodes.js"
 import { ConsoleLogger } from "../../utils/ConsoleLogger.js"
 import { settings } from "../../settings.js"
 import { consoleDebugger } from "../../utils/ConsoleDebugger.js"
-import { Effect } from "../../apiclient/gql/graphql.js"
+import { Effect, InfrastructureTool } from "../../apiclient/gql/graphql.js"
 import { hl } from "../../utils/consoleUtils.js"
-import { EffectCommand } from "../commands.js"
+import { EffectCommand, ServiceCommand } from "../commands.js"
 
 
-export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode> => {
+export const clRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode> => {
   try {
     // argv._[0] -> ServiceCommand (cloudformation, terraform)
     // argv._[1] -> VerbCommand (scan, remediate)
     // argv._[2] -> SourceCommand (remote, local)
     // argv._[3] -> EffectCommand (submit-for-review, direct-apply)
-
+    const serviceCommand = argv._[0] as ServiceCommand
     const cl = new ConsoleLogger(false)
-
     const workingDirectoryOption = argv.workingDirectory ? argv.workingDirectory as string : null
-    const targetDirectoriesOption = argv.targetDirectotries ? argv.targetDirectories as string[] : null
+    const targetDirectoriesOption = argv.targetDirectories ? argv.targetDirectories as string[] : null
+
+    const getAzdoOptions = () => {
+      const organizationName = argv.azdoOrganizationName
+      const collectionUri = argv.azdoCollectionUri
+      if ((organizationName == null || collectionUri == null)) {
+        return
+      } else {
+        return {
+          azdoOrganizationName: organizationName as string,
+          azdoBaseUrl: collectionUri as string
+        }
+      }
+    }
 
     const getDesiredEffect = (effect: string): Effect => {
       switch (effect as EffectCommand) {
@@ -33,6 +45,7 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       }
     }
 
+    consoleDebugger.log('CLI arguments', argv)
     /**
      * We want to make sure that only one of these two options is used
      * @param workingDirectoryOption string -- is the old option that will be removed in the future
@@ -57,20 +70,34 @@ export const cliTerraformRemediateRemoteCheck = async (argv: Arguments): Promise
       return targetDirectoriesOption as string[] // safe to coerce, TS cannot infer
     }
 
-    if (argv.accessToken){
+    if (argv.accessToken) {
       cl.log(hl('DEPRECATION NOTICE: access-token is deprecated and will be removed in the future'))
     }
 
-    const inputs: RemediateRemoteTfHCL2Inputs = {
+    // let iacTool: InfrastructureTool
+    let iacTool: InfrastructureTool
+    switch (serviceCommand) {
+      case ServiceCommand.CLOUDFORMATION:
+        iacTool = InfrastructureTool.Cloudformation
+        break;
+      case ServiceCommand.TERRAFORM:
+        iacTool = InfrastructureTool.Terraform
+        break;
+    }
+
+    const inputs: RemediateRemoteInputs = {
       authToken: argv.authToken as string,
+      iacTool,
       serverUrl: settings.SERVER_URL,
       targetDirectories: getTargetDirectories(workingDirectoryOption, targetDirectoriesOption),
       effect: getDesiredEffect(argv._[3] as string),
+      azdoOptions: getAzdoOptions()
     }
 
     consoleDebugger.log('CLI inputs', inputs)
+    consoleDebugger.log('CLI inputs', settings.SERVER_URL)
 
-    return await resolveRemediateRemoteTfHCL2(inputs)
+    return await resolveRemediateRemote(inputs)
 
   } catch (error: any) {
     const cl = new ConsoleLogger()

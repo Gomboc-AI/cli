@@ -2,7 +2,7 @@
 
 import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { cliTerraformRemediateRemoteCheck } from './cli/interfaces/remediate.js'
+import { clRemediateRemoteCheck } from './cli/interfaces/remediate.js'
 import { EffectCommand, VerbCommand, ServiceCommand, SourceCommand } from './cli/commands.js'
 
 
@@ -53,6 +53,24 @@ const addTargetDirectoriesOption = (argv: Argv) => {
   })
 }
 
+const addAzdoCollectionUriOption = (argv: Argv) => {
+  argv.option("azdo-collection-uri", {
+    alias: "azuri",
+    describe: "The base URI that is in the form https://dev.azure.com/{organizationName}/ and is provided by the System.TeamFoundationCollectionUri variable",
+    type: "string",
+    demandOption: false
+  })
+}
+
+const addAzdoOrganizationNameOption = (argv: Argv) => {
+  argv.option("azdo-organization-name", {
+    alias: "azname",
+    describe: "The Azdo organization name",
+    type: "string",
+    demandOption: false
+  })
+}
+
 // Setting CLI command and options
 await yargs(hideBin(process.argv))
   .command(
@@ -71,14 +89,14 @@ await yargs(hideBin(process.argv))
                 EffectCommand.SUBMIT_FOR_REVIEW,
                 '\tRemediate Remote Terraform code',
                 (yargs) => {
-                  addExecuteCheck(yargs, cliTerraformRemediateRemoteCheck)
+                  addExecuteCheck(yargs, clRemediateRemoteCheck)
                 }
               )
               yargs.command(
                 EffectCommand.DIRECT_APPLY,
                 '\tRemediate Remote Terraform code',
                 (yargs) => {
-                  addExecuteCheck(yargs, cliTerraformRemediateRemoteCheck)
+                  addExecuteCheck(yargs, clRemediateRemoteCheck)
                 }
               )
               yargs.demandCommand(1, 'Specify an action [direct-apply, submit-for-review]')
@@ -90,6 +108,49 @@ await yargs(hideBin(process.argv))
       )
       addTargetDirectoriesOption(yargs)
       addWorkingDirectoryOption(yargs)
+      addAzdoCollectionUriOption(yargs)
+      addAzdoOrganizationNameOption(yargs)
+      addAuthTokenOption(yargs, true)
+      yargs.demandCommand(1, 'Specify a verb [remediate]')
+    }
+  )
+  .command(
+    ServiceCommand.CLOUDFORMATION,
+    '\tGomboc.AI CloudFormation service',
+    (yargs) => {
+      yargs.command(
+        VerbCommand.REMEDIATE,
+        '\tRemediate CloudFormation code',
+        (yargs) => {
+          yargs.command(
+            SourceCommand.REMOTE,
+            '\tRemediate Remote CloudFormation code',
+            (yargs) => {
+              yargs.command(
+                EffectCommand.SUBMIT_FOR_REVIEW,
+                '\tRemediate Remote CloudFormation code',
+                (yargs) => {
+                  addExecuteCheck(yargs, clRemediateRemoteCheck)
+                }
+              )
+              yargs.command(
+                EffectCommand.DIRECT_APPLY,
+                '\tRemediate Remote Terraform code',
+                (yargs) => {
+                  addExecuteCheck(yargs, clRemediateRemoteCheck)
+                }
+              )
+              yargs.demandCommand(1, 'Specify an action [direct-apply, submit-for-review]')
+            }
+          )
+          addAccessTokenOption(yargs)
+          yargs.demandCommand(1, 'Specify a source [remote]')
+        }
+      )
+      addTargetDirectoriesOption(yargs)
+      addWorkingDirectoryOption(yargs)
+      addAzdoCollectionUriOption(yargs)
+      addAzdoOrganizationNameOption(yargs)
       addAuthTokenOption(yargs, true)
       yargs.demandCommand(1, 'Specify a verb [remediate]')
     }

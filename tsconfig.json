@@ -9,10 +9,18 @@
   },
   "baseUrl": ".src",
   "paths": {
-    "@/*": ["./src/*"]
+    "@/*": [
+      "./src/*"
+    ]
   },
   "allowSyntheticDefaultImports": true,
   "esModuleInterop": true,
-  "include": ["src"],
-  "exclude": ["bin", "node_modules", "**/__tests__/*"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "bin",
+    "node_modules",
+    "**/__tests__/*"
+  ]
 }
