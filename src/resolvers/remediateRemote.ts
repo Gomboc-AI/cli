@@ -13,6 +13,7 @@ export interface Inputs {
   serverUrl: string
   targetDirectories: string[]
   effect: Effect
+  pullRequestIdentifier: string | null
   azdoOptions?: {
     azdoBaseUrl: string
     azdoOrganizationName: string
@@ -53,7 +54,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // This will call the mutation to trigger a scan, and handle a server error
   const handleScanRequest = async () => {
     try {
-      return await client.scanRemoteMutationCall(inputs.targetDirectories, inputs.effect)
+      return await client.scanRemoteMutationCall(inputs)
     } catch (e: any) {
       return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
@@ -185,6 +186,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     }
 
     attempts++
+  /* eslint-disable no-constant-condition */
   } while (true)
 
   // Server has finished the scan, now we can request the results

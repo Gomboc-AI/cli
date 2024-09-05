@@ -18,7 +18,15 @@ const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
   argv.option("auth-token", {
     describe: "An authentication auth token",
     type: "string",
-    demandOption
+    demandOption,
+  })
+}
+
+const addPullRequestOption = (argv: Argv) => {
+  argv.option("pull-request", {
+    describe: "The pull request identifier (e.g. number)",
+    type: "string",
+    demandOption: false,
   })
 }
 
@@ -107,6 +115,7 @@ await yargs(hideBin(process.argv))
         }
       )
       addTargetDirectoriesOption(yargs)
+      addPullRequestOption(yargs)
       addWorkingDirectoryOption(yargs)
       addAzdoCollectionUriOption(yargs)
       addAzdoOrganizationNameOption(yargs)
@@ -148,6 +157,7 @@ await yargs(hideBin(process.argv))
         }
       )
       addTargetDirectoriesOption(yargs)
+      addPullRequestOption(yargs)
       addWorkingDirectoryOption(yargs)
       addAzdoCollectionUriOption(yargs)
       addAzdoOrganizationNameOption(yargs)
