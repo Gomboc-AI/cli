@@ -16,23 +16,34 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+/** A Scan Result that originated from a Scan Request */
 export type ActionResult = {
   __typename?: 'ActionResult';
   id: Scalars['ID']['output'];
+  /** The list of observations in this scan result */
   observations: Array<PolicyObservation>;
 };
 
 
+/** A Scan Result that originated from a Scan Request */
 export type ActionResultObservationsArgs = {
   exclude?: InputMaybe<Array<Disposition>>;
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export enum ActionResultCondition {
+  AllFixed = 'ALL_FIXED',
+  Compliant = 'COMPLIANT',
+  NoneFixed = 'NONE_FIXED',
+  SomeFixed = 'SOME_FIXED'
+}
+
 export type ActionResultPage = {
   __typename?: 'ActionResultPage';
   page: Scalars['Int']['output'];
   results: Array<ActionResult>;
+  size: Scalars['Int']['output'];
   totalCount: Scalars['Int']['output'];
 };
 
@@ -77,6 +88,11 @@ export type CreateBitBucketProviderInput = {
 
 export type CreateBitBucketProviderOutput = GitProvider | GombocError;
 
+export type CreateGitHubProviderInput = {
+  code: Scalars['String']['input'];
+  installationId: Scalars['ID']['input'];
+};
+
 export type CreateGitHubProviderResponse = GitProvider | GombocError;
 
 export type CreateGitLabProviderInput = {
@@ -86,6 +102,13 @@ export type CreateGitLabProviderInput = {
 };
 
 export type CreateGitLabProviderOutput = GitProvider | GombocError;
+
+export type CreateMustImplementPolicyStatementInput = {
+  capabilityId: Scalars['ID']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  framework?: InputMaybe<Scalars['String']['input']>;
+  identifier?: InputMaybe<Scalars['String']['input']>;
+};
 
 export type CreatePolicyStatementResponse = GombocError | PolicyStatement;
 
@@ -141,19 +164,25 @@ export enum GitLabApiVersion {
   V4 = 'V4'
 }
 
+/** Represents an integration to an SCM provider **owner** entity, such as: - A GitHub **organization** - A GitLab **group** - A Bitbucket **workspace** - An Azure DevOps **organization** */
 export type GitProvider = {
   __typename?: 'GitProvider';
   createdAt: Scalars['String']['output'];
+  /** Returns the email of the user who integrated the SCM provider */
   createdBy: Scalars['String']['output'];
+  /** A URL to the SCM provider integration page */
   externalUrl?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name?: Maybe<Scalars['String']['output']>;
+  /** The name of the SCM provider owner (see above) */
   ownerName: Scalars['String']['output'];
   providerName: ProviderName;
+  /** All the repositories this integration has access to */
   repositories: Array<Repository>;
 };
 
 
+/** Represents an integration to an SCM provider **owner** entity, such as: - A GitHub **organization** - A GitLab **group** - A Bitbucket **workspace** - An Azure DevOps **organization** */
 export type GitProviderRepositoriesArgs = {
   selection?: InputMaybe<RepositorySelection>;
 };
@@ -194,14 +223,21 @@ export type Lighthouse = {
 
 export type Link = {
   __typename?: 'Link';
-  actionResults: Array<ActionResult>;
+  /** Returns a page of Scan Results related to this linked repository */
+  actionResults: ActionResultPage;
   createdAt: Scalars['String']['output'];
+  /** Returns the email of the user who linked the repository */
   createdBy: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  /** Return the latest Scan Request related to this linked repository */
   lastScanRequest?: Maybe<ScanRequest>;
+  /** Returns the project the repository is linked to */
   project: Project;
+  /** Returns the name of the SCM Provider */
   providerName: ProviderName;
+  /** Returns the repository itself */
   repository: LinkedRepository;
+  /** Returns a URL-friendly slug for the linked repository */
   slug: Scalars['ID']['output'];
 };
 
@@ -248,6 +284,7 @@ export type LinkedRepository = Repository | UnreachableRepository;
 
 export type LinksPage = {
   __typename?: 'LinksPage';
+  /** Use this to get the next page */
   lastKey?: Maybe<Scalars['ID']['output']>;
   links: Array<Link>;
 };
@@ -268,6 +305,7 @@ export enum MessageLevel {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** *Internal use only* */
   scanRemote: Scalars['ID']['output'];
 };
 
@@ -276,33 +314,47 @@ export type MutationScanRemoteArgs = {
   input: ScanRemoteInput;
 };
 
+/** A customer organization as represented in the system */
 export type Organization = {
   __typename?: 'Organization';
+  /** Returns one SCM integration by its ID, or an error if not found */
   gitProvider: GitProviderResponse;
+  /** Returns SCM integrations for this organization */
   gitProviders: Array<GitProvider>;
+  /** Returns true if the organization has at least one SCM Integration */
   hasGitProviders: Scalars['Boolean']['output'];
+  /** Returns true if the organization has at least one Linked Repository */
   hasLinks: Scalars['Boolean']['output'];
+  /** Returns true if the organization has at least one Policy Statement */
   hasPolicy: Scalars['Boolean']['output'];
+  /** Returns true if the organization has received at least one Scan Request */
   hasScanRequests: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  /** Returns the security policy for this organization */
   policy: Policy;
+  /** Return one Gomboc project by its slug, or an error if not found */
   project: ProjectResponse;
+  /** Returns all Gomboc projects for this organization */
   projects: Array<Project>;
+  /** Returns recent scan requests for this organization */
   scans: Array<ScanRequestResponse>;
 };
 
 
+/** A customer organization as represented in the system */
 export type OrganizationGitProviderArgs = {
   id: Scalars['ID']['input'];
 };
 
 
+/** A customer organization as represented in the system */
 export type OrganizationProjectArgs = {
   slug: Scalars['String']['input'];
 };
 
 
+/** A customer organization as represented in the system */
 export type OrganizationScansArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
 };
@@ -316,17 +368,23 @@ export type Policy = {
 
 export type PolicyObservation = {
   __typename?: 'PolicyObservation';
+  /** The policy statement capability Title involved */
   capabilityTitle: Scalars['String']['output'];
   disposition: Disposition;
+  /** The filepath of the IaC resource that was observed */
   filepath: Scalars['String']['output'];
+  /** The file line number of the IaC resource that was observed */
   lineNumber: Scalars['Int']['output'];
+  /** The name of the IaC resource that was observed */
   resourceName: Scalars['String']['output'];
+  /** The type of the IaC resource that was observed */
   resourceType: Scalars['String']['output'];
 };
 
 export type PolicyStatement = {
   __typename?: 'PolicyStatement';
   createdAt: Scalars['String']['output'];
+  /** Returns the email of the user who added the policy statement */
   createdBy: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   framework?: Maybe<Scalars['String']['output']>;
@@ -340,17 +398,26 @@ export type PolicyStatementPayloadType = CustomerApi_PolicyStatementPayloadMustI
 export type Project = {
   __typename?: 'Project';
   createdAt: Scalars['String']['output'];
+  /** Returns the email of the user who created the project */
   createdBy: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  /** Returns the most recent Scan Request related to this project */
   lastScanRequest?: Maybe<ScanRequest>;
+  /** Returns a single linked repository by its ID, or an error if not found */
   link: LinkResponse;
+  /** Returns a single linked repository by its slug, or an error if not found */
   linkBySlug: LinkResponse;
+  /** Returns the number of linked repositories */
   linkCount: Scalars['Int']['output'];
   /** @deprecated No longer supported */
   links: Array<Link>;
+  /** Returns a page of repositories linked to this project */
   linksPage: LinksPage;
+  /** Returns the name of the project */
   name: Scalars['String']['output'];
+  /** @deprecated No longer supported */
   policy: Policy;
+  /** Returns a URL-friendly slug for the project */
   slug: Scalars['String']['output'];
 };
 
@@ -392,7 +459,9 @@ export type PutSetupCompletedInput = {
 export type Query = {
   __typename?: 'Query';
   lighthouse: Array<Lighthouse>;
+  /** *Internal use only* */
   scanBranch: ScanBranchResponse;
+  /** *Internal use only* */
   scanDirectory: ScanDirectoryResponse;
 };
 
@@ -408,11 +477,15 @@ export type QueryScanDirectoryArgs = {
 
 export type Repository = {
   __typename?: 'Repository';
+  /** The list of branches in the repository */
   branches: Array<RepositoryBranch>;
+  /** The list of directories in the repository */
   directoryNames: Array<Scalars['String']['output']>;
+  /** A URL to the SCM provider repository page */
   externalUrl: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  /** The name of the SCM provider owner */
   ownerName: Scalars['String']['output'];
 };
 
@@ -430,6 +503,7 @@ export type RepositoryDirectoryNamesArgs = {
 
 export type RepositoryBranch = {
   __typename?: 'RepositoryBranch';
+  /** Returns additional info on the branch (e.g. "main", "protected"...) */
   label?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
 };
@@ -592,7 +666,9 @@ export type SendSupportRequestInput = {
 export type Ticket = {
   __typename?: 'Ticket';
   createdAt: Scalars['String']['output'];
+  /** Returns the email of the user who linked the ticket */
   createdBy: Scalars['String']['output'];
+  /** A link to the external ticketing system */
   externalUrl: Scalars['String']['output'];
   id: Scalars['ID']['output'];
 };
@@ -604,6 +680,7 @@ export type TicketPage = {
   totalCount: Scalars['Int']['output'];
 };
 
+/** Represents a repository that was either deleted or is unreachable due to service or integration issues */
 export type UnreachableRepository = {
   __typename?: 'UnreachableRepository';
   id: Scalars['ID']['output'];
