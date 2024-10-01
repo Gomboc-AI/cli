@@ -9,8 +9,16 @@ import { Effect, InfrastructureTool } from "../../apiclient/gql/graphql.js"
 import { hl } from "../../utils/consoleUtils.js"
 import { EffectCommand, ServiceCommand } from "../commands.js"
 
+type ExpectedArgs = {
+  authToken: string
+  workingDirectory: string
+  targetDirectories: string[]
+  azdoOrganizationName: string
+  azdoCollectionUri: string
+  pullRequest?: string // the identifier, if one
+}
 
-export const clRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode> => {
+export const clRemediateRemoteCheck = async (argv: Arguments<ExpectedArgs>): Promise<ExitCode> => {
   try {
     // argv._[0] -> ServiceCommand (cloudformation, terraform)
     // argv._[1] -> VerbCommand (scan, remediate)
@@ -91,7 +99,8 @@ export const clRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode>
       serverUrl: settings.SERVER_URL,
       targetDirectories: getTargetDirectories(workingDirectoryOption, targetDirectoriesOption),
       effect: getDesiredEffect(argv._[3] as string),
-      azdoOptions: getAzdoOptions()
+      azdoOptions: getAzdoOptions(),
+      pullRequestIdentifier: argv.pullRequest ?? null,
     }
 
     consoleDebugger.log('CLI inputs', inputs)
