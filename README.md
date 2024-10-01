@@ -23,7 +23,7 @@ Please refer to the internal Gomboc Wiki if you need to work on this repo
 
 ### Settings override
 
-The main way way of specifying the environment is by setting `GOMBOC_STAGE` env var, with values `PROD`, `BETA`, or `LOCAL`
+The main way way of specifying the environment is by setting `GOMBOC_STAGE` env var, with values `PROD`, `STAGING`, or `DEV`
 
 After that, if you still wanted to override some values, you can set:
 - `GOMBOC_SERVER_URL_OVERRIDE` to set the base url for the API Server (`ScanAPI`)

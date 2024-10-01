@@ -1,6 +1,6 @@
 export enum Stage {
-  LOCAL = 'LOCAL',
-  BETA = 'BETA',
+  DEV = 'DEV',
+  STAGING = 'STAGING',
   PROD = 'PROD',
 }
 
@@ -22,10 +22,10 @@ const inDebugMode = (): boolean => {
 const getStage = (): Stage => {
   const envStage = process.env.GOMBOC_STAGE;
   switch (envStage) {
-    case 'LOCAL':
-      return Stage.LOCAL;
-    case 'BETA':
-      return Stage.BETA;
+    case 'DEV':
+      return Stage.DEV;
+    case 'STAGING':
+      return Stage.STAGING;
     case 'PROD':
       return Stage.PROD;
     default:
@@ -38,11 +38,13 @@ const getServerUrl = (stage: Stage): string => {
   if (urlOverride) {
     return urlOverride;
   }
+  // scanAPI
   switch (stage) {
-    case Stage.LOCAL:
-      return 'http://localhost:4000/graphql';
-    case Stage.BETA:
-      return 'https://scan.beta.gomboc.ai/graphql';
+    case Stage.DEV:
+      // return 'http://localhost:4000/graphql';
+      return 'https://scan.dev.gcp.gomboc.ai/graphql';
+    case Stage.STAGING:
+      return 'https://scan.dev.gcp.gomboc.ai/graphql';
     case Stage.PROD:
       return 'https://scan.app.gomboc.ai/graphql';
   }
@@ -53,10 +55,12 @@ const getClientUrl = (stage: Stage): string => {
   if (urlOverride) {
     return urlOverride;
   }
+  // portal
   switch (stage) {
-    case Stage.LOCAL:
-      return 'http://localhost:3000';
-    case Stage.BETA:
+    case Stage.DEV:
+      // return 'http://localhost:3000';
+      return 'https://app.beta.gomboc.ai';
+    case Stage.STAGING:
       return 'https://app.beta.gomboc.ai';
     case Stage.PROD:
       return 'https://app.gomboc.ai';
