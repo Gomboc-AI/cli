@@ -87,13 +87,21 @@ export class Client {
           }
         }
       })
-      consoleDebugger.log('scanRemoteMutationCall -- data: ', JSON.stringify(data))
+      consoleDebugger.log(`scanRemoteMutationCall -- success on attempt #${attempt}:`, JSON.stringify(data))
+
       return data
     } catch (e) {
-      consoleDebugger.log('scanRemoteMutationCall -- data: ', e)
-      if (attempt > 3) {
+      consoleDebugger.log(`scanRemoteMutationCall -- error on attempt #${attempt}:`, JSON.stringify(e))
+
+      const RETRY_ATTEMPTS = 3
+      const RETRY_DELAY_MILLISECONDS = 5000
+
+      if (attempt > RETRY_ATTEMPTS) {
         throw e
       }
+
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
+
       return await this.scanRemoteMutationCall({
         ...args,
         attempt: attempt + 1,
