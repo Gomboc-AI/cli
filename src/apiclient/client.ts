@@ -66,7 +66,10 @@ export class Client {
     effect: Effect,
     iacTool: InfrastructureTool,
     pullRequestIdentifier: string | null,
-    _attempt?: number
+    /**
+     * internal -- do not set this manually
+     */
+    _attempt?: number,
   }): Promise<ScanRemoteMutation> {
     const { targetDirectories, effect, iacTool, pullRequestIdentifier, _attempt = 1 } = args
 
