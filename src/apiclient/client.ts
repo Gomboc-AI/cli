@@ -16,6 +16,7 @@ import { ScanRemoteMutation as ScanRemoteMutationSelection } from './mutations/s
 import { consoleDebugger } from '../utils/ConsoleDebugger.js';
 import { ScanDirectoryActionResultsQuery as ScanDirectoryActionResultsQuerySelection } from './queries/scanDirectoryActionResults.js';
 import { ScanDirectoryStatusQuery as ScanDirectoryStatusQuerySelection } from './queries/scanDirectoryStatus.js';
+import { scan } from 'ramda';
 
 type AzdoOptions = {
   azdoBaseUrl: string,
@@ -65,12 +66,15 @@ export class Client {
     effect: Effect,
     iacTool: InfrastructureTool,
     pullRequestIdentifier: string | null,
+    attempt?: number
   }): Promise<ScanRemoteMutation> {
-    const { targetDirectories, effect, iacTool, pullRequestIdentifier } = args
+    const { targetDirectories, effect, iacTool, pullRequestIdentifier, attempt = 1 } = args
     consoleDebugger.log('scanRemoteMutationCall -- targetDirectories: ', targetDirectories)
     consoleDebugger.log('scanRemoteMutationCall -- effect: ', effect)
-    consoleDebugger.log('scanRemoteMutationCall -- iacTool: ', effect)
-    consoleDebugger.log('scanRemoteMutationCall -- : ', effect)
+    consoleDebugger.log('scanRemoteMutationCall -- iacTool: ', iacTool)
+    consoleDebugger.log('scanRemoteMutationCall -- prIdentifier: ', pullRequestIdentifier)
+    consoleDebugger.log('scanRemoteMutationCall -- attempt: ', attempt)
+
     try {
       const { data }: { data: ScanRemoteMutation } = await this.client.mutate<ScanRemoteMutation, ScanRemoteMutationVariables>({
         mutation: ScanRemoteMutationSelection,
@@ -87,7 +91,13 @@ export class Client {
       return data
     } catch (e) {
       consoleDebugger.log('scanRemoteMutationCall -- data: ', e)
-      throw e
+      if (attempt > 3) {
+        throw e
+      }
+      return await this.scanRemoteMutationCall({
+        ...args,
+        attempt: attempt + 1,
+      })
     }
   }
 
