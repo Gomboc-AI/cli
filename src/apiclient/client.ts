@@ -69,6 +69,7 @@ export class Client {
     _attempt?: number
   }): Promise<ScanRemoteMutation> {
     const { targetDirectories, effect, iacTool, pullRequestIdentifier, _attempt = 1 } = args
+
     consoleDebugger.log('scanRemoteMutationCall -- targetDirectories: ', targetDirectories)
     consoleDebugger.log('scanRemoteMutationCall -- effect: ', effect)
     consoleDebugger.log('scanRemoteMutationCall -- iacTool: ', iacTool)
@@ -96,9 +97,7 @@ export class Client {
       const RETRY_ATTEMPTS = 3
       const RETRY_DELAY_MILLISECONDS = 5000
 
-      if (_attempt > RETRY_ATTEMPTS) {
-        throw e
-      }
+      if (_attempt > RETRY_ATTEMPTS) throw e
 
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
 
@@ -111,6 +110,7 @@ export class Client {
 
   async scanBranchStatusQueryCall(scanRequestId: string): Promise<ScanBranchStatusQuery> {
       consoleDebugger.log('scanRemoteMutationCall -- scanRequestId:', scanRequestId)
+
       const { data }: { data: ScanBranchStatusQuery } = await this.client.query<ScanBranchStatusQuery, ScanBranchStatusQuery>({
         query: ScanBranchStatusQuerySelection,
         variables: {
@@ -118,11 +118,14 @@ export class Client {
         },
         fetchPolicy: 'no-cache'
       })
+
       consoleDebugger.log('scanRemoteMutationCall -- data:', JSON.stringify(data))
+
       return data
   }
   async scanDirectoryStatusQueryCall(scanRequestId: string): Promise<ScanDirectoryStatusQuery> {
     consoleDebugger.log('scanDirectoryStatusQueryCall -- scanRequestId:', scanRequestId)
+
     const { data }: { data: ScanDirectoryStatusQuery } = await this.client.query<ScanDirectoryStatusQuery, ScanDirectoryStatusQueryVariables>({
       query: ScanDirectoryStatusQuerySelection,
       variables: {
@@ -130,13 +133,16 @@ export class Client {
       },
       fetchPolicy: 'no-cache'
     })
+
     consoleDebugger.log('scanDirectoryStatusQueryCall -- data:', JSON.stringify(data))
+
     return data
   }
 
   async scanBranchActionResultsQueryCall(scanRequestId: string, pageSize: number): Promise<ScanBranchActionResultsQuery> {
     consoleDebugger.log('scanBranchActionResultsQueryCall -- scanRequestId:', scanRequestId)
     consoleDebugger.log('scanBranchActionResultsQueryCall -- pageSize:', pageSize)
+
     const { data }: { data: ScanBranchActionResultsQuery } = await this.client.query<ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables>({
       query: ScanBranchActionResultsQuerySelection,
       variables: {
@@ -144,7 +150,9 @@ export class Client {
         pageSize,
       }
     })
+
     consoleDebugger.log('scanBranchActionResultsQueryCall -- data:', JSON.stringify(data))
+
     return data
   }
   async scanDirectoryActionResultsQueryCall(scanRequestId: string, pageSize: number): Promise<ScanDirectoryActionResultsQuery> {
@@ -155,7 +163,9 @@ export class Client {
         pageSize,
       }
     })
+
     consoleDebugger.log('scanDirectoryActionResultsQueryCall -- data:', JSON.stringify(data))
+
     return data
   }
 }
