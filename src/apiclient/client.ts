@@ -66,14 +66,14 @@ export class Client {
     effect: Effect,
     iacTool: InfrastructureTool,
     pullRequestIdentifier: string | null,
-    attempt?: number
+    _attempt?: number
   }): Promise<ScanRemoteMutation> {
-    const { targetDirectories, effect, iacTool, pullRequestIdentifier, attempt = 1 } = args
+    const { targetDirectories, effect, iacTool, pullRequestIdentifier, _attempt = 1 } = args
     consoleDebugger.log('scanRemoteMutationCall -- targetDirectories: ', targetDirectories)
     consoleDebugger.log('scanRemoteMutationCall -- effect: ', effect)
     consoleDebugger.log('scanRemoteMutationCall -- iacTool: ', iacTool)
     consoleDebugger.log('scanRemoteMutationCall -- prIdentifier: ', pullRequestIdentifier)
-    consoleDebugger.log('scanRemoteMutationCall -- attempt: ', attempt)
+    consoleDebugger.log('scanRemoteMutationCall -- attempt: ', _attempt)
 
     try {
       const { data }: { data: ScanRemoteMutation } = await this.client.mutate<ScanRemoteMutation, ScanRemoteMutationVariables>({
@@ -87,16 +87,16 @@ export class Client {
           }
         }
       })
-      consoleDebugger.log(`scanRemoteMutationCall -- success on attempt #${attempt}:`, JSON.stringify(data))
+      consoleDebugger.log(`scanRemoteMutationCall -- success on attempt #${_attempt}:`, JSON.stringify(data))
 
       return data
     } catch (e) {
-      consoleDebugger.log(`scanRemoteMutationCall -- error on attempt #${attempt}:`, JSON.stringify(e))
+      consoleDebugger.log(`scanRemoteMutationCall -- error on attempt #${_attempt}:`, JSON.stringify(e))
 
       const RETRY_ATTEMPTS = 3
       const RETRY_DELAY_MILLISECONDS = 5000
 
-      if (attempt > RETRY_ATTEMPTS) {
+      if (_attempt > RETRY_ATTEMPTS) {
         throw e
       }
 
@@ -104,7 +104,7 @@ export class Client {
 
       return await this.scanRemoteMutationCall({
         ...args,
-        attempt: attempt + 1,
+        _attempt: _attempt + 1,
       })
     }
   }
