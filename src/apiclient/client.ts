@@ -16,7 +16,6 @@ import { ScanRemoteMutation as ScanRemoteMutationSelection } from './mutations/s
 import { consoleDebugger } from '../utils/ConsoleDebugger.js';
 import { ScanDirectoryActionResultsQuery as ScanDirectoryActionResultsQuerySelection } from './queries/scanDirectoryActionResults.js';
 import { ScanDirectoryStatusQuery as ScanDirectoryStatusQuerySelection } from './queries/scanDirectoryStatus.js';
-import { scan } from 'ramda';
 
 type AzdoOptions = {
   azdoBaseUrl: string,
