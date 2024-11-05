@@ -2,7 +2,7 @@ export enum Stage {
   LOCAL = 'LOCAL',
   BETA = 'BETA',
   PROD = 'PROD',
-  DEV = "DEV",
+  DEV = 'DEV',
 }
 
 // Environment variables:
@@ -44,7 +44,7 @@ const getServerUrl = (stage: Stage): string => {
   switch (stage) {
     case Stage.LOCAL:
       return 'http://localhost:4000/graphql';
-      case Stage.dev:
+      case Stage.DEV:
       return 'http://scan.dev.gcp.gomboc.ai.graphql';
     case Stage.BETA:
       return 'https://scan.beta.gomboc.ai/graphql';
