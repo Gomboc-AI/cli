@@ -75,7 +75,7 @@ jobs:
           tags: ${{ env.LATEST_TAG }}
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: 'gombocai/cli:latest'
           format: 'table'
