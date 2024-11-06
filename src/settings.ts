@@ -45,7 +45,7 @@ const getServerUrl = (stage: Stage): string => {
     case Stage.LOCAL:
       return 'http://localhost:4000/graphql';
       case Stage.DEV:
-      return 'http://scan.dev.gcp.gomboc.ai.graphql';
+      return 'http://scan.dev.gcp.gomboc.ai/graphql';
     case Stage.BETA:
       return 'https://scan.beta.gomboc.ai/graphql';
     case Stage.PROD:
