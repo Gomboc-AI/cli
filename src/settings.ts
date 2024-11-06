@@ -25,8 +25,8 @@ const getStage = (): Stage => {
   switch (envStage) {
     case 'LOCAL':
       return Stage.LOCAL;
-      case 'DEV':
-        return Stage.DEV;
+    case 'DEV':
+      return Stage.DEV;
     case 'BETA':
       return Stage.BETA;
     case 'PROD':
@@ -44,7 +44,7 @@ const getServerUrl = (stage: Stage): string => {
   switch (stage) {
     case Stage.LOCAL:
       return 'http://localhost:4000/graphql';
-      case Stage.DEV:
+    case Stage.DEV:
       return 'http://scan.dev.gcp.gomboc.ai/graphql';
     case Stage.BETA:
       return 'https://scan.beta.gomboc.ai/graphql';
@@ -61,7 +61,7 @@ const getClientUrl = (stage: Stage): string => {
   switch (stage) {
     case Stage.LOCAL:
       return 'http://localhost:3000';
-      case Stage.DEV:
+    case Stage.DEV:
       return 'https://app.dev.gcp.gomboc.ai';
     case Stage.BETA:
       return 'https://app.beta.gomboc.ai';
