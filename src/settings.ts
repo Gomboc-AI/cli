@@ -25,8 +25,8 @@ const getStage = (): Stage => {
   switch (envStage) {
     case 'LOCAL':
       return Stage.LOCAL;
-      case 'DEV':
-        return Stage.DEV;
+    case 'DEV':
+      return Stage.DEV;
     case 'BETA':
       return Stage.BETA;
     case 'PROD':
