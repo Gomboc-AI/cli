@@ -148,9 +148,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // In the grand scheme of CI/CD pipeline times, this is not terrible
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   // Start polling mechanism
-  const INITIAL_INTERVAL = 4 * 1000
-  const POLLING_INTERVAL = 2 * 1000
-  const TIMEOUT_LIMIT = 5 * 60 * 1000
+  const INITIAL_INTERVAL = 60 * 1000 // wait 1 minute before first poll
+  const POLLING_INTERVAL = 60 * 1000 // check once a minute
+  const TIMEOUT_LIMIT = 60 * 60 * 1000 // timeout after 1 hour
 
   // Initial call to check the status of the scan
   let scanStatusPollResult
