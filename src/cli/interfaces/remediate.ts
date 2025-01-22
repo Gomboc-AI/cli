@@ -23,7 +23,7 @@ export const clRemediateRemoteCheck = async (argv: Arguments<ExpectedArgs>): Pro
     // argv._[0] -> ServiceCommand (cloudformation, terraform)
     // argv._[1] -> VerbCommand (scan, remediate)
     // argv._[2] -> SourceCommand (remote, local)
-    // argv._[3] -> EffectCommand (submit-for-review, direct-apply)
+    // argv._[3] -> EffectCommand (submit-for-review, preview)
     const serviceCommand = argv._[0] as ServiceCommand
     const cl = new ConsoleLogger(false)
     const workingDirectoryOption = argv.workingDirectory ? argv.workingDirectory as string : null
