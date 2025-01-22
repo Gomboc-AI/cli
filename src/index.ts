@@ -102,7 +102,7 @@ await yargs(hideBin(process.argv))
               )
               yargs.command(
                 EffectCommand.PREVIEW,
-                '\ttPreview Remediate Remote Terraform code',
+                '\tPreview Remediate Remote Terraform code',
                 (yargs) => {
                   addExecuteCheck(yargs, clRemediateRemoteCheck)
                 }
