@@ -13,6 +13,7 @@ export interface Inputs {
   serverUrl: string
   targetDirectories: string[]
   effect: Effect
+  pullRequestIdentifier: string | null
   azdoOptions?: {
     azdoBaseUrl: string
     azdoOrganizationName: string
@@ -53,7 +54,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // This will call the mutation to trigger a scan, and handle a server error
   const handleScanRequest = async () => {
     try {
-      return await client.scanRemoteMutationCall(inputs.targetDirectories, inputs.effect)
+      return await client.scanRemoteMutationCall(inputs)
     } catch (e: any) {
       return { code: ExitCode.SERVER_ERROR, message: e.message } as ClientError
     }
@@ -147,9 +148,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // In the grand scheme of CI/CD pipeline times, this is not terrible
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   // Start polling mechanism
-  const INITIAL_INTERVAL = 4 * 1000
-  const POLLING_INTERVAL = 2 * 1000
-  const TIMEOUT_LIMIT = 5 * 60 * 1000
+  const INITIAL_INTERVAL = 60 * 1000 // wait 1 minute before first poll
+  const POLLING_INTERVAL = 60 * 1000 // check once a minute
+  const TIMEOUT_LIMIT = 60 * 60 * 1000 // timeout after 1 hour
 
   // Initial call to check the status of the scan
   let scanStatusPollResult
@@ -185,6 +186,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     }
 
     attempts++
+  /* eslint-disable no-constant-condition */
   } while (true)
 
   // Server has finished the scan, now we can request the results
