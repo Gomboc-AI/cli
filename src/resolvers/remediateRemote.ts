@@ -31,7 +31,7 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
   // The case where one AZDO option is provided and the other is handled in
 
   const client = new Client(inputs.serverUrl, inputs.iacTool, inputs.authToken, inputs.azdoOptions)
-
+  const suppressError = inputs.effect === Effect.Preview
   const cl = new ConsoleLogger()
 
   cl.log(formatTitle(`Running Gomboc.AI Remediate for Terraform (v${CLI_VERSION})`))
@@ -130,6 +130,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   if (scanRequestResponse.__typename === 'ClientError') {
     cl.err(scanRequestResponse.code, scanRequestResponse.message)
+    if (suppressError) {
+      return ExitCode.SUCCESS
+    }
     return scanRequestResponse.code
   }
 
@@ -182,23 +185,32 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
     if (totalAwaitedTime > TIMEOUT_LIMIT) {
       const timeoutMinutes = Math.floor(TIMEOUT_LIMIT / 60000)
       cl.err(ExitCode.SERVER_TIMEOUT_ERROR, `Scan timed out after ${timeoutMinutes} min. Please try again later`)
+      if (suppressError) {
+        return ExitCode.SUCCESS
+      }
       return ExitCode.SERVER_TIMEOUT_ERROR
     }
 
     attempts++
-  /* eslint-disable no-constant-condition */
+    /* eslint-disable no-constant-condition */
   } while (true)
 
   // Server has finished the scan, now we can request the results
   const scanActionResults = await handleScanActionResultsRequest(scanRequestId)
   if (scanActionResults.__typename === 'ClientError') {
     cl.err(scanActionResults.code, scanActionResults.message)
+    if (suppressError) {
+      return ExitCode.SUCCESS
+    }
     return scanActionResults.code
   }
 
   // Final check to see if everything is in order with the final query
   if (scanActionResults.childrenExpected != scanActionResults.childrenCompleted + scanActionResults.childrenError) {
     cl.err(ExitCode.SERVER_ERROR, 'Status reverted to NOT OK in final validation')
+    if (suppressError) {
+      return ExitCode.SUCCESS
+    }
     return ExitCode.SERVER_ERROR
   }
 
@@ -241,6 +253,9 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   if (atLeastOneViolationOrError) {
     cl.err(ExitCode.VIOLATIONS_FOUND, 'At least one violation or error was found')
+    if (suppressError) {
+      return ExitCode.SUCCESS
+    }
     return ExitCode.VIOLATIONS_FOUND
   }
 
