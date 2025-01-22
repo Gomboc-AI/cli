@@ -42,8 +42,8 @@ export const resolve = async (inputs: Inputs): Promise<ExitCode> => {
 
   cl._log(`Effect: ${hl(inputs.effect)}`)
 
-  if (inputs.effect === Effect.DirectApply) {
-    cl.__log(`Remediations will be committed to your current PR\n`)
+  if (inputs.effect === Effect.Preview) {
+    cl.__log(`Remediations will only be displayed and no commits will be made\n`)
   } else if (inputs.effect === Effect.SubmitForReview) {
     cl.__log(`Remediations will be committed in a new PR for your review\n`)
   }

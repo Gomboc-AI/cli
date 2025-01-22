@@ -124,7 +124,6 @@ export enum Disposition {
 }
 
 export enum Effect {
-  DirectApply = 'DirectApply',
   Preview = 'Preview',
   SubmitForReview = 'SubmitForReview'
 }
@@ -648,8 +647,7 @@ export type ScanDirectoryStatusQuery = { __typename: 'Query', scanDirectory: { _
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
-  implements DocumentTypeDecoration<TResult, TVariables>
-{
+  implements DocumentTypeDecoration<TResult, TVariables> {
   __apiType?: DocumentTypeDecoration<TResult, TVariables>['__apiType'];
 
   constructor(private value: string, public __meta__?: Record<string, any>) {

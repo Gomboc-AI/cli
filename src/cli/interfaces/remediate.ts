@@ -38,8 +38,8 @@ export const clRemediateRemoteCheck = async (argv: Arguments): Promise<ExitCode>
       switch (effect as EffectCommand) {
         case EffectCommand.SUBMIT_FOR_REVIEW:
           return Effect.SubmitForReview
-        case EffectCommand.DIRECT_APPLY:
-          return Effect.DirectApply
+        case EffectCommand.PREVIEW:
+          return Effect.Preview
         default:
           throw new Error(`Invalid effect: ${effect}.`)
       }
