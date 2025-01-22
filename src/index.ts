@@ -101,13 +101,13 @@ await yargs(hideBin(process.argv))
                 }
               )
               yargs.command(
-                EffectCommand.DIRECT_APPLY,
-                '\tRemediate Remote Terraform code',
+                EffectCommand.PREVIEW,
+                '\tPreview Remediate Remote Terraform code',
                 (yargs) => {
                   addExecuteCheck(yargs, clRemediateRemoteCheck)
                 }
               )
-              yargs.demandCommand(1, 'Specify an action [direct-apply, submit-for-review]')
+              yargs.demandCommand(1, 'Specify an action [preview, submit-for-review]')
             }
           )
           addAccessTokenOption(yargs)
@@ -143,13 +143,13 @@ await yargs(hideBin(process.argv))
                 }
               )
               yargs.command(
-                EffectCommand.DIRECT_APPLY,
-                '\tRemediate Remote Terraform code',
+                EffectCommand.PREVIEW,
+                '\tPreview Remediate Remote Terraform code',
                 (yargs) => {
                   addExecuteCheck(yargs, clRemediateRemoteCheck)
                 }
               )
-              yargs.demandCommand(1, 'Specify an action [direct-apply, submit-for-review]')
+              yargs.demandCommand(1, 'Specify an action [preview, submit-for-review]')
             }
           )
           addAccessTokenOption(yargs)

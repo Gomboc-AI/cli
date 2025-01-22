@@ -19,5 +19,5 @@ export enum ClientCommand {
 
 export enum EffectCommand {
   SUBMIT_FOR_REVIEW = 'submit-for-review',
-  DIRECT_APPLY = 'direct-apply'
+  PREVIEW = 'preview',
 }
