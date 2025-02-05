@@ -7,15 +7,16 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { Effect, InfrastructureTool, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanDirectoryActionResultsQuery, ScanDirectoryActionResultsQueryVariables, ScanDirectoryStatusQuery, ScanDirectoryStatusQueryVariables, ScanRemoteMutation, ScanRemoteMutationVariables } from './gql/graphql.js';
+import { Effect, InfrastructureTool, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchStatusQuery, ScanDirectoryActionResultsQuery, ScanDirectoryActionResultsQueryVariables, ScanDirectoryStatusQuery, ScanDirectoryStatusQueryVariables, ScanOnPullRequestMutation, ScanOnPullRequestMutationVariables, ScanOnScheduleMutation, ScanRemoteMutation, ScanRemoteMutationVariables } from './gql/graphql.js';
 
 import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus.js';
 import { ScanBranchActionResultsQuery as ScanBranchActionResultsQuerySelection } from './queries/scanBranchActionResults.js';
-import { ScanRemoteMutation as ScanRemoteMutationSelection } from './mutations/scanRemote.js';
+import { scanOnPullRequest } from './mutations/scanOnPullRequest.js';
 
 import { consoleDebugger } from '../utils/ConsoleDebugger.js';
 import { ScanDirectoryActionResultsQuery as ScanDirectoryActionResultsQuerySelection } from './queries/scanDirectoryActionResults.js';
 import { ScanDirectoryStatusQuery as ScanDirectoryStatusQuerySelection } from './queries/scanDirectoryStatus.js';
+import { settings } from '../settings.js';
 
 type AzdoOptions = {
   azdoBaseUrl: string,
@@ -23,16 +24,14 @@ type AzdoOptions = {
 }
 
 export class Client {
-  url: string
-  iacTool: InfrastructureTool;
+  iacTools: InfrastructureTool[];
   authToken?: string
   client: ApolloClient
 
-  constructor(url: string, iacTool: InfrastructureTool, authToken?: string, azdoOptions?: AzdoOptions) {
-    this.url = url
-    this.iacTool = iacTool
+  constructor(iacTools: InfrastructureTool[], authToken?: string, azdoOptions?: AzdoOptions) {
+    this.iacTools = iacTools
     this.authToken = authToken
-    const httpLink = new HttpLink({ uri: this.url, fetch: crossFetch })
+    const httpLink = new HttpLink({ uri: settings.SERVER_URL, fetch: crossFetch })
     const authLink = setContext((_: any, { headers }: any) => {
       headers = {
         'X-GOMBOC-CLI-VERSION': CLI_VERSION,
@@ -55,75 +54,117 @@ export class Client {
     })
 
     this.client = new ApolloClient({
-        link: authLink.concat(httpLink),
-        cache: new InMemoryCache()
+      link: authLink.concat(httpLink),
+      cache: new InMemoryCache()
     })
   }
 
-  async scanRemoteMutationCall(args: {
-    targetDirectories: string[],
-    effect: Effect,
-    iacTool: InfrastructureTool,
-    pullRequestIdentifier: string | null,
-    /**
-     * internal -- do not set this manually
-     */
-    _attempt?: number,
-  }): Promise<ScanRemoteMutation> {
-    const { targetDirectories, effect, iacTool, pullRequestIdentifier, _attempt = 1 } = args
+  private _listAllInputs(functionName: string, inputs: Record<string, any>): void {
+    for (const input in inputs) {
+      console.log(`${functionName} -- key: ${input}, value: ${inputs[input]}`)
+    }
+  }
 
-    consoleDebugger.log('scanRemoteMutationCall -- targetDirectories: ', targetDirectories)
-    consoleDebugger.log('scanRemoteMutationCall -- effect: ', effect)
-    consoleDebugger.log('scanRemoteMutationCall -- iacTool: ', iacTool)
-    consoleDebugger.log('scanRemoteMutationCall -- prIdentifier: ', pullRequestIdentifier)
-    consoleDebugger.log('scanRemoteMutationCall -- attempt: ', _attempt)
+  async scanOnScheduleMutationCall(args: {
+    directory: string,
+    recurse: boolean,
+    effect: Effect,
+    iacTools: InfrastructureTool[]
+    _attempts?: number
+  }): Promise<ScanOnScheduleMutation> {
+    const { directory, effect, iacTools, recurse, _attempts = 1 } = args
+
+    this._listAllInputs('scanOnScheduleMutationCall', args)
 
     try {
-      const { data }: { data: ScanRemoteMutation } = await this.client.mutate<ScanRemoteMutation, ScanRemoteMutationVariables>({
-        mutation: ScanRemoteMutationSelection,
+      const { data }: { data: ScanOnScheduleMutation } = await this.client.mutate<ScanOnPullRequestMutation, ScanOnPullRequestMutationVariables>({
+        mutation: scanOnPullRequest,
         variables: {
           input: {
-            workingDirectories: targetDirectories,
+            directory,
+            recurse,
             effect,
-            iacTool,
-            pullRequestIdentifier,
+            iacTools
           }
         }
       })
-      consoleDebugger.log(`scanRemoteMutationCall -- success on attempt #${_attempt}:`, JSON.stringify(data))
+      consoleDebugger.log(`scanOnScheduleMutationCall -- success on attempt #${_attempts}:`, JSON.stringify(data))
 
       return data
     } catch (e) {
-      consoleDebugger.log(`scanRemoteMutationCall -- error on attempt #${_attempt}:`, JSON.stringify(e))
+      consoleDebugger.log(`scanOnScheduleMutationCall -- error on attempt #${_attempts}:`, JSON.stringify(e))
 
       const RETRY_ATTEMPTS = 3
       const RETRY_DELAY_MILLISECONDS = 5000
 
-      if (_attempt > RETRY_ATTEMPTS) throw e
+      if (_attempts > RETRY_ATTEMPTS) throw e
 
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
 
-      return await this.scanRemoteMutationCall({
+      return await this.scanOnScheduleMutationCall({
         ...args,
-        _attempt: _attempt + 1,
+        _attempts: _attempts + 1,
+      })
+    }
+  }
+
+  async scanOnPullRequestMutationCall(args: {
+    scenarioPaths: string[],
+    pullRequestIdentifier: string,
+    effect: Effect,
+    iacTools: InfrastructureTool[]
+    _attempts?: number
+  }): Promise<ScanOnPullRequestMutation> {
+    const { scenarioPaths, effect, iacTools, pullRequestIdentifier, _attempts = 1 } = args
+
+    this._listAllInputs('scanOnPullRequestMutationCall', args)
+
+    try {
+      const { data }: { data: ScanOnPullRequestMutation } = await this.client.mutate<ScanOnPullRequestMutation, ScanOnPullRequestMutationVariables>({
+        mutation: scanOnPullRequest,
+        variables: {
+          input: {
+            scenarioPaths,
+            pullRequestIdentifier,
+            effect,
+            iacTools
+          }
+        }
+      })
+      consoleDebugger.log(`scanOnPullRequestMutationCall -- success on attempt #${_attempts}:`, JSON.stringify(data))
+
+      return data
+    } catch (e) {
+      consoleDebugger.log(`scanOnPullRequestMutationCall -- error on attempt #${_attempts}:`, JSON.stringify(e))
+
+      const RETRY_ATTEMPTS = 3
+      const RETRY_DELAY_MILLISECONDS = 5000
+
+      if (_attempts > RETRY_ATTEMPTS) throw e
+
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
+
+      return await this.scanOnPullRequestMutationCall({
+        ...args,
+        _attempts: _attempts + 1,
       })
     }
   }
 
   async scanBranchStatusQueryCall(scanRequestId: string): Promise<ScanBranchStatusQuery> {
-      consoleDebugger.log('scanRemoteMutationCall -- scanRequestId:', scanRequestId)
+    consoleDebugger.log('scanBranchStatusQueryCall -- scanRequestId:', scanRequestId)
 
-      const { data }: { data: ScanBranchStatusQuery } = await this.client.query<ScanBranchStatusQuery, ScanBranchStatusQuery>({
-        query: ScanBranchStatusQuerySelection,
-        variables: {
-          scanRequestId
-        },
-        fetchPolicy: 'no-cache'
-      })
+    const { data }: { data: ScanBranchStatusQuery } = await this.client.query<ScanBranchStatusQuery, ScanBranchStatusQuery>({
+      query: ScanBranchStatusQuerySelection,
+      variables: {
+        scanRequestId
+      },
+      fetchPolicy: 'no-cache'
+    })
 
-      consoleDebugger.log('scanRemoteMutationCall -- data:', JSON.stringify(data))
+    consoleDebugger.log('scanBranchStatusQueryCall -- data:', JSON.stringify(data))
 
-      return data
+    return data
   }
   async scanDirectoryStatusQueryCall(scanRequestId: string): Promise<ScanDirectoryStatusQuery> {
     consoleDebugger.log('scanDirectoryStatusQueryCall -- scanRequestId:', scanRequestId)
