@@ -17,7 +17,7 @@ const getValidEffectCommand = (effectArg: string) => {
 
 const translateIacOption = (iacOptions: string[]) => {
   const translatedIac: InfrastructureTool[] = []
-  for (const option in iacOptions) {
+  for (const option of iacOptions) {
     switch (option) {
       case IacOptions.CLOUDFORMATION:
         translatedIac.push(InfrastructureTool.Cloudformation)

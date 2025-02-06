@@ -25,11 +25,21 @@ export type ActionResult = {
    * @deprecated use policyObservations -- paginated
    */
   observations: Array<PolicyObservation>;
+  /** A page of policy observations in this scan result */
+  policyObservations: PolicyObservationsPage;
 };
 
 
 /** A Scan Result that originated from a Scan Request */
 export type ActionResultObservationsArgs = {
+  exclude?: InputMaybe<Array<Disposition>>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** A Scan Result that originated from a Scan Request */
+export type ActionResultPolicyObservationsArgs = {
   exclude?: InputMaybe<Array<Disposition>>;
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
@@ -1062,20 +1072,13 @@ export type ScanOnScheduleMutationVariables = Exact<{
 
 export type ScanOnScheduleMutation = { __typename: 'Mutation', scanOnSchedule: { __typename: 'ScanRequestResponseType', scanRequestId: string, errors: Array<{ __typename: 'GombocError', message: string, code?: GombocErrorCode | null } | null> } };
 
-export type ScanRemoteMutationVariables = Exact<{
-  input: ScanRemoteInput;
-}>;
-
-
-export type ScanRemoteMutation = { __typename: 'Mutation', scanRemote: string };
-
 export type ScanBranchActionResultsQueryVariables = Exact<{
   scanRequestId: Scalars['ID']['input'];
   pageSize: Scalars['Int']['input'];
 }>;
 
 
-export type ScanBranchActionResultsQuery = { __typename: 'Query', scanBranch: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanBranch', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number, children: Array<{ __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanScenario', id: string, result?: { __typename: 'ActionResult', id: string, observations: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle: string }> } | null }> } };
+export type ScanBranchActionResultsQuery = { __typename: 'Query', scanBranch: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanBranch', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number, children: Array<{ __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanScenario', id: string, result?: { __typename: 'ActionResult', id: string, policyObservations: { __typename: 'PolicyObservationsPage', results: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle: string }> } } | null }> } };
 
 export type ScanBranchStatusQueryVariables = Exact<{
   scanRequestId: Scalars['ID']['input'];
@@ -1090,7 +1093,7 @@ export type ScanDirectoryActionResultsQueryVariables = Exact<{
 }>;
 
 
-export type ScanDirectoryActionResultsQuery = { __typename: 'Query', scanDirectory: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanDirectory', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number, children: Array<{ __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanScenario', id: string, result?: { __typename: 'ActionResult', id: string, observations: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle: string }> } | null }> } };
+export type ScanDirectoryActionResultsQuery = { __typename: 'Query', scanDirectory: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanDirectory', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number, children: Array<{ __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanScenario', id: string, result?: { __typename: 'ActionResult', id: string, policyObservations: { __typename: 'PolicyObservationsPage', results: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle: string }> } } | null }> } };
 
 export type ScanDirectoryStatusQueryVariables = Exact<{
   scanRequestId: Scalars['ID']['input'];
@@ -1142,12 +1145,6 @@ export const ScanOnScheduleDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ScanOnScheduleMutation, ScanOnScheduleMutationVariables>;
-export const ScanRemoteDocument = new TypedDocumentString(`
-    mutation ScanRemote($input: ScanRemoteInput!) {
-  __typename
-  scanRemote(input: $input)
-}
-    `) as unknown as TypedDocumentString<ScanRemoteMutation, ScanRemoteMutationVariables>;
 export const ScanBranchActionResultsDocument = new TypedDocumentString(`
     query scanBranchActionResults($scanRequestId: ID!, $pageSize: Int!) {
   __typename
@@ -1167,18 +1164,20 @@ export const ScanBranchActionResultsDocument = new TypedDocumentString(`
           result {
             __typename
             id
-            observations(
+            policyObservations(
               exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE]
               page: 1
-              size: $pageSize
             ) {
               __typename
-              filepath
-              lineNumber
-              resourceName
-              resourceType
-              disposition
-              capabilityTitle
+              results {
+                __typename
+                filepath
+                lineNumber
+                resourceName
+                resourceType
+                disposition
+                capabilityTitle
+              }
             }
           }
         }
@@ -1251,18 +1250,20 @@ export const ScanDirectoryActionResultsDocument = new TypedDocumentString(`
           result {
             __typename
             id
-            observations(
+            policyObservations(
               exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE]
               page: 1
-              size: $pageSize
             ) {
               __typename
-              filepath
-              lineNumber
-              resourceName
-              resourceType
-              disposition
-              capabilityTitle
+              results {
+                __typename
+                filepath
+                lineNumber
+                resourceName
+                resourceType
+                disposition
+                capabilityTitle
+              }
             }
           }
         }

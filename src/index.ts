@@ -4,7 +4,7 @@ import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { EffectCommand, EventCommand, IacOptions } from './cli/commands.js'
 import { RECURSE_DEFAULT, TARGET_DIRECTORIES_DEFAULT, TARGET_DIRECTORY_DEFAULT } from './default.js'
-import { handleOnPullRequestCommand } from './cli/interfaces/remediate.js'
+import { handleOnPullRequestCommand, handleOnScheduleCommand } from './cli/interfaces/remediate.js'
 import { ConsoleLogger } from './utils/ConsoleLogger.js'
 import { ExitCode } from './cli/exitCodes.js'
 import { hl } from './utils/consoleUtils.js'
@@ -19,6 +19,7 @@ const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
 
 const addPullRequestOption = (argv: Argv) => {
   argv.option("pull-request", {
+    alias: 'pr',
     describe: "The pull request identifier (e.g. number)",
     type: "string",
     demandOption: true,
@@ -29,9 +30,9 @@ const addTargetDirectoriesOption = (argv: Argv) => {
   argv.option("target-directories", {
     alias: "tds",
     default: TARGET_DIRECTORIES_DEFAULT,
-    describe: "The target directories with IaC files",
+    describe: "Directories with IaC files that will be scanned",
     array: true,
-    type: "string",
+    type: "array",
     demandOption: false
   })
 }
@@ -40,7 +41,7 @@ const addTargetDirectoryOption = (argv: Argv) => {
   argv.option("target-directory", {
     default: TARGET_DIRECTORY_DEFAULT,
     alias: "td",
-    describe: "The target directory with IaC files. Defaults to '.' ",
+    describe: "Single directory with IaC files that will be scanned",
     type: "string",
     demandOption: false
   })
@@ -75,10 +76,9 @@ const addAzdoOrganizationNameOption = (argv: Argv) => {
 
 const addInfrastructureToolOption = (argv: Argv) => {
   argv.option("iac", {
-    alias: "iac",
     array: true,
-    describe: "A list of the infrastructure we should remediate",
-    type: "string",
+    describe: "A list of the IaC we should remediate",
+    type: "array",
     demandOption: true,
     choices: [IacOptions.CLOUDFORMATION, IacOptions.TERRAFORM]
   })
@@ -97,6 +97,7 @@ const onPullRequestCommand = (yargs: YargType) => {
     async (args) => {
       const suppressError = args.$0 === EffectCommand.AUDIT
       try {
+        console.log('---onPullRequestCommand')
         await handleOnPullRequestCommand(args)
       } catch (error: any) {
         const cl = new ConsoleLogger()
@@ -123,7 +124,8 @@ const onScheduleCommand = (yargs: YargType) => {
     async (args) => {
       const suppressError = args.$0 === EffectCommand.AUDIT
       try {
-        await handleOnPullRequestCommand(args)
+        console.log('---onPullRequestCommand')
+        await handleOnScheduleCommand(args)
       } catch (error: any) {
         const cl = new ConsoleLogger()
         cl.err(ExitCode.COMMAND_ERROR, error.message)
@@ -150,8 +152,8 @@ await yargs(hideBin(process.argv))
 
       addAzdoCollectionUriOption(yargs)
       addAzdoOrganizationNameOption(yargs)
-      addAuthTokenOption(yargs, true)
       addInfrastructureToolOption(yargs)
+      addAuthTokenOption(yargs, true)
     }
   )
   .command(
@@ -164,8 +166,8 @@ await yargs(hideBin(process.argv))
 
       addAzdoCollectionUriOption(yargs)
       addAzdoOrganizationNameOption(yargs)
-      addAuthTokenOption(yargs, true)
       addInfrastructureToolOption(yargs)
+      addAuthTokenOption(yargs, true)
     }
   )
   .demandCommand()

@@ -39,14 +39,23 @@ type OnPullRequestInputs = z.infer<typeof zOnPullRequestInputs>
 
 
 const resolveActionResult = async (scanRequestId: string, client: Client) => {
-  const actionResults = await client.getActionResults(scanRequestId)
+  const actionResults = await client.pollScanStatus(scanRequestId)
 
   // Keep track of whether there are any violations or failed scans to prevent or not deployment
   let atLeastOneViolation = false
 
   for (const iac in actionResults) {
+    // If its not part of the IaC tools included ignore the section
+    if (!client.iacTools.includes(InfrastructureTool[iac as keyof typeof InfrastructureTool])) { continue }
+    cl._log(`${hl(iac)} scan results:\n`)
     const results = actionResults[iac as keyof typeof actionResults]
     if (results == null) { continue }
+    const children = results.children.filter(child => {
+      return child.__typename === 'ScanScenario' && child.result != null
+    })
+    if (children.length === 0) {
+      cl.log('\tNo violations found\n')
+    }
 
     if (
       (
@@ -56,21 +65,19 @@ const resolveActionResult = async (scanRequestId: string, client: Client) => {
       results.childrenExpected != results.childrenCompleted + results.childrenError
     ) {
       throw new ClientError('Status reverted to NOT OK in final validation', ExitCode.SERVER_ERROR)
-    } else if (results.__typename === 'FailedScan' || results.__typename === 'GombocError') {
-      throw new ClientError('Scan failed', ExitCode.SERVER_ERROR)
     }
-    results.children.forEach((child) => {
-      cl._log('\n')
-      cl._log(`Scan result:\n`)
+    children.forEach((child: any) => {
       if (child.__typename === 'FailedScan') {
         throw new ClientError(`${child.message} (Scan ID: ${child.id})\n`, ExitCode.FAILED_SCAN)
       } else if (child.__typename === 'GombocError') {
         throw new ClientError(`${child.message} (Code: ${child.code ?? 'Unknown'})\n`, ExitCode.SERVER_ERROR)
+      } else if (child.__typename !== 'ScanScenario') {
+        throw new ClientError('Unexpected error occurred', ExitCode.SERVER_ERROR)
       } else {
-        if (child.result == null || child.result.observations == null || child.result.observations.length === 0) {
+        if (child.result == null || child.result.policyObservations.results.length === 0) {
           return
         }
-        child.result.observations.forEach((obs: any) => {
+        child.result.policyObservations.results.forEach((obs: any) => {
           const location = `${obs.filepath}, line ${obs.lineNumber}`
           cl.__log(`Policy observation at ${hl(location)}:`)
           cl.___log(`Resource: ${hl(obs.resourceName)} (${obs.resourceType})`)
@@ -79,7 +86,7 @@ const resolveActionResult = async (scanRequestId: string, client: Client) => {
           cl.___log(`Status: ${dispositionHighlight(obs.disposition)}`)
           atLeastOneViolation = true
         })
-        if (child.result.observations.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
+        if (child.result.policyObservations.results.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
           cl.__log(`...and possibly more`)
         }
         cl._log('\n')
@@ -109,7 +116,7 @@ export const resolveOnSchedule = async (inputs: OnScheduleInputs) => {
   cl.log(formatTitle(`Running Gomboc.AI Remediate for Terraform (v${CLI_VERSION})`))
 
   cl._log(`Target directory:\n`)
-  cl.__log(`${hl(inputs)} ${checkMark}\n`)
+  cl.__log(`${hl(inputs.directory)} ${checkMark}\n`)
   cl._log(`Recurse through nested directories:\n`)
   cl.__log(`${hl(recurse)}\n`)
 
