@@ -142,7 +142,7 @@ const onScheduleCommand = (yargs: YargType) => {
 await yargs(hideBin(process.argv))
   .command(
     EffectCommand.SUBMIT_FOR_REVIEW,
-    '\tRemediate remote Terraform code',
+    '\tSubmit a PR for IaC code',
     (yargs) => {
       onScheduleCommand(yargs)
       onPullRequestCommand(yargs)
@@ -155,8 +155,8 @@ await yargs(hideBin(process.argv))
     }
   )
   .command(
-    EffectCommand.SUBMIT_FOR_REVIEW,
-    '\tRemediate remote Terraform code',
+    EffectCommand.AUDIT,
+    '\tReview IaC code without blocking CI or submitting a PR',
     (yargs) => {
       onScheduleCommand(yargs)
       onPullRequestCommand(yargs)

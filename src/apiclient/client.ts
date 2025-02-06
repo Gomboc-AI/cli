@@ -7,7 +7,7 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
 import { CLI_VERSION } from '../cli/version.js';
-import { Effect, InfrastructureTool, ScanBranch, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchResponse, ScanBranchStatusQuery, ScanDirectory, ScanDirectoryActionResultsQuery, ScanDirectoryActionResultsQueryVariables, ScanDirectoryResponse, ScanDirectoryStatusQuery, ScanDirectoryStatusQueryVariables, ScanOnPullRequestMutation, ScanOnPullRequestMutationVariables, ScanOnScheduleMutation, ScanRemoteMutation, ScanRemoteMutationVariables } from './gql/graphql.js';
+import { Effect, InfrastructureTool, ScanBranch, ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables, ScanBranchResponse, ScanBranchStatusQuery, ScanDirectory, ScanDirectoryActionResultsQuery, ScanDirectoryActionResultsQueryVariables, ScanDirectoryResponse, ScanDirectoryStatusQuery, ScanDirectoryStatusQueryVariables, ScanOnPullRequestMutation, ScanOnPullRequestMutationVariables, ScanOnScheduleMutation } from './gql/graphql.js';
 
 import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus.js';
 import { ScanBranchActionResultsQuery as ScanBranchActionResultsQuerySelection } from './queries/scanBranchActionResults.js';
@@ -37,7 +37,7 @@ export class ClientError extends Error {
 }
 
 const cl = new ConsoleLogger()
-const POLICY_OBSERVATIONS_PAGE_SIZE = 10
+export const POLICY_OBSERVATIONS_PAGE_SIZE = 10
 
 export class Client {
   iacTools: InfrastructureTool[];
@@ -372,8 +372,8 @@ export class Client {
       terraformActionResult = terraformPoll
     }
     return {
-      cloudformation: cloudformationActionResult?.scanDirectory,
-      terraform: terraformActionResult?.scanBranch
+      cloudformationActionResult: cloudformationActionResult?.scanDirectory,
+      terraformActionResult: terraformActionResult?.scanBranch
     }
   }
 }

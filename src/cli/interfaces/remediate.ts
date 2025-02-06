@@ -1,38 +1,8 @@
 import { Arguments } from "yargs"
 
 import { resolveOnSchedule, resolveOnPullRequest, zOnScheduleInputs, zAzdoOptions, zOnPullRequestInputs } from "../../resolvers/remediateRemote.js"
-import { ExitCode } from "../exitCodes.js"
-import { ConsoleLogger } from "../../utils/ConsoleLogger.js"
-import { settings } from "../../settings.js"
-import { consoleDebugger } from "../../utils/ConsoleDebugger.js"
 import { Effect, InfrastructureTool } from "../../apiclient/gql/graphql.js"
 import { EffectCommand, EventCommand, IacOptions } from "../commands.js"
-
-type ExpectedArgs = {
-  infrastructureTool: string[]
-  authToken: string
-  targetDirectories?: string[]
-  targetDirectory?: string
-  recurse?: boolean
-  azdoOrganizationName: string
-  azdoCollectionUri: string
-  pullRequest?: string // the identifier, if one
-}
-
-
-
-const getAzdoOptions = (argv: Arguments<ExpectedArgs>) => {
-  const organizationName = argv.azdoOrganizationName
-  const collectionUri = argv.azdoCollectionUri
-  if ((organizationName == null || collectionUri == null)) {
-    return
-  } else {
-    return {
-      azdoOrganizationName: organizationName as string,
-      azdoBaseUrl: collectionUri as string
-    }
-  }
-}
 
 const getValidEffectCommand = (effectArg: string) => {
   switch (effectArg) {
