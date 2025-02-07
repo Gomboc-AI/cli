@@ -76,12 +76,12 @@ jobs:
         with:
           platforms: "linux/amd64,linux/arm64"
           push: ${{ github.event_name != 'push' }}
-          tags: ${{ env.TEST_TAG }} gombocai/cli:${{ VERSION }}-dev
+          tags: ${{ env.TEST_TAG }} gombocai/cli:${{ env.VERSION }}-dev
         
       - name: Check if tag exists
         id: tag-check
         run: |
-          TAG_EXISTS=$(docker manifest inspect ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ VERSION }} > /dev/null; echo $?)
+          TAG_EXISTS=$(docker manifest inspect ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }} > /dev/null; echo $?)
           if [ "$TAG_EXISTS" -eq 0 ]; then
             echo "Tag ${{ github.ref_name }} already exists. Skipping push."
             exit 1  # Exit the job early if the tag exists
@@ -93,7 +93,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.event_name == 'push' }}
-          tags: ${{ env.LATEST_TAG }} ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ VERSION }}
+          tags: ${{ env.LATEST_TAG }} ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
         
     
               
