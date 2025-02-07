@@ -65,11 +65,11 @@ jobs:
           image: ${{ env.TEST_TAG }}
           config: test/container-structure-test.yaml
 
-    - name: Get version from package.json
-      id: get_version
-      run: |
-        VERSION=$(node -p "require('./package.json').version")
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Push-dev
         uses: docker/build-push-action@v6
