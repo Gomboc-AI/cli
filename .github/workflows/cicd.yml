@@ -95,9 +95,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.event_name == 'push' }}
+          # For now, we will leave out the ${{ env.LATEST_TAG }} tag
           tags: |
-            ${{ env.LATEST_TAG }} 
             ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
           
-    
-              
