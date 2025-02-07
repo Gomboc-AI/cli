@@ -76,7 +76,9 @@ jobs:
         with:
           platforms: "linux/amd64,linux/arm64"
           push: ${{ github.event_name != 'push' }}
-          tags: ${{ env.TEST_TAG }} gombocai/cli:${{ env.VERSION }}-dev
+          tags: | 
+            ${{ env.TEST_TAG }} 
+            ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}-dev
         
       - name: Check if tag exists
         id: tag-check
@@ -93,7 +95,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.event_name == 'push' }}
-          tags: ${{ env.LATEST_TAG }} ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
+          tags: |
+          ${{ env.LATEST_TAG }} 
+          ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
         
     
               
