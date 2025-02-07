@@ -9,11 +9,11 @@ permissions:
 
 on:
   pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*'
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 env:
   # TODO: Change this based on the PR-number or event type 
@@ -70,13 +70,24 @@ jobs:
         with:
           platforms: "linux/amd64,linux/arm64"
           push: ${{ github.event_name != 'push' }}
-          tags: ${{ env.TEST_TAG }}
+          tags: ${{ env.TEST_TAG }} ${{ secrets.DOCKER_USERNAME }}/my-image:${{ github.ref_name }}-dev
         
+      - name: Check if tag exists
+        id: tag-check
+        run: |
+          TAG_EXISTS=$(docker manifest inspect ${{ secrets.DOCKER_USERNAME }}/cli:${{ github.ref_name }} > /dev/null; echo $?)
+          if [ "$TAG_EXISTS" -eq 0 ]; then
+            echo "Tag ${{ github.ref_name }} already exists. Skipping push."
+            exit 1  # Exit the job early if the tag exists
+          else
+            echo "Tag does not exist. Proceeding to build and push."
+          fi
+
       - name: Push
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.event_name == 'push' }}
-          tags: ${{ env.LATEST_TAG }}
+          tags: ${{ env.LATEST_TAG }} ${{ secrets.DOCKER_USERNAME }}/my-image:${{ github.ref_name }}
         
     
               
