@@ -9,11 +9,11 @@ permissions:
 
 on:
   pull_request:
-    tags:
-      - 'v*'
+    branch:
+      - 'main'
   push:
-    tags:
-      - 'v*'
+    branch:
+      - 'main'
 
 env:
   # TODO: Change this based on the PR-number or event type 
@@ -65,17 +65,23 @@ jobs:
           image: ${{ env.TEST_TAG }}
           config: test/container-structure-test.yaml
 
+    - name: Get version from package.json
+      id: get_version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Push-dev
         uses: docker/build-push-action@v6
         with:
           platforms: "linux/amd64,linux/arm64"
           push: ${{ github.event_name != 'push' }}
-          tags: ${{ env.TEST_TAG }} ${{ secrets.DOCKER_USERNAME }}/my-image:${{ github.ref_name }}-dev
+          tags: ${{ env.TEST_TAG }} gombocai/cli:$VERSION-dev
         
       - name: Check if tag exists
         id: tag-check
         run: |
-          TAG_EXISTS=$(docker manifest inspect ${{ secrets.DOCKER_USERNAME }}/cli:${{ github.ref_name }} > /dev/null; echo $?)
+          TAG_EXISTS=$(docker manifest inspect ${{ secrets.DOCKERHUB_USERNAME }}/cli:$VERSION > /dev/null; echo $?)
           if [ "$TAG_EXISTS" -eq 0 ]; then
             echo "Tag ${{ github.ref_name }} already exists. Skipping push."
             exit 1  # Exit the job early if the tag exists
@@ -87,7 +93,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.event_name == 'push' }}
-          tags: ${{ env.LATEST_TAG }} ${{ secrets.DOCKER_USERNAME }}/my-image:${{ github.ref_name }}
+          tags: ${{ env.LATEST_TAG }} ${{ secrets.DOCKERHUB_USERNAME }}/cli:$VERSION
         
     
               
