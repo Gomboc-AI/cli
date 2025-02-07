@@ -10,10 +10,10 @@ permissions:
 on:
   pull_request:
     branches:
-      - 'main'
+      - main
   push:
     branches:
-      - 'main'
+      - main
 
 env:
   # TODO: Change this based on the PR-number or event type 
