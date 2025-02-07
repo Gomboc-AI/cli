@@ -94,9 +94,7 @@ export class Client {
   }
 
   private _listAllInputs(functionName: string, inputs: Record<string, any>): void {
-    for (const input in inputs) {
-      console.log(`${functionName} -- key: ${input}, value: ${inputs[input]}`)
-    }
+    consoleDebugger.log(`${functionName} -- input`, JSON.stringify(inputs))
   }
 
   async scanOnScheduleMutationCall(args: {
@@ -125,13 +123,15 @@ export class Client {
       consoleDebugger.log(`scanOnScheduleMutationCall -- success on attempt #${_attempts}:`, JSON.stringify(data))
 
       return data
-    } catch (e) {
+    } catch (e: any) {
       consoleDebugger.log(`scanOnScheduleMutationCall -- error on attempt #${_attempts}:`, JSON.stringify(e))
 
       const RETRY_ATTEMPTS = 3
       const RETRY_DELAY_MILLISECONDS = 5000
 
-      if (_attempts > RETRY_ATTEMPTS) throw e
+      if (_attempts > RETRY_ATTEMPTS) {
+        throw new ClientError(`${e.message}`, ExitCode.CLIENT_ERROR)
+      }
 
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
 
@@ -181,7 +181,8 @@ export class Client {
       const RETRY_DELAY_MILLISECONDS = 5000
 
       if (_attempts > RETRY_ATTEMPTS) {
-        throw new ClientError(e?.message, e.code ?? ExitCode.SERVER_ERROR)
+        throw new ClientError('Please ensure the repository has been linked within the portal. If the issue persists please attempt the request later.',
+          e.code ?? ExitCode.SERVER_ERROR)
       }
 
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
@@ -201,7 +202,6 @@ export class Client {
       },
       fetchPolicy: 'no-cache'
     })
-    console.log('--- _terraformScanIsAvailable initialPoll', initialPoll)
     if (initialPoll.scanBranch.__typename === 'FailedScan') {
       throw new ClientError(`${initialPoll.scanBranch.message} (Scan ID: ${initialPoll.scanBranch.id})`, ExitCode.BUSINESS_ERROR)
     }
@@ -224,7 +224,6 @@ export class Client {
       },
       fetchPolicy: 'no-cache'
     })
-    console.log('--- _cloudformationScanIsAvailable initialPoll', initialPoll)
     if (initialPoll.scanDirectory.__typename === 'FailedScan') {
       throw new ClientError(`${initialPoll.scanDirectory.message} (Scan ID: ${initialPoll.scanDirectory.id})`, ExitCode.BUSINESS_ERROR)
     }
@@ -247,7 +246,6 @@ export class Client {
       },
       fetchPolicy: 'no-cache'
     })
-    console.log('---_getTerraformActionResult', data)
 
     if (data.scanBranch.__typename === 'FailedScan') {
       throw new ClientError(`${data.scanBranch.message} (Scan ID: ${data.scanBranch.id})`, ExitCode.BUSINESS_ERROR)
@@ -269,7 +267,6 @@ export class Client {
         },
         fetchPolicy: 'no-cache'
       })
-      console.log('---_getCloudformationActionResult', data)
       if (data.scanDirectory.__typename === 'FailedScan') {
         throw new ClientError(`${data.scanDirectory.message} (Scan ID: ${data.scanDirectory.id})`, ExitCode.BUSINESS_ERROR)
       }
@@ -277,8 +274,8 @@ export class Client {
         throw new ClientError(data.scanDirectory.message, ExitCode.SERVER_ERROR)
       }
       return data.scanDirectory as ScanDirectory
-    } catch (e) {
-      console.log('---e', e)
+    } catch (e: any) {
+      consoleDebugger.log('_getCloudformationActionResult error', e.message)
       throw e
     }
   }
@@ -291,8 +288,8 @@ export class Client {
     // In the grand scheme of CI/CD pipeline times, this is not terrible
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     // Start polling mechanism
-    const INITIAL_INTERVAL = 60 * 100 // wait 1 minute before first poll
-    const POLLING_INTERVAL = 60 * 100 // check once a minute
+    const INITIAL_INTERVAL = 60 * 1000 // wait 1 minute before first poll
+    const POLLING_INTERVAL = 60 * 1000 // check once a minute
     const TIMEOUT_LIMIT = 60 * 60 * 1000 // timeout after 1 hour
 
     // Initial call to check the status of the scan
@@ -322,7 +319,6 @@ export class Client {
           if (hasCloudFormationScan) {
             pollCloudformation = false
             cloudformationResults = await this._getCloudformationActionResult(scanRequestId)
-            console.log('---cloudformationResults', cloudformationResults)
           }
         }
       } catch (e) { /* empty */ }
@@ -339,13 +335,10 @@ export class Client {
       }
 
       attempts++
-      console.log('---sleeping for', POLLING_INTERVAL)
       await sleep(POLLING_INTERVAL)
       // eslint-disable-next-line no-constant-condition
     } while (true)
 
-    console.log('---returning cloudformationScans', cloudformationResults)
-    console.log('---returning terraformResults', terraformResults)
     return {
       Cloudformation: cloudformationResults,
       Terraform: terraformResults

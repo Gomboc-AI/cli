@@ -97,7 +97,6 @@ const onPullRequestCommand = (yargs: YargType) => {
     async (args) => {
       const suppressError = args.$0 === EffectCommand.AUDIT
       try {
-        console.log('---onPullRequestCommand')
         await handleOnPullRequestCommand(args)
       } catch (error: any) {
         const cl = new ConsoleLogger()
@@ -124,7 +123,6 @@ const onScheduleCommand = (yargs: YargType) => {
     async (args) => {
       const suppressError = args.$0 === EffectCommand.AUDIT
       try {
-        console.log('---onPullRequestCommand')
         await handleOnScheduleCommand(args)
       } catch (error: any) {
         const cl = new ConsoleLogger()
