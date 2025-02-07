@@ -9,10 +9,10 @@ permissions:
 
 on:
   pull_request:
-    branch:
+    branches:
       - 'main'
   push:
-    branch:
+    branches:
       - 'main'
 
 env:
