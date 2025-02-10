@@ -1,6 +1,6 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 import { addTypenameSelectionDocumentTransform } from '@graphql-codegen/client-preset'
- 
+
 // https://the-guild.dev/graphql/codegen/plugins/typescript/typed-document-node
 // https://the-guild.dev/graphql/codegen/plugins/presets/preset-client
 // https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#documentmode

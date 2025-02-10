@@ -2,17 +2,12 @@
 
 import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { clRemediateRemoteCheck } from './cli/interfaces/remediate.js'
-import { EffectCommand, VerbCommand, ServiceCommand, SourceCommand } from './cli/commands.js'
-
-
-const addExecuteCheck = (argv: Argv, callableCheck: CallableFunction) => {
-  // If reached, this check will execute the CLI and set an exit code
-  argv.check(async (argv) => {
-    process.exitCode = await callableCheck(argv) as number
-    return true
-  }, false)
-}
+import { EffectCommand, EventCommand, IacOptions } from './cli/commands.js'
+import { RECURSE_DEFAULT, TARGET_DIRECTORIES_DEFAULT, TARGET_DIRECTORY_DEFAULT } from './default.js'
+import { handleOnPullRequestCommand, handleOnScheduleCommand } from './cli/interfaces/remediate.js'
+import { ConsoleLogger } from './utils/ConsoleLogger.js'
+import { ExitCode } from './cli/exitCodes.js'
+import { hl } from './utils/consoleUtils.js'
 
 const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
   argv.option("auth-token", {
@@ -24,40 +19,40 @@ const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
 
 const addPullRequestOption = (argv: Argv) => {
   argv.option("pull-request", {
+    alias: 'pr',
     describe: "The pull request identifier (e.g. number)",
     type: "string",
-    demandOption: false,
-  })
-}
-
-const addAccessTokenOption = (argv: Argv) => {
-  argv.option("access-token", {
-    describe: "Access token to perform action to actions",
-    type: "string",
-    demandOption: false,
-    hidden: true,
-    deprecated: 'Not needed -- will be removed in future versions',
-  })
-}
-
-const addWorkingDirectoryOption = (argv: Argv) => {
-  argv.option("working-directory", {
-    alias: "wd",
-    describe: "The root directory for the Terraform configuration",
-    type: "string",
-    demandOption: false,
-    hidden: true,
-    deprecated: 'Not needed -- will be removed in future versions',
+    demandOption: true,
   })
 }
 
 const addTargetDirectoriesOption = (argv: Argv) => {
   argv.option("target-directories", {
-    alias: "td",
-    describe: "The target directories with IaC files",
+    alias: "tds",
+    default: TARGET_DIRECTORIES_DEFAULT,
+    describe: "Directories with IaC files that will be scanned",
     array: true,
+    type: "array",
+    demandOption: false
+  })
+}
+
+const addTargetDirectoryOption = (argv: Argv) => {
+  argv.option("target-directory", {
+    default: TARGET_DIRECTORY_DEFAULT,
+    alias: "td",
+    describe: "Single directory with IaC files that will be scanned",
     type: "string",
-    demandOption: false // Change to true in the future when we remove the working-directory option
+    demandOption: false
+  })
+}
+
+const addRecurseOption = (argv: Argv) => {
+  argv.option("recurse", {
+    default: RECURSE_DEFAULT,
+    describe: "Recurse through directories starting from the target-directory",
+    type: 'boolean',
+    demandOption: false,
   })
 }
 
@@ -79,90 +74,98 @@ const addAzdoOrganizationNameOption = (argv: Argv) => {
   })
 }
 
+const addInfrastructureToolOption = (argv: Argv) => {
+  argv.option("iac", {
+    array: true,
+    describe: "A list of the IaC we should remediate",
+    type: "array",
+    demandOption: true,
+    choices: [IacOptions.CLOUDFORMATION, IacOptions.TERRAFORM]
+  })
+}
+
+type YargType = Argv<any>
+
+const onPullRequestCommand = (yargs: YargType) => {
+  yargs.command(
+    EventCommand.ON_PULL_REQUEST,
+    '\tRemediate on pull requests',
+    (yargs) => {
+      addPullRequestOption(yargs)
+      addTargetDirectoriesOption(yargs)
+    },
+    async (args) => {
+      const suppressError = args.$0 === EffectCommand.AUDIT
+      try {
+        await handleOnPullRequestCommand(args)
+      } catch (error: any) {
+        const cl = new ConsoleLogger()
+        cl.err(ExitCode.COMMAND_ERROR, error.message)
+        if (suppressError) {
+          return yargs.exit(ExitCode.SUCCESS, new Error(
+            `${hl('SUPPRESSED ERROR')}:  ${error.message}`
+          ))
+        }
+        return yargs.exit(error?.code ?? ExitCode.COMMAND_ERROR, error)
+      }
+    }
+  )
+}
+
+const onScheduleCommand = (yargs: YargType) => {
+  yargs.command(
+    EventCommand.ON_SCHEDULE,
+    '\tRemediate on schedule',
+    (yargs) => {
+      addRecurseOption(yargs)
+      addTargetDirectoryOption(yargs)
+    },
+    async (args) => {
+      const suppressError = args.$0 === EffectCommand.AUDIT
+      try {
+        await handleOnScheduleCommand(args)
+      } catch (error: any) {
+        const cl = new ConsoleLogger()
+        cl.err(ExitCode.COMMAND_ERROR, error.message)
+        if (suppressError) {
+          yargs.exit(ExitCode.SUCCESS, new Error(
+            `${hl('SUPPRESSED ERROR')}:  ${error.message}`
+          ))
+        }
+        yargs.exit(ExitCode.COMMAND_ERROR, error)
+      }
+    }
+  )
+}
+
 // Setting CLI command and options
 await yargs(hideBin(process.argv))
   .command(
-    ServiceCommand.TERRAFORM,
-    '\tGomboc.AI Terraform service',
+    EffectCommand.SUBMIT_FOR_REVIEW,
+    '\tSubmit a PR for IaC code',
     (yargs) => {
-      yargs.command(
-        VerbCommand.REMEDIATE,
-        '\tRemediate Terraform code',
-        (yargs) => {
-          yargs.command(
-            SourceCommand.REMOTE,
-            '\tRemediate Remote Terraform code',
-            (yargs) => {
-              yargs.command(
-                EffectCommand.SUBMIT_FOR_REVIEW,
-                '\tRemediate Remote Terraform code',
-                (yargs) => {
-                  addExecuteCheck(yargs, clRemediateRemoteCheck)
-                }
-              )
-              yargs.command(
-                EffectCommand.PREVIEW,
-                '\tPreview Remediate Remote Terraform code',
-                (yargs) => {
-                  addExecuteCheck(yargs, clRemediateRemoteCheck)
-                }
-              )
-              yargs.demandCommand(1, 'Specify an action [preview, submit-for-review]')
-            }
-          )
-          addAccessTokenOption(yargs)
-          yargs.demandCommand(1, 'Specify a source [remote]')
-        }
-      )
-      addTargetDirectoriesOption(yargs)
-      addPullRequestOption(yargs)
-      addWorkingDirectoryOption(yargs)
+      onScheduleCommand(yargs)
+      onPullRequestCommand(yargs)
+      yargs.demandCommand(1, 1, 'Specify an action [on-pull-request, on-schedule]')
+
       addAzdoCollectionUriOption(yargs)
       addAzdoOrganizationNameOption(yargs)
+      addInfrastructureToolOption(yargs)
       addAuthTokenOption(yargs, true)
-      yargs.demandCommand(1, 'Specify a verb [remediate]')
     }
   )
   .command(
-    ServiceCommand.CLOUDFORMATION,
-    '\tGomboc.AI CloudFormation service',
+    EffectCommand.AUDIT,
+    '\tReview IaC code without blocking CI or submitting a PR',
     (yargs) => {
-      yargs.command(
-        VerbCommand.REMEDIATE,
-        '\tRemediate CloudFormation code',
-        (yargs) => {
-          yargs.command(
-            SourceCommand.REMOTE,
-            '\tRemediate Remote CloudFormation code',
-            (yargs) => {
-              yargs.command(
-                EffectCommand.SUBMIT_FOR_REVIEW,
-                '\tRemediate Remote CloudFormation code',
-                (yargs) => {
-                  addExecuteCheck(yargs, clRemediateRemoteCheck)
-                }
-              )
-              yargs.command(
-                EffectCommand.PREVIEW,
-                '\tPreview Remediate Remote Terraform code',
-                (yargs) => {
-                  addExecuteCheck(yargs, clRemediateRemoteCheck)
-                }
-              )
-              yargs.demandCommand(1, 'Specify an action [preview, submit-for-review]')
-            }
-          )
-          addAccessTokenOption(yargs)
-          yargs.demandCommand(1, 'Specify a source [remote]')
-        }
-      )
-      addTargetDirectoriesOption(yargs)
-      addPullRequestOption(yargs)
-      addWorkingDirectoryOption(yargs)
+      onScheduleCommand(yargs)
+      onPullRequestCommand(yargs)
+      yargs.demandCommand(1, 1, 'Specify an action [on-pull-request, on-schedule]')
+
       addAzdoCollectionUriOption(yargs)
       addAzdoOrganizationNameOption(yargs)
+      addInfrastructureToolOption(yargs)
       addAuthTokenOption(yargs, true)
-      yargs.demandCommand(1, 'Specify a verb [remediate]')
     }
   )
   .demandCommand()

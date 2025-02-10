@@ -65,18 +65,37 @@ jobs:
           image: ${{ env.TEST_TAG }}
           config: test/container-structure-test.yaml
 
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Push-dev
         uses: docker/build-push-action@v6
         with:
           platforms: "linux/amd64,linux/arm64"
           push: ${{ github.event_name != 'push' }}
-          tags: ${{ env.TEST_TAG }}
+          tags: | 
+            ${{ env.TEST_TAG }} 
+            ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}-dev
         
+      - name: Check if tag exists
+        id: tag-check
+        run: |
+          TAG_EXISTS=$(docker manifest inspect ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }} > /dev/null; echo $?)
+          if [ "$TAG_EXISTS" -eq 0 ]; then
+            echo "Tag ${{ github.ref_name }} already exists. Skipping push."
+            exit 1  # Exit the job early if the tag exists
+          else
+            echo "Tag does not exist. Proceeding to build and push."
+          fi
+
       - name: Push
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.event_name == 'push' }}
-          tags: ${{ env.LATEST_TAG }}
-        
-    
-              
+          # For now, we will leave out the ${{ env.LATEST_TAG }} tag
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
+          

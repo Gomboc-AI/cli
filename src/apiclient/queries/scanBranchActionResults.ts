@@ -2,7 +2,7 @@ import gql from 'graphql-tag'
 
 
 export const ScanBranchActionResultsQuery = gql` 
-  query scanBranchActionResults ($scanRequestId: ID!, $pageSize: Int!) {
+  query scanBranchActionResults ($scanRequestId: ID!, $size: Int!) {
     scanBranch(scanRequestId: $scanRequestId) {
       ... on ScanBranch {
         id
@@ -14,13 +14,17 @@ export const ScanBranchActionResultsQuery = gql`
             id
             result {
               id
-              observations(exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE], page: 1, size: $pageSize) {
-                filepath
-                lineNumber
-                resourceName
-                resourceType
-                disposition
-                capabilityTitle
+              policyObservations(
+              exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE], page: 1,size: $size
+              ){
+                results{
+                  filepath
+                  lineNumber
+                  resourceName
+                  resourceType
+                  disposition
+                  capabilityTitle
+                }
               }
             }
           }
