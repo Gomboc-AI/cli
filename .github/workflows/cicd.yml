@@ -47,13 +47,17 @@ jobs:
           tags: ${{ env.TEST_TAG }}
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ env.TEST_TAG }}
           format: 'table'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+        env:
+          ACTIONS_RUNTIME_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TRIVY_SKIP_DB_UPDATE: true
+          TRIVY_SKIP_JAVA_DB_UPDATE: true
 
       - name: run structure tests
         uses: plexsystems/container-structure-test-action@v0.1.0
@@ -61,25 +65,37 @@ jobs:
           image: ${{ env.TEST_TAG }}
           config: test/container-structure-test.yaml
 
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Push-dev
         uses: docker/build-push-action@v6
         with:
           platforms: "linux/amd64,linux/arm64"
           push: ${{ github.event_name != 'push' }}
-          tags: ${{ env.TEST_TAG }}
+          tags: | 
+            ${{ env.TEST_TAG }} 
+            ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}-dev
         
+      - name: Check if tag exists
+        id: tag-check
+        run: |
+          TAG_EXISTS=$(docker manifest inspect ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }} > /dev/null; echo $?)
+          if [ "$TAG_EXISTS" -eq 0 ]; then
+            echo "Tag ${{ github.ref_name }} already exists. Skipping push."
+            exit 1  # Exit the job early if the tag exists
+          else
+            echo "Tag does not exist. Proceeding to build and push."
+          fi
+
       - name: Push
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.event_name == 'push' }}
-          tags: ${{ env.LATEST_TAG }}
-
-
-
-
-
-
-
-
-
+          # For now, we will leave out the ${{ env.LATEST_TAG }} tag
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
           

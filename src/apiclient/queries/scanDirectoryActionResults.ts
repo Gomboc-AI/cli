@@ -2,7 +2,7 @@ import gql from 'graphql-tag'
 
 
 export const ScanDirectoryActionResultsQuery = gql` 
-  query scanDirectoryActionResults ($scanRequestId: ID!, $pageSize: Int!) {
+  query scanDirectoryActionResults ($scanRequestId: ID!, $size: Int!) {
     scanDirectory(scanRequestId: $scanRequestId) {
       ... on ScanDirectory {
           id
@@ -14,15 +14,19 @@ export const ScanDirectoryActionResultsQuery = gql`
             id
             result {
               id
-              observations(exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE], page: 1, size: $pageSize) {
-                filepath
-                lineNumber
-                resourceName
-                resourceType
-                disposition
-                capabilityTitle
+              policyObservations(
+              exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE], page: 1, size: $size
+              ){
+                results{
+                  filepath
+                  lineNumber
+                  resourceName
+                  resourceType
+                  disposition
+                  capabilityTitle
+                }
+              }
             }
-          }
         }
           ... on FailedScan {
             id
