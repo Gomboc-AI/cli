@@ -1,6 +1,6 @@
 {
   "name": "@gomboc-ai/cli",
-  "version": "0.10.0",
+  "version": "1.0.1",
   "description": "",
   "type": "module",
   "main": "bin/index.js",
@@ -63,6 +63,7 @@
     "simple-git": "^3.19.0",
     "yaml": "^2.2.2",
     "yargs": "^17.7.2",
-    "zip-a-folder": "^1.1.5"
+    "zip-a-folder": "^1.1.5",
+    "zod": "^3.24.1"
   }
 }
