@@ -113,7 +113,7 @@ export const resolveOnSchedule = async (inputs: OnScheduleInputs) => {
   } = inputs
   const client = new Client(iacTools, authToken, azdoOptions)
 
-  cl.log(formatTitle(`Running Gomboc.AI Remediate for Terraform (v${CLI_VERSION})`))
+  cl.log(formatTitle(`Running Gomboc.AI Remediate (v${CLI_VERSION})`))
 
   cl._log(`Target directory:\n`)
   cl.__log(`${hl(inputs.directory)} ${checkMark}\n`)
@@ -145,7 +145,7 @@ export const resolveOnPullRequest = async (inputs: OnPullRequestInputs) => {
   const client = new Client(iacTools, authToken, azdoOptions)
   const cl = new ConsoleLogger()
 
-  cl.log(formatTitle(`Running Gomboc.AI Remediate for Terraform (v${CLI_VERSION})`))
+  cl.log(formatTitle(`Running Gomboc.AI Remediate (v${CLI_VERSION})`))
 
   cl._log(`Target directories:\n`)
   for (const path of scenarioPaths) {
