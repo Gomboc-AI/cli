@@ -312,8 +312,8 @@ export class Client {
             terraformResults = await this._getTerraformActionResult(scanRequestId)
           }
         }
-      } catch (e) {
-        consoleDebugger.log('Failed polling for Terraform', { scanRequestId })
+      } catch (error) {
+        consoleDebugger.log('Failed polling for Terraform', { error })
       }
 
       try {
@@ -325,8 +325,8 @@ export class Client {
             cloudformationResults = await this._getCloudformationActionResult(scanRequestId)
           }
         }
-      } catch (e) {
-        consoleDebugger.log('Failed polling for Cloudformation', { scanRequestId })
+      } catch (error) {
+        consoleDebugger.log('Failed polling for Cloudformation', { error })
       }
 
       if (!pollTerraform && !pollCloudformation) { break }
