@@ -305,23 +305,29 @@ export class Client {
     do {
       try {
         if (pollTerraform) {
+          consoleDebugger.log('Polling for Terraform', { scanRequestId })
           const hasTerraformScan = await this._terraformScanIsAvailable(scanRequestId)
           if (hasTerraformScan) {
             pollTerraform = false
             terraformResults = await this._getTerraformActionResult(scanRequestId)
           }
         }
-      } catch (e) { /* empty */ }
+      } catch (error) {
+        consoleDebugger.log('Failed polling for Terraform', { error })
+      }
 
       try {
         if (pollCloudformation) {
+          consoleDebugger.log('Polling for Cloudformation', { scanRequestId })
           const hasCloudFormationScan = await this._cloudformationScanIsAvailable(scanRequestId)
           if (hasCloudFormationScan) {
             pollCloudformation = false
             cloudformationResults = await this._getCloudformationActionResult(scanRequestId)
           }
         }
-      } catch (e) { /* empty */ }
+      } catch (error) {
+        consoleDebugger.log('Failed polling for Cloudformation', { error })
+      }
 
       if (!pollTerraform && !pollCloudformation) { break }
 
