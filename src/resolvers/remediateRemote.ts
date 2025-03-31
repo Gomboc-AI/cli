@@ -90,7 +90,7 @@ const resolveActionResult = async (scanRequestId: string, client: Client) => {
           cl.__log(`...and possibly more`)
         }
         cl._log('\n')
-        cl.__log(`Find the details at ${settings.CLIENT_URL}/actions/${child.result.id}\n`)
+        cl.__log(`Find the details at ${settings.CLIENT_URL}/scans/${child.result.id}\n`)
       }
     })
   }

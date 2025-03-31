@@ -21,15 +21,11 @@ Please refer to the internal Gomboc Wiki if you need to work on this repo
 5. Because action results can potentially have many observations, CLI only asks for a first page of specific observations with violations
 6. Getting at least one of those observations (or a failed scan) will make the cli exit with an error code
 
-### Settings override
+### Settings override -- INTERNAL USE
 
-The main way way of specifying the environment is by setting `GOMBOC_STAGE` env var, with values `PROD`, `BETA`, or `LOCAL`
-
-After that, if you still wanted to override some values, you can set:
-- `GOMBOC_SERVER_URL_OVERRIDE` to set the base url for the API Server (`ScanAPI`)
-- `GOMBOC_CLIENT_URL_OVERRIDE` to set the base url for the web app client (`Portal`)
-
-You can also set `GOMBOC_DEBUG` to any value if you want more verbose debugging logs in the console.
+- `GOMBOC_SERVER_URL`: the url for the GraphQL API Server
+- `GOMBOC_CLIENT_URL`: the base url for the web app client
+- `GOMBOC_DEBUG`: provide any value to enable additional logging
 
 ### CLI
 
