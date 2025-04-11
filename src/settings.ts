@@ -7,9 +7,11 @@ export type Settings = {
 }
 
 export const getSettings = (): Settings => {
+  const gombocServerUrl = process.env.GOMBOC_SERVER_URL
+  const gombocClientUrl = process.env.GOMBOC_CLIENT_URL
   const settings = {
-    SERVER_URL: process.env.GOMBOC_SERVER_URL ?? 'https://scan.app.gomboc.ai/graphql',
-    CLIENT_URL: process.env.GOMBOC_CLIENT_URL ?? 'https://app.gomboc.ai',
+    SERVER_URL: gombocServerUrl == null || gombocServerUrl === '' ? 'https://scan.app.gomboc.ai/graphql' : gombocServerUrl,
+    CLIENT_URL: gombocClientUrl == null || gombocClientUrl === '' ? 'https://app.gomboc.ai' : gombocClientUrl,
     DEBUG_MODE: process.env.GOMBOC_DEBUG != null,
   }
   return settings
