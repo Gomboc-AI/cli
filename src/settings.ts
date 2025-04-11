@@ -1,4 +1,4 @@
-import { consoleDebugger } from './utils/ConsoleDebugger';
+
 
 export type Settings = {
   SERVER_URL: string;
@@ -12,8 +12,6 @@ export const getSettings = (): Settings => {
     CLIENT_URL: process.env.GOMBOC_CLIENT_URL ?? 'https://app.gomboc.ai',
     DEBUG_MODE: process.env.GOMBOC_DEBUG != null,
   }
-  consoleDebugger.log("Applied environment:", { env: process.env })
-  consoleDebugger.log("Applied settings:", { settings })
   return settings
 }
 
