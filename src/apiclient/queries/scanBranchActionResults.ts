@@ -15,7 +15,7 @@ export const ScanBranchActionResultsQuery = gql`
             result {
               id
               policyObservations(
-              exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE], page: 1,size: $size
+              exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE, CANNOT_REMEDIATE], page: 1,size: $size
               ){
                 results{
                   filepath
