@@ -130,7 +130,7 @@ export class Client {
       const RETRY_DELAY_MILLISECONDS = 5000
 
       if (_attempts > RETRY_ATTEMPTS) {
-        throw new ClientError(`${e.message}`, ExitCode.CLIENT_ERROR)
+        throw new ClientError(`${e.message}`, ExitCode.SERVER_ERROR)
       }
 
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
@@ -171,7 +171,7 @@ export class Client {
       if (data.scanOnPullRequest.scanRequestId == null) {
         cl.err(ExitCode.SERVER_ERROR, 'Scan request was rejected by the server. Make sure that you have defined a security policy and that this repository has been linked to a project\n')
         cl.log(`Aborting...\n`)
-        throw new ClientError('Scan request was rejected by the server.', ExitCode.SUCCESS)
+        throw new ClientError('Scan request was rejected by the server.', ExitCode.SERVER_ERROR)
       }
       return data
     } catch (e: any) {
@@ -182,7 +182,7 @@ export class Client {
 
       if (_attempts > RETRY_ATTEMPTS) {
         throw new ClientError('Please ensure the repository has been linked within the portal. If the issue persists please attempt the request later.',
-          e.code ?? ExitCode.SERVER_ERROR)
+          ExitCode.SERVER_ERROR)
       }
 
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
@@ -276,7 +276,7 @@ export class Client {
       return data.scanDirectory as ScanDirectory
     } catch (e: any) {
       consoleDebugger.log('_getCloudformationActionResult error', e.message)
-      throw e
+      throw new ClientError("Unexpected CFN action result error", ExitCode.SERVER_ERROR)
     }
   }
 
