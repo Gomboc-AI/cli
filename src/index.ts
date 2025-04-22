@@ -106,6 +106,11 @@ const onPullRequestCommand = (yargs: YargType) => {
             `${hl('SUPPRESSED ERROR')}:  ${error.message}`
           ))
         }
+        if (error.code !== ExitCode.VIOLATIONS_FOUND || error.code !== ExitCode.INVALID_ARGUMENTS) {
+          return yargs.exit(ExitCode.SUCCESS, new Error(
+            `${hl('INTERNAL SERVER ERROR')}:  ${error.message}`
+          ))
+        }
         return yargs.exit(error?.code ?? ExitCode.COMMAND_ERROR, error)
       }
     }
@@ -130,6 +135,11 @@ const onScheduleCommand = (yargs: YargType) => {
         if (suppressError) {
           yargs.exit(ExitCode.SUCCESS, new Error(
             `${hl('SUPPRESSED ERROR')}:  ${error.message}`
+          ))
+        }
+        if (error.code !== ExitCode.VIOLATIONS_FOUND || error.code !== ExitCode.INVALID_ARGUMENTS) {
+          return yargs.exit(ExitCode.SUCCESS, new Error(
+            `${hl('INTERNAL SERVER ERROR')}:  ${error.message}`
           ))
         }
         yargs.exit(ExitCode.COMMAND_ERROR, error)
