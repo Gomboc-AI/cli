@@ -3,9 +3,11 @@ import { hl } from './consoleUtils.js';
 
 
 class ConsoleDebugger {
+  isSilenced: boolean
 
   constructor() {
-    if (settings.DEBUG_MODE) {
+    this.isSilenced = !settings.DEBUG_MODE;
+    if (!this.isSilenced) {
       console.log(hl(`..:: DEBUG IS ON`))
       console.log("Applied environment:", { env: process.env })
       console.log("Applied settings:", { settings })
@@ -14,7 +16,7 @@ class ConsoleDebugger {
   }
 
   public log = (title: string, content: any) => {
-    if (settings.DEBUG_MODE) {
+    if (!this.isSilenced) {
       console.log(hl(`..:: DEBUG ${title}`), content)
     }
   }
