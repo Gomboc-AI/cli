@@ -12,6 +12,7 @@ const DEFAULT_GOMBOC_CLIENT_URL = 'https://app.gomboc.ai'
 export const getSettings = (): Settings => {
   let gombocServerUrl = process.env.GOMBOC_SERVER_URL ?? ''
   let gombocClientUrl = process.env.GOMBOC_CLIENT_URL ?? ''
+  const debug = process.env.GOMBOC_DEBUG ?? ''
 
   try {
     new URL(gombocClientUrl)
@@ -30,7 +31,7 @@ export const getSettings = (): Settings => {
   const settings = {
     SERVER_URL: gombocServerUrl,
     CLIENT_URL: gombocClientUrl,
-    DEBUG_MODE: process.env.GOMBOC_DEBUG != null,
+    DEBUG_MODE: debug ? true : false,
   }
   return settings
 }
