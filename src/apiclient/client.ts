@@ -120,6 +120,12 @@ export class Client {
           }
         }
       })
+
+      if (data.scanOnSchedule.errors.length > 0) {
+        consoleDebugger.log('Failed to remediate request', JSON.stringify(data))
+        throw new ClientError('Scan request was rejected by the server.', ExitCode.SERVER_ERROR)
+      }
+
       consoleDebugger.log(`scanOnScheduleMutationCall -- success on attempt #${_attempts}:`, JSON.stringify(data))
 
       return data
@@ -165,6 +171,12 @@ export class Client {
           }
         }
       })
+
+      if (data.scanOnPullRequest.errors.length > 0) {
+        consoleDebugger.log('Failed to remediate request', JSON.stringify(data))
+        throw new ClientError('Scan request was rejected by the server.', ExitCode.SERVER_ERROR)
+      }
+
       consoleDebugger.log(`scanOnPullRequestMutationCall -- success on attempt #${_attempts}:`, JSON.stringify(data))
 
       // Mutation needs to be updated to make this nullable
