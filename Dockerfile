@@ -1,5 +1,5 @@
 # Build
-FROM node:18.17.0-slim AS build
+FROM node:22.15.1-slim AS build
 WORKDIR /app
 COPY . .
 
@@ -8,7 +8,7 @@ RUN npm install \
     && npm run build
 
 # Prod modules
-FROM node:18.17.0-slim AS prod-modules
+FROM node:22.15.1-slim AS prod-modules
 WORKDIR /app
 COPY --from=build /app ./
 RUN npm ci --omit=dev
