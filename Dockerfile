@@ -1,5 +1,5 @@
 # Build
-FROM node:18.17.0-slim AS build
+FROM node:22.15.1-slim AS build
 WORKDIR /app
 COPY . .
 
