@@ -101,6 +101,17 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://npm.pkg.github.com/
+          scope: '@Gomboc-AI'
+
+      - name: Install Dependencies
+        run: npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Test
         run: npm run test:coverage
 
