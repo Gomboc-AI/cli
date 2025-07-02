@@ -2,14 +2,14 @@
   "name": "@gomboc-ai/cli",
   "version": "1.0.13",
   "description": "",
+  "main": "bin/bundle.cjs",
   "type": "module",
-  "main": "bin/index.js",
   "engines": {
     "node": "v22.15.1",
     "npm": ">=8.1.0"
   },
   "bin": {
-    "gomboc": "bin/index.js"
+    "gomboc": "bin/bundle.cjs"
   },
   "scripts": {
     "bootstrap": "npm i && npm run generate && npm run build",
@@ -18,7 +18,7 @@
     "prebuild": "node -p \"'export const CLI_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/cli/version.ts",
     "lint": "eslint --ext .ts src",
     "lint:fix": "eslint --ext .ts src --fix",
-    "build": "tsc",
+    "build": "webpack",
     "gomboc-dev": "ts-node --esm src/index.ts",
     "generate": "graphql-codegen"
   },
@@ -57,8 +57,11 @@
     "jest": "^30.0.3",
     "prettier": "3.2.5",
     "ts-jest": "^29.4.0",
+    "ts-loader": "^9.5.2",
     "ts-node": "^10.9.1",
-    "typescript": "^5.4.4"
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
     "@apollo/client": "^3.8",
