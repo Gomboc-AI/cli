@@ -1,5 +1,5 @@
-import { settings } from '../settings.js';
-import { hl } from './consoleUtils.js';
+import { settings } from '../settings';
+import { hl } from './consoleUtils';
 
 
 class ConsoleDebugger {

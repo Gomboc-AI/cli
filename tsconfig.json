@@ -16,11 +16,12 @@
   "allowSyntheticDefaultImports": true,
   "esModuleInterop": true,
   "include": [
-    "src"
+    "src",
+    "test"
   ],
   "exclude": [
     "bin",
     "node_modules",
-    "**/__tests__/*"
+    "babel.config.cjs",
   ]
 }

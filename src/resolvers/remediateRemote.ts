@@ -1,10 +1,10 @@
-import { Client, ClientError, POLICY_OBSERVATIONS_PAGE_SIZE } from '../apiclient/client.js'
-import { ConsoleLogger } from '../utils/ConsoleLogger.js'
-import { ExitCode } from '../cli/exitCodes.js'
-import { hl, checkMark, formatTitle, hlSuccess, hlError } from '../utils/consoleUtils.js'
-import { CLI_VERSION } from '../cli/version.js'
-import { Effect, InfrastructureTool } from '../apiclient/gql/graphql.js'
-import { settings } from '../settings.js'
+import { Client, ClientError, POLICY_OBSERVATIONS_PAGE_SIZE } from '../apiclient/client'
+import { ConsoleLogger } from '../utils/ConsoleLogger'
+import { ExitCode } from '../cli/exitCodes'
+import { hl, checkMark, formatTitle, hlSuccess, hlError } from '../utils/consoleUtils'
+import { CLI_VERSION } from '../cli/version'
+import { Effect, InfrastructureTool } from '../apiclient/gql/graphql'
+import { settings } from '../settings'
 import { z } from 'zod'
 
 

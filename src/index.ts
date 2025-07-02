@@ -2,12 +2,12 @@
 
 import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { EffectCommand, EventCommand, IacOptions } from './cli/commands.js'
-import { RECURSE_DEFAULT, TARGET_DIRECTORIES_DEFAULT, TARGET_DIRECTORY_DEFAULT } from './default.js'
-import { handleOnPullRequestCommand, handleOnScheduleCommand } from './cli/interfaces/remediate.js'
-import { ConsoleLogger } from './utils/ConsoleLogger.js'
-import { ExitCode } from './cli/exitCodes.js'
-import { hl } from './utils/consoleUtils.js'
+import { EffectCommand, EventCommand, IacOptions } from './cli/commands'
+import { RECURSE_DEFAULT, TARGET_DIRECTORIES_DEFAULT, TARGET_DIRECTORY_DEFAULT } from './default'
+import { handleOnPullRequestCommand, handleOnScheduleCommand } from './cli/interfaces/remediate'
+import { ConsoleLogger } from './utils/ConsoleLogger'
+import { ExitCode } from './cli/exitCodes'
+import { hl } from './utils/consoleUtils'
 
 const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
   argv.option("auth-token", {

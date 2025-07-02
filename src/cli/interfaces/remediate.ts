@@ -1,10 +1,10 @@
 import { Arguments } from "yargs"
 
-import { resolveOnSchedule, resolveOnPullRequest, zOnScheduleInputs, zAzdoOptions, zOnPullRequestInputs } from "../../resolvers/remediateRemote.js"
-import { Effect, InfrastructureTool } from "../../apiclient/gql/graphql.js"
-import { EffectCommand, EventCommand, IacOptions } from "../commands.js"
-import { ClientError } from '../../apiclient/client.js'
-import { ExitCode } from '../exitCodes.js'
+import { resolveOnSchedule, resolveOnPullRequest, zOnScheduleInputs, zAzdoOptions, zOnPullRequestInputs } from "../../resolvers/remediateRemote"
+import { Effect, InfrastructureTool } from "../../apiclient/gql/graphql"
+import { EffectCommand, EventCommand, IacOptions } from "../commands"
+import { ClientError } from '../../apiclient/client'
+import { ExitCode } from '../exitCodes'
 
 const getValidEffectCommand = (effectArg: string) => {
   switch (effectArg) {
@@ -34,7 +34,7 @@ const translateIacOption = (iacOptions: string[]) => {
   return translatedIac
 }
 export const handleOnScheduleCommand = async (argv: Arguments) => {
-  // argv._[0] -> EffectCommand (submit-for-review, preview)
+  // argv._[0] -> EffectCommand (submit-for-review, )
   // argv._[1] -> EventCommand (on-pull-request, on-schedule)
   const [effectCommand, eventCommand] = argv._
   if (
@@ -77,7 +77,7 @@ export const handleOnScheduleCommand = async (argv: Arguments) => {
 }
 
 export const handleOnPullRequestCommand = async (argv: Arguments) => {
-  // argv._[0] -> EffectCommand (submit-for-review, preview)
+  // argv._[0] -> EffectCommand (submit-for-review, )
   // argv._[1] -> EventCommand (on-pull-request, on-schedule)
   const [effectCommand, eventCommand] = argv._
   if (eventCommand != EventCommand.ON_PULL_REQUEST ||
