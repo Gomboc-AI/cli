@@ -45,7 +45,7 @@ COPY --from=prod-modules /sbin /sbin
 COPY --from=prod-modules /tmp /tmp
 COPY --from=prod-modules /sys /sys
 COPY --from=prod-modules /usr /usr
-RUN chmod +x dist/bundle.js
+RUN chmod +x dist/bundle.cjs
 
 
 ENTRYPOINT []
