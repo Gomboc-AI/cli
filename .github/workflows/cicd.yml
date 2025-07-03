@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -98,4 +100,23 @@ jobs:
           # For now, we will leave out the ${{ env.LATEST_TAG }} tag
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://npm.pkg.github.com/
+          scope: '@Gomboc-AI'
+
+      - name: Install Dependencies
+        run: npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test
+        run: npm run test:coverage
+
+      - name: Upload coverage
+        run: |
+          export CODACY_PROJECT_TOKEN=${{ secrets.CODACY_PROJECT_TOKEN }}
+          bash <(curl -Ls https://coverage.codacy.com/get.sh)
           

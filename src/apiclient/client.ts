@@ -6,7 +6,7 @@ import { HttpLink } from "@apollo/client/link/http/http.cjs";
 // @ts-ignore
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
-import { CLI_VERSION } from '../cli/version.js';
+import { CLI_VERSION } from '../cli/version';
 import {
   Effect,
   InfrastructureTool,
@@ -24,19 +24,19 @@ import {
   ScanOnPullRequestMutationVariables,
   ScanOnScheduleMutation,
   ScanOnScheduleMutationVariables
-} from './gql/graphql.js';
+} from './gql/graphql';
 
-import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus.js';
-import { scanOnPullRequest } from './mutations/scanOnPullRequest.js';
-import { scanOnSchedule } from './mutations/scanOnSchedule.js';
+import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus';
+import { scanOnPullRequest } from './mutations/scanOnPullRequest';
+import { scanOnSchedule } from './mutations/scanOnSchedule';
 
-import { consoleDebugger } from '../utils/ConsoleDebugger.js';
-import { ScanDirectoryStatusQuery as ScanDirectoryStatusQuerySelection } from './queries/scanDirectoryStatus.js';
-import { settings } from '../settings.js';
-import { ExitCode } from '../cli/exitCodes.js';
-import { ConsoleLogger } from '../utils/ConsoleLogger.js';
-import { ScanBranchActionResultsQuery } from './queries/scanBranchActionResults.js';
-import { ScanDirectoryActionResultsQuery } from './queries/scanDirectoryActionResults.js';
+import { consoleDebugger } from '../utils/ConsoleDebugger';
+import { ScanDirectoryStatusQuery as ScanDirectoryStatusQuerySelection } from './queries/scanDirectoryStatus';
+import { settings } from '../settings';
+import { ExitCode } from '../cli/exitCodes';
+import { ConsoleLogger } from '../utils/ConsoleLogger';
+import { ScanBranchActionResultsQuery } from './queries/scanBranchActionResults';
+import { ScanDirectoryActionResultsQuery } from './queries/scanDirectoryActionResults';
 
 type AzdoOptions = {
   azdoBaseUrl: string,

@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { ExitCode } from '../cli/exitCodes.js';
+import { ExitCode } from '../cli/exitCodes';
 
 
 export class ConsoleLogger {
@@ -10,7 +10,7 @@ export class ConsoleLogger {
   }
 
   private logIndented = (message: string, indentation: number) => {
-    if(!this.isSilenced){
+    if (!this.isSilenced) {
       console.log(`${'  '.repeat(indentation)}${message}`)
     }
   }
