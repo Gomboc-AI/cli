@@ -298,9 +298,9 @@ export class Client {
     // In the grand scheme of CI/CD pipeline times, this is not terrible
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     // Start polling mechanism
-    const INITIAL_INTERVAL = 1000 // wait 1 minute before first poll
-    const POLLING_INTERVAL = 1000 // check once a minute
-    const TIMEOUT_LIMIT = 1200000 // timeout after 1 hour
+    const INITIAL_INTERVAL = 60 * 1000 // wait 1 minute before first poll
+    const POLLING_INTERVAL = 60 * 1000 // check once a minute
+    const TIMEOUT_LIMIT = 60 * 60 * 1000 // timeout after 1 hour
 
     // Initial call to check the status of the scan
     let attempts = 1
