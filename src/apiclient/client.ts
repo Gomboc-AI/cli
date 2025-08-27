@@ -221,7 +221,7 @@ export class Client {
       return false
     }
     if (initialPoll.scanBranch.childrenExpected != initialPoll.scanBranch.childrenCompleted + initialPoll.scanBranch.childrenError) {
-      throw new ClientError('Status reverted to NOT OK in final validation', ExitCode.SERVER_ERROR)
+      throw new ClientError('Scans are still being completed', ExitCode.SERVER_ERROR)
     }
     return true
 
@@ -243,7 +243,7 @@ export class Client {
       return false
     }
     if (initialPoll.scanDirectory.childrenExpected != initialPoll.scanDirectory.childrenCompleted + initialPoll.scanDirectory.childrenError) {
-      throw new ClientError('Status reverted to NOT OK in final validation', ExitCode.SERVER_ERROR)
+      throw new ClientError('Scans are still being completed', ExitCode.SERVER_ERROR)
     }
     return true
 
@@ -258,7 +258,6 @@ export class Client {
       },
       fetchPolicy: 'no-cache'
     })
-
     if (data.scanBranch.__typename === 'FailedScan') {
       throw new ClientError(`${data.scanBranch.message} (Scan ID: ${data.scanBranch.id})`, ExitCode.BUSINESS_ERROR)
     }
@@ -299,9 +298,9 @@ export class Client {
     // In the grand scheme of CI/CD pipeline times, this is not terrible
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     // Start polling mechanism
-    const INITIAL_INTERVAL = 60 * 1000 // wait 1 minute before first poll
-    const POLLING_INTERVAL = 60 * 1000 // check once a minute
-    const TIMEOUT_LIMIT = 60 * 60 * 1000 // timeout after 1 hour
+    const INITIAL_INTERVAL = 1000 // wait 1 minute before first poll
+    const POLLING_INTERVAL = 1000 // check once a minute
+    const TIMEOUT_LIMIT = 1200000 // timeout after 1 hour
 
     // Initial call to check the status of the scan
     let attempts = 1
@@ -339,7 +338,6 @@ export class Client {
       } catch (error) {
         consoleDebugger.log('Failed polling for Cloudformation', { error })
       }
-
       if (!pollTerraform && !pollCloudformation) { break }
 
       // Server is still working on the children scan
