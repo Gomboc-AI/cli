@@ -53,6 +53,7 @@ export const handleOnScheduleCommand = async (argv: Arguments) => {
     recurse,
     azdoOrganizationName,
     azdoCollectionUri,
+    format
   } = argv
 
   const azdoOptions = zAzdoOptions.safeParse({
@@ -66,7 +67,8 @@ export const handleOnScheduleCommand = async (argv: Arguments) => {
     authToken,
     azdoOptions: azdoOptions.data,
     directory: targetDirectory,
-    recurse
+    recurse,
+    format
   })
 
   if (inputs.error) {
@@ -94,6 +96,7 @@ export const handleOnPullRequestCommand = async (argv: Arguments) => {
     pullRequest,
     azdoOrganizationName,
     azdoCollectionUri,
+    format
   } = argv
 
   const azdoOptions = zAzdoOptions.safeParse({
@@ -107,7 +110,8 @@ export const handleOnPullRequestCommand = async (argv: Arguments) => {
     effect,
     azdoOptions: azdoOptions.data,
     scenarioPaths: targetDirectories,
-    pullRequestIdentifier: pullRequest
+    pullRequestIdentifier: pullRequest,
+    format
   })
 
   if (inputs.error) {

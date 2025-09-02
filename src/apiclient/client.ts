@@ -101,10 +101,11 @@ export class Client {
     directory: string,
     recurse: boolean,
     effect: Effect,
-    iacTools: InfrastructureTool[]
+    iacTools: InfrastructureTool[],
+    format?: boolean,
     _attempts?: number
   }): Promise<ScanOnScheduleMutation> {
-    const { directory, effect, iacTools, recurse, _attempts = 1 } = args
+    const { directory, effect, iacTools, recurse, _attempts = 1, format=false } = args
 
     this._listAllInputs('scanOnScheduleMutationCall', args)
 
@@ -116,7 +117,8 @@ export class Client {
             directory,
             recurse,
             effect,
-            iacTools
+            iacTools,
+            autoFormat:format
           }
         }
       })
@@ -152,10 +154,11 @@ export class Client {
     scenarioPaths: string[],
     pullRequestIdentifier: string,
     effect: Effect,
-    iacTools: InfrastructureTool[]
+    iacTools: InfrastructureTool[],
+    format?: boolean
     _attempts?: number
   }): Promise<ScanOnPullRequestMutation> {
-    const { scenarioPaths, effect, iacTools, pullRequestIdentifier, _attempts = 1 } = args
+    const { scenarioPaths, effect, iacTools, pullRequestIdentifier, _attempts = 1, format = false } = args
 
     this._listAllInputs('scanOnPullRequestMutationCall', args)
 
@@ -167,7 +170,8 @@ export class Client {
             scenarioPaths,
             pullRequestIdentifier,
             effect,
-            iacTools
+            iacTools,
+            autoFormat:format
           }
         }
       })

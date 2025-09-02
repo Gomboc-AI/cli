@@ -9,6 +9,13 @@ import { ConsoleLogger } from './utils/ConsoleLogger'
 import { ExitCode } from './cli/exitCodes'
 import { hl } from './utils/consoleUtils'
 
+const addFormatOption =  (argv: Argv) => {
+  argv.option("format", {
+    describe: "Automatically formats the IaC files",
+    type: "boolean",
+  })
+}
+
 const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
   argv.option("auth-token", {
     describe: "An authentication auth token",
@@ -162,6 +169,7 @@ await yargs(hideBin(process.argv))
       addAzdoOrganizationNameOption(yargs)
       addInfrastructureToolOption(yargs)
       addAuthTokenOption(yargs, true)
+      addFormatOption(yargs)
     }
   )
   .command(

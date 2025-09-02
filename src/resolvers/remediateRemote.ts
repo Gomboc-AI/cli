@@ -19,7 +19,8 @@ export const zBaseInputs = z.object({
   iacTools: z.array(z.enum([InfrastructureTool.Cloudformation, InfrastructureTool.Terraform])),
   authToken: z.string(),
   effect: z.enum([Effect.Preview, Effect.SubmitForReview]),
-  azdoOptions: zAzdoOptions.optional()
+  azdoOptions: zAzdoOptions.optional(),
+  format: z.boolean().optional()
 })
 
 export const zOnScheduleInputs = z.object({
