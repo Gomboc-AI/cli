@@ -105,7 +105,7 @@ export class Client {
     format?: boolean,
     _attempts?: number
   }): Promise<ScanOnScheduleMutation> {
-    const { directory, effect, iacTools, recurse, _attempts = 1, format=true } = args
+    const { directory, effect, iacTools, recurse, _attempts = 1, format = true } = args
 
     this._listAllInputs('scanOnScheduleMutationCall', args)
 
