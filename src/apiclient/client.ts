@@ -105,7 +105,7 @@ export class Client {
     format?: boolean,
     _attempts?: number
   }): Promise<ScanOnScheduleMutation> {
-    const { directory, effect, iacTools, recurse, _attempts = 1, format=false } = args
+    const { directory, effect, iacTools, recurse, _attempts = 1, format = true } = args
 
     this._listAllInputs('scanOnScheduleMutationCall', args)
 
@@ -158,7 +158,7 @@ export class Client {
     format?: boolean
     _attempts?: number
   }): Promise<ScanOnPullRequestMutation> {
-    const { scenarioPaths, effect, iacTools, pullRequestIdentifier, _attempts = 1, format = false } = args
+    const { scenarioPaths, effect, iacTools, pullRequestIdentifier, _attempts = 1, format = true } = args
 
     this._listAllInputs('scanOnPullRequestMutationCall', args)
 
@@ -225,7 +225,8 @@ export class Client {
       return false
     }
     if (initialPoll.scanBranch.childrenExpected != initialPoll.scanBranch.childrenCompleted + initialPoll.scanBranch.childrenError) {
-      throw new ClientError('Status reverted to NOT OK in final validation', ExitCode.SERVER_ERROR)
+      consoleDebugger.log(`${initialPoll.scanBranch.childrenCompleted + initialPoll.scanBranch.childrenError} of ${initialPoll.scanBranch.childrenExpected} scenarios scanned`, initialPoll.scanBranch)
+      return false
     }
     return true
 
@@ -247,7 +248,8 @@ export class Client {
       return false
     }
     if (initialPoll.scanDirectory.childrenExpected != initialPoll.scanDirectory.childrenCompleted + initialPoll.scanDirectory.childrenError) {
-      throw new ClientError('Status reverted to NOT OK in final validation', ExitCode.SERVER_ERROR)
+      consoleDebugger.log(`${initialPoll.scanDirectory.childrenCompleted + initialPoll.scanDirectory.childrenError} of ${initialPoll.scanDirectory.childrenExpected} scenarios scanned`, initialPoll.scanDirectory)
+      return false
     }
     return true
 
@@ -329,6 +331,7 @@ export class Client {
         }
       } catch (error) {
         consoleDebugger.log('Failed polling for Terraform', { error })
+        throw error
       }
 
       try {
@@ -342,6 +345,7 @@ export class Client {
         }
       } catch (error) {
         consoleDebugger.log('Failed polling for Cloudformation', { error })
+        throw error
       }
 
       if (!pollTerraform && !pollCloudformation) { break }

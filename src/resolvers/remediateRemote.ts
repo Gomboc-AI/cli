@@ -58,15 +58,6 @@ const resolveActionResult = async (scanRequestId: string, client: Client) => {
       cl.log('\tNo violations found\n')
     }
 
-    if (
-      (
-        results.__typename === 'ScanBranch' ||
-        results.__typename === 'ScanDirectory'
-      ) &&
-      results.childrenExpected != results.childrenCompleted + results.childrenError
-    ) {
-      throw new ClientError('Status reverted to NOT OK in final validation', ExitCode.SERVER_ERROR)
-    }
     children.forEach((child: any) => {
       if (child.__typename === 'FailedScan') {
         throw new ClientError(`${child.message} (Scan ID: ${child.id})\n`, ExitCode.FAILED_SCAN)
