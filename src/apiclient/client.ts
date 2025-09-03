@@ -105,7 +105,7 @@ export class Client {
     format?: boolean,
     _attempts?: number
   }): Promise<ScanOnScheduleMutation> {
-    const { directory, effect, iacTools, recurse, _attempts = 1, format=false } = args
+    const { directory, effect, iacTools, recurse, _attempts = 1, format=true } = args
 
     this._listAllInputs('scanOnScheduleMutationCall', args)
 
@@ -158,7 +158,7 @@ export class Client {
     format?: boolean
     _attempts?: number
   }): Promise<ScanOnPullRequestMutation> {
-    const { scenarioPaths, effect, iacTools, pullRequestIdentifier, _attempts = 1, format = false } = args
+    const { scenarioPaths, effect, iacTools, pullRequestIdentifier, _attempts = 1, format = true } = args
 
     this._listAllInputs('scanOnPullRequestMutationCall', args)
 
