@@ -1,8 +1,6 @@
 import crossFetch from 'cross-fetch'
 // @ts-ignore
-import { ApolloClient, InMemoryCache } from "@apollo/client/core/core.cjs"
-// @ts-ignore
-import { HttpLink } from "@apollo/client/link/http/http.cjs";
+import { ApolloClient, InMemoryCache, NormalizedCacheObject, HttpLink } from '@apollo/client';
 // @ts-ignore
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
@@ -10,34 +8,32 @@ import { CLI_VERSION } from '../cli/version';
 import {
   Effect,
   InfrastructureTool,
+  PolicyObservationsPage,
   ScanBranch,
-  ScanBranchActionResultsQuery as ScanBranchActionResultsQueryType,
-  ScanBranchActionResultsQueryVariables,
-  ScanBranchStatusQuery,
-  ScanBranchStatusQueryVariables,
   ScanDirectory,
-  ScanDirectoryActionResultsQuery as ScanDirectoryActionResultsQueryType,
-  ScanDirectoryActionResultsQueryVariables,
-  ScanDirectoryStatusQuery,
-  ScanDirectoryStatusQueryVariables,
   ScanOnPullRequestMutation,
   ScanOnPullRequestMutationVariables,
   ScanOnScheduleMutation,
-  ScanOnScheduleMutationVariables
+  ScanOnScheduleMutationVariables,
+  ScanRequestScansQuery,
+  ScanRequestScansQueryVariables,
+  ScanRequestStatus,
+  ScanRequestStatusQuery,
+  ScanRequestStatusQueryVariables,
+  ScanResult
 } from './gql/graphql';
 
-import { ScanBranchStatusQuery as ScanBranchStatusQuerySelection } from './queries/scanBranchStatus';
 import { scanOnPullRequest } from './mutations/scanOnPullRequest';
 import { scanOnSchedule } from './mutations/scanOnSchedule';
 
 import { consoleDebugger } from '../utils/ConsoleDebugger';
-import { ScanDirectoryStatusQuery as ScanDirectoryStatusQuerySelection } from './queries/scanDirectoryStatus';
 import { settings } from '../settings';
 import { ExitCode } from '../cli/exitCodes';
 import { ConsoleLogger } from '../utils/ConsoleLogger';
-import { ScanBranchActionResultsQuery } from './queries/scanBranchActionResults';
-import { ScanDirectoryActionResultsQuery } from './queries/scanDirectoryActionResults';
+import { scanRequestStatusQuery } from './queries/scanRequest';
+import { scanRequestScansQuery } from './queries/scanRequestScans';
 
+type ScanResultWithoutObservations = Omit<ScanResult, 'observations'>
 type AzdoOptions = {
   azdoBaseUrl: string,
   azdoOrganizationName: string
@@ -60,7 +56,7 @@ export const POLICY_OBSERVATIONS_PAGE_SIZE = 10
 export class Client {
   iacTools: InfrastructureTool[];
   authToken?: string
-  client: ApolloClient
+  client: ApolloClient<NormalizedCacheObject>
 
   constructor(iacTools: InfrastructureTool[], authToken?: string, azdoOptions?: AzdoOptions) {
     this.iacTools = iacTools
@@ -110,7 +106,7 @@ export class Client {
     this._listAllInputs('scanOnScheduleMutationCall', args)
 
     try {
-      const { data }: { data: ScanOnScheduleMutation } = await this.client.mutate<ScanOnScheduleMutation, ScanOnScheduleMutationVariables>({
+      const { data }= await this.client.mutate<ScanOnScheduleMutation, ScanOnScheduleMutationVariables>({
         mutation: scanOnSchedule,
         variables: {
           input: {
@@ -122,8 +118,8 @@ export class Client {
           }
         }
       })
-
-      if (data.scanOnSchedule.errors.length > 0) {
+      
+      if (data == null || data.scanOnSchedule.errors.length > 0) {
         consoleDebugger.log('Failed to remediate request', JSON.stringify(data))
         throw new ClientError('Scan request was rejected by the server.', ExitCode.SERVER_ERROR)
       }
@@ -163,7 +159,7 @@ export class Client {
     this._listAllInputs('scanOnPullRequestMutationCall', args)
 
     try {
-      const { data }: { data: ScanOnPullRequestMutation } = await this.client.mutate<ScanOnPullRequestMutation, ScanOnPullRequestMutationVariables>({
+      const {data}  = await this.client.mutate<ScanOnPullRequestMutation, ScanOnPullRequestMutationVariables>({
         mutation: scanOnPullRequest,
         variables: {
           input: {
@@ -176,7 +172,7 @@ export class Client {
         }
       })
 
-      if (data.scanOnPullRequest.errors.length > 0) {
+      if (data == null || data.scanOnPullRequest.errors.length > 0) {
         consoleDebugger.log('Failed to remediate request', JSON.stringify(data))
         throw new ClientError('Scan request was rejected by the server.', ExitCode.SERVER_ERROR)
       }
@@ -210,93 +206,48 @@ export class Client {
     }
   }
 
-  private async _terraformScanIsAvailable(scanRequestId: string): Promise<boolean> {
-    const { data: initialPoll }: { data: ScanBranchStatusQuery } = await this.client.query<ScanBranchStatusQuery, ScanBranchStatusQueryVariables>({
-      query: ScanBranchStatusQuerySelection,
-      variables: {
-        scanRequestId
-      },
-      fetchPolicy: 'no-cache'
-    })
-    if (initialPoll.scanBranch.__typename === 'FailedScan') {
-      throw new ClientError(`${initialPoll.scanBranch.message} (Scan ID: ${initialPoll.scanBranch.id})`, ExitCode.BUSINESS_ERROR)
-    }
-    if (initialPoll.scanBranch.__typename === 'GombocError') {
-      return false
-    }
-    if (initialPoll.scanBranch.childrenExpected != initialPoll.scanBranch.childrenCompleted + initialPoll.scanBranch.childrenError) {
-      throw new ClientError('Status reverted to NOT OK in final validation', ExitCode.SERVER_ERROR)
-    }
-    return true
-
-  }
-
-  private async _cloudformationScanIsAvailable(scanRequestId: string): Promise<boolean> {
-    // Light query to check if we can query for additional data
-    const { data: initialPoll }: { data: ScanDirectoryStatusQuery } = await this.client.query<ScanDirectoryStatusQuery, ScanDirectoryStatusQueryVariables>({
-      query: ScanDirectoryStatusQuerySelection,
-      variables: {
-        scanRequestId
-      },
-      fetchPolicy: 'no-cache'
-    })
-    if (initialPoll.scanDirectory.__typename === 'FailedScan') {
-      throw new ClientError(`${initialPoll.scanDirectory.message} (Scan ID: ${initialPoll.scanDirectory.id})`, ExitCode.BUSINESS_ERROR)
-    }
-    if (initialPoll.scanDirectory.__typename === 'GombocError') {
-      return false
-    }
-    if (initialPoll.scanDirectory.childrenExpected != initialPoll.scanDirectory.childrenCompleted + initialPoll.scanDirectory.childrenError) {
-      throw new ClientError('Status reverted to NOT OK in final validation', ExitCode.SERVER_ERROR)
-    }
-    return true
-
-  }
-
-  private async _getTerraformActionResult(scanRequestId: string): Promise<ScanBranch> {
-    const { data }: { data: ScanBranchActionResultsQueryType } = await this.client.query<ScanBranchActionResultsQueryType, ScanBranchActionResultsQueryVariables>({
-      query: ScanBranchActionResultsQuery,
+  private async _getActionResults(scanRequestId: string): Promise<ScanResultWithoutObservations[]> {
+    const PAGE_SIZE = 20
+    const { data } = await this.client.query<ScanRequestScansQuery, ScanRequestScansQueryVariables>({
+      query: scanRequestScansQuery,
       variables: {
         scanRequestId,
-        size: POLICY_OBSERVATIONS_PAGE_SIZE
+        page:1,
+        size:PAGE_SIZE,
+      },
+      fetchPolicy: 'no-cache'
+    })
+    const scanRequest = data.scanRequest
+    const typename = scanRequest.__typename
+    if(typename === 'FailedScan'){
+      throw new ClientError(`${scanRequest.message} (Scan ID: ${scanRequest.id})`, ExitCode.BUSINESS_ERROR)
+    }else if(typename === 'GombocError'){
+      throw new ClientError(scanRequest.message, ExitCode.SERVER_ERROR)
+    }
+    
+    return scanRequest.scanResults.results
+  }
+
+  private async _isScanAvailable(scanRequestId: string){
+    const { data }= await this.client.query<ScanRequestStatusQuery, ScanRequestStatusQueryVariables>({
+      query: scanRequestStatusQuery,
+      variables: {
+        scanRequestId,
       },
       fetchPolicy: 'no-cache'
     })
 
-    if (data.scanBranch.__typename === 'FailedScan') {
-      throw new ClientError(`${data.scanBranch.message} (Scan ID: ${data.scanBranch.id})`, ExitCode.BUSINESS_ERROR)
+    if(data.scanRequest.__typename === "FailedScan"){
+      throw new ClientError(`${data.scanRequest.message} (Scan ID: ${data.scanRequest.id})`, ExitCode.BUSINESS_ERROR)
     }
-    if (data.scanBranch.__typename === 'GombocError') {
-      throw new ClientError(data.scanBranch.message, ExitCode.SERVER_ERROR)
+    if (data.scanRequest.__typename === 'GombocError') {
+      throw new ClientError(data.scanRequest.message, ExitCode.SERVER_ERROR)
     }
-    // fuck the codegen that we have for these types
-    return data.scanBranch as ScanBranch
+
+    return data.scanRequest.status !== ScanRequestStatus.Running
   }
 
-  private async _getCloudformationActionResult(scanRequestId: string): Promise<ScanDirectory> {
-    try {
-      const { data }: { data: ScanDirectoryActionResultsQueryType } = await this.client.query<ScanDirectoryActionResultsQueryType, ScanDirectoryActionResultsQueryVariables>({
-        query: ScanDirectoryActionResultsQuery,
-        variables: {
-          scanRequestId,
-          size: POLICY_OBSERVATIONS_PAGE_SIZE
-        },
-        fetchPolicy: 'no-cache'
-      })
-      if (data.scanDirectory.__typename === 'FailedScan') {
-        throw new ClientError(`${data.scanDirectory.message} (Scan ID: ${data.scanDirectory.id})`, ExitCode.BUSINESS_ERROR)
-      }
-      if (data.scanDirectory.__typename === 'GombocError') {
-        throw new ClientError(data.scanDirectory.message, ExitCode.SERVER_ERROR)
-      }
-      return data.scanDirectory as ScanDirectory
-    } catch (e: any) {
-      consoleDebugger.log('_getCloudformationActionResult error', e.message)
-      throw new ClientError("Unexpected CFN action result error", ExitCode.SERVER_ERROR)
-    }
-  }
-
-  public async pollScanStatus(scanRequestId: string): Promise<Record<keyof typeof InfrastructureTool, ScanBranch | ScanDirectory | null>> {
+  public async pollScanStatus(scanRequestId: string): Promise<Record<keyof typeof InfrastructureTool, ScanResultWithoutObservations[]>> {
     cl._log(`Scan request accepted by server: ${settings.SERVER_URL} \n`)
 
     // Temporal naive implementation of a polling mechanism. Will be replaced by a GraphQL subscription
@@ -310,41 +261,22 @@ export class Client {
     // Initial call to check the status of the scan
     let attempts = 1
 
-    let cloudformationResults: ScanDirectory | null = null
-    let terraformResults: ScanBranch | null = null
-
-    let pollTerraform = this.iacTools.includes(InfrastructureTool.Terraform)
-    let pollCloudformation = this.iacTools.includes(InfrastructureTool.Cloudformation)
+    let results: ScanResultWithoutObservations[] = []
     cl.log('Retrieving scan status...')
     // While there are still children scans being processed
     do {
-      try {
-        if (pollTerraform) {
-          consoleDebugger.log('Polling for Terraform', { scanRequestId })
-          const hasTerraformScan = await this._terraformScanIsAvailable(scanRequestId)
-          if (hasTerraformScan) {
-            pollTerraform = false
-            terraformResults = await this._getTerraformActionResult(scanRequestId)
-          }
+      let isScanAvailable = false
+      try{
+        isScanAvailable= await this._isScanAvailable(scanRequestId)
+        if(isScanAvailable){
+            consoleDebugger.log('Polling for Terraform', { scanRequestId })
+            results = await this._getActionResults(scanRequestId)
         }
-      } catch (error) {
-        consoleDebugger.log('Failed polling for Terraform', { error })
+      }catch(e){
+        consoleDebugger.log('Failed polling:', { error:e })
+        break;
       }
-
-      try {
-        if (pollCloudformation) {
-          consoleDebugger.log('Polling for Cloudformation', { scanRequestId })
-          const hasCloudFormationScan = await this._cloudformationScanIsAvailable(scanRequestId)
-          if (hasCloudFormationScan) {
-            pollCloudformation = false
-            cloudformationResults = await this._getCloudformationActionResult(scanRequestId)
-          }
-        }
-      } catch (error) {
-        consoleDebugger.log('Failed polling for Cloudformation', { error })
-      }
-
-      if (!pollTerraform && !pollCloudformation) { break }
+      if (isScanAvailable) { break }
 
       // Server is still working on the children scan
       const totalAwaitedTime = INITIAL_INTERVAL + attempts * POLLING_INTERVAL
@@ -361,8 +293,8 @@ export class Client {
     } while (true)
 
     return {
-      Cloudformation: cloudformationResults,
-      Terraform: terraformResults
+      Cloudformation: results.filter(result=>result.infrastructureTool===InfrastructureTool.Cloudformation),
+      Terraform: results.filter(result=>result.infrastructureTool===InfrastructureTool.Terraform)
     }
   }
 }
