@@ -8,9 +8,6 @@ import { CLI_VERSION } from '../cli/version';
 import {
   Effect,
   InfrastructureTool,
-  PolicyObservationsPage,
-  ScanBranch,
-  ScanDirectory,
   ScanOnPullRequestMutation,
   ScanOnPullRequestMutationVariables,
   ScanOnScheduleMutation,
