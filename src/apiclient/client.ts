@@ -240,7 +240,7 @@ export class Client {
     if (data.scanRequest.__typename === 'GombocError') {
       throw new ClientError(data.scanRequest.message, ExitCode.SERVER_ERROR)
     }
-
+    console.log('_isScanAvailable', data.scanRequest)
     return data.scanRequest.status !== ScanRequestStatus.Running
   }
 
@@ -266,7 +266,6 @@ export class Client {
       try{
         isScanAvailable= await this._isScanAvailable(scanRequestId)
         if(isScanAvailable){
-            consoleDebugger.log('Polling for Terraform', { scanRequestId })
             results = await this._getActionResults(scanRequestId)
         }
       }catch(e){
