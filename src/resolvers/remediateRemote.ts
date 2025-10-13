@@ -141,7 +141,6 @@ export const resolveOnPullRequest = async (inputs: OnPullRequestInputs) => {
 
   const scanResult = await client.scanOnPullRequestMutationCall(inputs)
   const { scanRequestId } = scanResult.scanOnPullRequest
-  console.log('---scanOnPullRequestMutationCall', scanRequestId)
 
   await resolveActionResult(scanRequestId, client)
 }
