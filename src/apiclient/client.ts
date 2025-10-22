@@ -203,7 +203,7 @@ export class Client {
     }
   }
 
-  private async _getActionResults(scanRequestId: string): Promise<ScanResultWithoutObservations[]> {
+  private async _getScanResults(scanRequestId: string): Promise<ScanResultWithoutObservations[]> {
     const PAGE_SIZE = 20
     const { data } = await this.client.query<ScanRequestScansQuery, ScanRequestScansQueryVariables>({
       query: scanRequestScansQuery,
@@ -265,7 +265,7 @@ export class Client {
       try{
         isScanAvailable= await this._isScanAvailable(scanRequestId)
         if(isScanAvailable){
-            results = await this._getActionResults(scanRequestId)
+            results = await this._getScanResults(scanRequestId)
         }
       }catch(e){
         consoleDebugger.log('Failed polling:', { error:e })
