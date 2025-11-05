@@ -98,8 +98,8 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' 
         with:
           tags: |
-            # ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
-            # ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.LATEST_TAG }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.LATEST_TAG }}
 
       - uses: actions/setup-node@v3
         with:
