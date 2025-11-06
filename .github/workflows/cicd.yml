@@ -87,7 +87,7 @@ jobs:
         run: |
           TAG_EXISTS=$(docker manifest inspect ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }} > /dev/null; echo $?)
           if [ "$TAG_EXISTS" -eq 0 ]; then
-            echo "Tag ${{ github.ref_name }} already exists. Skipping push."
+            echo "Tag ${{ env.VERSION }} already exists. Skipping push."
             exit 1  # Exit the job early if the tag exists
           else
             echo "Tag does not exist. Proceeding to build and push."
