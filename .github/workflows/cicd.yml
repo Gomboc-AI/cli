@@ -93,15 +93,6 @@ jobs:
             echo "Tag does not exist. Proceeding to build and push."
           fi
 
-      - name: Push
-        uses: docker/build-push-action@v6
-        with:
-          platforms: "linux/amd64,linux/arm64"
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main'  }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
-            ${{ env.LATEST_TAG }}
-
       - uses: actions/setup-node@v3
         with:
           node-version-file: .nvmrc
@@ -120,4 +111,12 @@ jobs:
         run: |
           export CODACY_PROJECT_TOKEN=${{ secrets.CODACY_PROJECT_TOKEN }}
           bash <(curl -Ls https://coverage.codacy.com/get.sh)
-          
+
+      - name: Push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: "linux/amd64,linux/arm64"
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main'  }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
+            ${{ env.LATEST_TAG }}
