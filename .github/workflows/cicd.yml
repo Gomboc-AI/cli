@@ -95,8 +95,9 @@ jobs:
 
       - name: Push
         uses: docker/build-push-action@v6
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' 
         with:
+          platforms: "linux/amd64,linux/arm64"
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main'  }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/cli:${{ env.VERSION }}
             ${{ env.LATEST_TAG }}
