@@ -20,6 +20,10 @@ export type Scalars = {
 /** A customer account */
 export type Account = {
   __typename?: 'Account';
+  hasFeatureBoolean: Scalars['Boolean']['output'];
+  hasFeatureNumber: Scalars['Float']['output'];
+  hasFeatureObject: Scalars['JSON']['output'];
+  hasFeatureString: Scalars['String']['output'];
   /** Returns a list of known IaC branches (from the account's workspace repositories) */
   iacBranches: Array<Scalars['String']['output']>;
   /** Returns a list of known IaC repositories (from the account's workspaces) */
@@ -28,10 +32,42 @@ export type Account = {
   license: AccountLicense;
   pullRequest: PullRequestResponse;
   pullRequests: PullRequestPage;
+  /** Returns a page of adopted security benchmark recommendations for the account */
+  securityBenchmarkRecommendations: SecurityBenchmarkRecommendationPage;
   /** @deprecated Use license instead */
   type: AccountType;
   workspace: WorkspaceResponse;
+  workspaceByName: WorkspaceResponse;
+  workspaceScmTypes: Array<Maybe<ScmType>>;
   workspaces: WorkspacePage;
+};
+
+
+/** A customer account */
+export type AccountHasFeatureBooleanArgs = {
+  default: Scalars['Boolean']['input'];
+  name: Scalars['String']['input'];
+};
+
+
+/** A customer account */
+export type AccountHasFeatureNumberArgs = {
+  default: Scalars['Float']['input'];
+  name: Scalars['String']['input'];
+};
+
+
+/** A customer account */
+export type AccountHasFeatureObjectArgs = {
+  default: Scalars['JSON']['input'];
+  name: Scalars['String']['input'];
+};
+
+
+/** A customer account */
+export type AccountHasFeatureStringArgs = {
+  default: Scalars['String']['input'];
+  name: Scalars['String']['input'];
 };
 
 
@@ -60,8 +96,20 @@ export type AccountPullRequestsArgs = {
 
 
 /** A customer account */
+export type AccountSecurityBenchmarkRecommendationsArgs = {
+  input: AccountSecurityBenchmarkRecommendationsInput;
+};
+
+
+/** A customer account */
 export type AccountWorkspaceArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+/** A customer account */
+export type AccountWorkspaceByNameArgs = {
+  name: Scalars['String']['input'];
 };
 
 
@@ -80,6 +128,11 @@ export type AccountPullRequestsInput = {
   size?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type AccountSecurityBenchmarkRecommendationsInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export enum AccountType {
   Community = 'COMMUNITY',
   Enterprise = 'ENTERPRISE'
@@ -88,7 +141,8 @@ export enum AccountType {
 export type AccountWorkspacesInput = {
   branch?: InputMaybe<Scalars['String']['input']>;
   infrastructureTool?: InputMaybe<InfrastructureTool>;
-  isDeprecated?: InputMaybe<Scalars['Boolean']['input']>;
+  isArchived?: InputMaybe<Scalars['Boolean']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   prStatus?: InputMaybe<Array<PullRequestStatus>>;
   repositoryId?: InputMaybe<Scalars['ID']['input']>;
@@ -203,7 +257,10 @@ export type CloudResource = {
 export enum CloudResourceProvider {
   Aws = 'AWS',
   Azure = 'AZURE',
-  Gcp = 'GCP'
+  Gcp = 'GCP',
+  Kubernetes = 'KUBERNETES',
+  Oci = 'OCI',
+  Unspecified = 'UNSPECIFIED'
 }
 
 export type CodeObservation = {
@@ -509,7 +566,7 @@ export type CustomRule = {
 
 export enum CustomRuleScalarType {
   Bool = 'BOOL',
-  Integer = 'INTEGER',
+  Number = 'NUMBER',
   String = 'STRING'
 }
 
@@ -780,6 +837,53 @@ export type LinksPage = {
   /** Use this to get the next page */
   lastKey?: Maybe<Scalars['ID']['output']>;
   links: Array<Link>;
+};
+
+/** A Local Scan Result that originated from a Scan Request */
+export type LocalScanResult = {
+  __typename?: 'LocalScanResult';
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  /** The duration of the scan request */
+  duration: Scalars['String']['output'];
+  /** The URL to the Gomboc Portal */
+  htmlUrl: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  /** The related infrastructure tool */
+  infrastructureTool: InfrastructureTool;
+  /** A page of policy observations in this scan result */
+  policyObservations: PolicyObservationsPage;
+  /** Indicates where the request came from */
+  requestOrigin: RequestOrigin;
+  /** The parent scan request ID */
+  scanRequestId: Scalars['ID']['output'];
+};
+
+
+/** A Local Scan Result that originated from a Scan Request */
+export type LocalScanResultPolicyObservationsArgs = {
+  input: LocalScanResultPolicyObservationsInput;
+};
+
+export type LocalScanResultPage = {
+  __typename?: 'LocalScanResultPage';
+  page: Scalars['Int']['output'];
+  results: Array<LocalScanResult>;
+  size: Scalars['Int']['output'];
+  totalCount: Scalars['Int']['output'];
+};
+
+export type LocalScanResultPolicyObservationsInput = {
+  exclude?: InputMaybe<Array<Disposition>>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type LocalScanResultResponse = GombocError | LocalScanResult;
+
+export type LocalScanResultsInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type LogicalResource = {
@@ -1056,8 +1160,10 @@ export type PullRequest = {
   externalUrl: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   identifier: Scalars['String']['output'];
+  parent?: Maybe<PullRequest>;
   scmType: ScmType;
   status: PullRequestStatus;
+  title: Scalars['String']['output'];
 };
 
 export enum PullRequestEvent {
@@ -1094,6 +1200,8 @@ export type Query = {
   scanBranch: ScanBranchResponse;
   /** *Internal use only* */
   scanDirectory: ScanDirectoryResponse;
+  /** Returns a single Scan Request by its ID, or an error if not found */
+  scanRequest: ScanRequestResponse;
 };
 
 
@@ -1104,6 +1212,11 @@ export type QueryScanBranchArgs = {
 
 export type QueryScanDirectoryArgs = {
   scanRequestId: Scalars['ID']['input'];
+};
+
+
+export type QueryScanRequestArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type RemediationComment = {
@@ -1271,26 +1384,10 @@ export type ScanRepositoryResponse = FailedScan | GombocError | ScanRepository;
 
 export type ScanRequest = {
   __typename?: 'ScanRequest';
-  /** @deprecated No longer supported */
-  children: Array<ScanRepositoryResponse>;
-  childrenCompleted: Scalars['Int']['output'];
-  childrenError: Scalars['Int']['output'];
-  childrenExpected: Scalars['Int']['output'];
-  createdAt: Scalars['String']['output'];
-  createdBy: Scalars['String']['output'];
-  effect: Effect;
-  /** List of errors encountered during the scan */
-  errors: Array<Scalars['String']['output']>;
-  /** The URL to the Gomboc Portal */
-  htmlUrl: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  /** Orca Security Alert ID -- if there is one */
-  orcaAlertId?: Maybe<Scalars['ID']['output']>;
-  /** The Pull Request that triggered this scan, if there is one */
-  pullRequest?: Maybe<PullRequest>;
-  requestOrigin: RequestOrigin;
   scanResults: ScanResultPage;
   scans: ScanPage;
+  status: ScanRequestStatus;
 };
 
 
@@ -1313,12 +1410,20 @@ export type ScanRequestResponseType = {
   scanRequestId: Scalars['ID']['output'];
 };
 
+export enum ScanRequestStatus {
+  Concluded = 'CONCLUDED',
+  Failed = 'FAILED',
+  Running = 'RUNNING'
+}
+
 export type ScanResponse = FailedScan | GombocError | Scan;
 
 /** A Scan Result that originated from a Scan Request */
 export type ScanResult = {
   __typename?: 'ScanResult';
   id: Scalars['ID']['output'];
+  /** The related infrastructure tool */
+  infrastructureTool: InfrastructureTool;
   /**
    * The list of observations in this scan result
    * @deprecated use policyObservations -- paginated
@@ -1358,6 +1463,8 @@ export type ScanResultPage = {
   size: Scalars['Int']['output'];
   totalCount: Scalars['Int']['output'];
 };
+
+export type ScanResultPageResponse = GombocError | ScanResultPage;
 
 export type ScanResultResponse = GombocError | ScanResult;
 
@@ -1517,7 +1624,7 @@ export type ScmRepositoryWorkspacesArgs = {
 export type ScmRepositoryWorkspacesInput = {
   branch?: InputMaybe<Scalars['String']['input']>;
   infrastructureTool?: InputMaybe<InfrastructureTool>;
-  isDeprecated?: InputMaybe<Scalars['Boolean']['input']>;
+  isArchived?: InputMaybe<Scalars['Boolean']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1555,6 +1662,14 @@ export type SecurityBenchmarkRecommendation = {
   identifier: Scalars['String']['output'];
   isAdopted: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
+};
+
+export type SecurityBenchmarkRecommendationPage = {
+  __typename?: 'SecurityBenchmarkRecommendationPage';
+  page: Scalars['Int']['output'];
+  results: Array<SecurityBenchmarkRecommendation>;
+  size: Scalars['Int']['output'];
+  totalCount: Scalars['Int']['output'];
 };
 
 export type SecurityBenchmarkRecommendationResponse = GombocError | SecurityBenchmarkRecommendation;
@@ -1700,7 +1815,8 @@ export type UpdateBranchReportsInput = {
 export type UpdateBranchReportsOutput = GombocError | WorkflowResponse;
 
 export type UpdateWorkspaceInput = {
-  isDeprecated: Scalars['Boolean']['input'];
+  isArchived?: InputMaybe<Scalars['Boolean']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
   workspaceId: Scalars['ID']['input'];
 };
 
@@ -1724,13 +1840,23 @@ export type Workspace = {
   htmlUrl: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   infrastructureTool: InfrastructureTool;
-  isDeprecated: Scalars['Boolean']['output'];
+  isArchived: Scalars['Boolean']['output'];
   lastScanResult?: Maybe<ScanResult>;
+  /** Name of the workspace, defaults to reponame-branch-path, but is mutable by user */
+  name?: Maybe<Scalars['String']['output']>;
   path: Scalars['String']['output'];
   /** Use if repository is deleted or unreachable */
   repositoryNameFallback: Scalars['String']['output'];
   /** Use if repository is deleted or unreachable */
   repositoryOwnerNameFallback: Scalars['String']['output'];
+  /** Returns a page of Scan Results related to this workspace */
+  scanResults: ScanResultPageResponse;
+};
+
+
+export type WorkspaceScanResultsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type WorkspacePage = {
@@ -1757,35 +1883,21 @@ export type ScanOnScheduleMutationVariables = Exact<{
 
 export type ScanOnScheduleMutation = { __typename: 'Mutation', scanOnSchedule: { __typename: 'ScanRequestResponseType', scanRequestId: string, errors: Array<{ __typename: 'GombocError', message: string, code?: GombocErrorCode | null } | null> } };
 
-export type ScanBranchActionResultsQueryVariables = Exact<{
+export type ScanRequestStatusQueryVariables = Exact<{
   scanRequestId: Scalars['ID']['input'];
+}>;
+
+
+export type ScanRequestStatusQuery = { __typename: 'Query', scanRequest: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanRequest', id: string, status: ScanRequestStatus } };
+
+export type ScanRequestScansQueryVariables = Exact<{
+  scanRequestId: Scalars['ID']['input'];
+  page: Scalars['Int']['input'];
   size: Scalars['Int']['input'];
 }>;
 
 
-export type ScanBranchActionResultsQuery = { __typename: 'Query', scanBranch: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanBranch', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number, children: Array<{ __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanScenario', id: string, result?: { __typename: 'ScanResult', id: string, policyObservations: { __typename: 'PolicyObservationsPage', results: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle?: string | null }> } } | null }> } };
-
-export type ScanBranchStatusQueryVariables = Exact<{
-  scanRequestId: Scalars['ID']['input'];
-}>;
-
-
-export type ScanBranchStatusQuery = { __typename: 'Query', scanBranch: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanBranch', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number } };
-
-export type ScanDirectoryActionResultsQueryVariables = Exact<{
-  scanRequestId: Scalars['ID']['input'];
-  size: Scalars['Int']['input'];
-}>;
-
-
-export type ScanDirectoryActionResultsQuery = { __typename: 'Query', scanDirectory: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanDirectory', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number, children: Array<{ __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanScenario', id: string, result?: { __typename: 'ScanResult', id: string, policyObservations: { __typename: 'PolicyObservationsPage', results: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle?: string | null }> } } | null }> } };
-
-export type ScanDirectoryStatusQueryVariables = Exact<{
-  scanRequestId: Scalars['ID']['input'];
-}>;
-
-
-export type ScanDirectoryStatusQuery = { __typename: 'Query', scanDirectory: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanDirectory', id: string, childrenCompleted: number, childrenError: number, childrenExpected: number } };
+export type ScanRequestScansQuery = { __typename: 'Query', scanRequest: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanRequest', scanResults: { __typename: 'ScanResultPage', page: number, totalCount: number, size: number, results: Array<{ __typename: 'ScanResult', id: string, infrastructureTool: InfrastructureTool, policyObservations: { __typename: 'PolicyObservationsPage', page: number, size: number, totalCount: number, results: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle?: string | null }> } }> } } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -1830,53 +1942,65 @@ export const ScanOnScheduleDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ScanOnScheduleMutation, ScanOnScheduleMutationVariables>;
-export const ScanBranchActionResultsDocument = new TypedDocumentString(`
-    query scanBranchActionResults($scanRequestId: ID!, $size: Int!) {
+export const ScanRequestStatusDocument = new TypedDocumentString(`
+    query scanRequestStatus($scanRequestId: ID!) {
   __typename
-  scanBranch(scanRequestId: $scanRequestId) {
+  scanRequest(id: $scanRequestId) {
     __typename
-    ... on ScanBranch {
+    ... on ScanRequest {
       __typename
       id
-      childrenCompleted
-      childrenError
-      childrenExpected
-      children {
+      status
+    }
+    ... on FailedScan {
+      __typename
+      id
+      message
+    }
+    ... on GombocError {
+      __typename
+      code
+      message
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ScanRequestStatusQuery, ScanRequestStatusQueryVariables>;
+export const ScanRequestScansDocument = new TypedDocumentString(`
+    query scanRequestScans($scanRequestId: ID!, $page: Int!, $size: Int!) {
+  __typename
+  scanRequest(id: $scanRequestId) {
+    __typename
+    ... on ScanRequest {
+      __typename
+      scanResults(page: $page, size: $size) {
         __typename
-        ... on ScanScenario {
+        results {
           __typename
           id
-          result {
+          infrastructureTool
+          policyObservations(
+            exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE, CANNOT_REMEDIATE]
+            page: 1
+            size: $size
+          ) {
             __typename
-            id
-            policyObservations(
-              exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE, CANNOT_REMEDIATE]
-              page: 1
-              size: $size
-            ) {
+            results {
               __typename
-              results {
-                __typename
-                filepath
-                lineNumber
-                resourceName
-                resourceType
-                disposition
-                capabilityTitle
-              }
+              filepath
+              lineNumber
+              resourceName
+              resourceType
+              disposition
+              capabilityTitle
             }
+            page
+            size
+            totalCount
           }
         }
-        ... on FailedScan {
-          __typename
-          id
-          message
-        }
-        ... on GombocError {
-          __typename
-          code
-          message
-        }
+        page
+        totalCount
+        size
       }
     }
     ... on FailedScan {
@@ -1891,116 +2015,4 @@ export const ScanBranchActionResultsDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<ScanBranchActionResultsQuery, ScanBranchActionResultsQueryVariables>;
-export const ScanBranchStatusDocument = new TypedDocumentString(`
-    query scanBranchStatus($scanRequestId: ID!) {
-  __typename
-  scanBranch(scanRequestId: $scanRequestId) {
-    __typename
-    ... on ScanBranch {
-      __typename
-      id
-      childrenCompleted
-      childrenError
-      childrenExpected
-    }
-    ... on FailedScan {
-      __typename
-      id
-      message
-    }
-    ... on GombocError {
-      __typename
-      code
-      message
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<ScanBranchStatusQuery, ScanBranchStatusQueryVariables>;
-export const ScanDirectoryActionResultsDocument = new TypedDocumentString(`
-    query scanDirectoryActionResults($scanRequestId: ID!, $size: Int!) {
-  __typename
-  scanDirectory(scanRequestId: $scanRequestId) {
-    __typename
-    ... on ScanDirectory {
-      __typename
-      id
-      childrenCompleted
-      childrenError
-      childrenExpected
-      children {
-        __typename
-        ... on ScanScenario {
-          __typename
-          id
-          result {
-            __typename
-            id
-            policyObservations(
-              exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE]
-              page: 1
-              size: $size
-            ) {
-              __typename
-              results {
-                __typename
-                filepath
-                lineNumber
-                resourceName
-                resourceType
-                disposition
-                capabilityTitle
-              }
-            }
-          }
-        }
-        ... on FailedScan {
-          __typename
-          id
-          message
-        }
-        ... on GombocError {
-          __typename
-          code
-          message
-        }
-      }
-    }
-    ... on FailedScan {
-      __typename
-      id
-      message
-    }
-    ... on GombocError {
-      __typename
-      code
-      message
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<ScanDirectoryActionResultsQuery, ScanDirectoryActionResultsQueryVariables>;
-export const ScanDirectoryStatusDocument = new TypedDocumentString(`
-    query scanDirectoryStatus($scanRequestId: ID!) {
-  __typename
-  scanDirectory(scanRequestId: $scanRequestId) {
-    __typename
-    ... on ScanDirectory {
-      __typename
-      id
-      childrenCompleted
-      childrenError
-      childrenExpected
-    }
-    ... on FailedScan {
-      __typename
-      id
-      message
-    }
-    ... on GombocError {
-      __typename
-      code
-      message
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<ScanDirectoryStatusQuery, ScanDirectoryStatusQueryVariables>;
+    `) as unknown as TypedDocumentString<ScanRequestScansQuery, ScanRequestScansQueryVariables>;
