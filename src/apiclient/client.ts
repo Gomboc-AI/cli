@@ -269,7 +269,6 @@ export class Client {
         }
       }catch(e){
         consoleDebugger.log('Failed polling:', { error:e })
-        break;
       }
       if (isScanAvailable) { break }
 
