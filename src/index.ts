@@ -2,12 +2,19 @@
 
 import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { EffectCommand, EventCommand, IacOptions } from './cli/commands.js'
-import { RECURSE_DEFAULT, TARGET_DIRECTORIES_DEFAULT, TARGET_DIRECTORY_DEFAULT } from './default.js'
-import { handleOnPullRequestCommand, handleOnScheduleCommand } from './cli/interfaces/remediate.js'
-import { ConsoleLogger } from './utils/ConsoleLogger.js'
-import { ExitCode } from './cli/exitCodes.js'
-import { hl } from './utils/consoleUtils.js'
+import { EffectCommand, EventCommand, IacOptions } from './cli/commands'
+import { RECURSE_DEFAULT, TARGET_DIRECTORIES_DEFAULT, TARGET_DIRECTORY_DEFAULT } from './default'
+import { handleOnPullRequestCommand, handleOnScheduleCommand } from './cli/interfaces/remediate'
+import { ConsoleLogger } from './utils/ConsoleLogger'
+import { ExitCode } from './cli/exitCodes'
+import { hl } from './utils/consoleUtils'
+
+const addFormatOption =  (argv: Argv) => {
+  argv.option("format", {
+    describe: "Automatically formats the IaC files",
+    type: "boolean",
+  })
+}
 
 const addAuthTokenOption = (argv: Argv, demandOption: boolean) => {
   argv.option("auth-token", {
@@ -106,6 +113,11 @@ const onPullRequestCommand = (yargs: YargType) => {
             `${hl('SUPPRESSED ERROR')}:  ${error.message}`
           ))
         }
+        if (error.code !== ExitCode.VIOLATIONS_FOUND && error.code !== ExitCode.INVALID_ARGUMENTS) {
+          return yargs.exit(ExitCode.SUCCESS, new Error(
+            `${hl('INTERNAL SERVER ERROR')}:  ${error.message}`
+          ))
+        }
         return yargs.exit(error?.code ?? ExitCode.COMMAND_ERROR, error)
       }
     }
@@ -132,6 +144,11 @@ const onScheduleCommand = (yargs: YargType) => {
             `${hl('SUPPRESSED ERROR')}:  ${error.message}`
           ))
         }
+        if (error.code !== ExitCode.VIOLATIONS_FOUND && error.code !== ExitCode.INVALID_ARGUMENTS) {
+          return yargs.exit(ExitCode.SUCCESS, new Error(
+            `${hl('INTERNAL SERVER ERROR')}:  ${error.message}`
+          ))
+        }
         yargs.exit(ExitCode.COMMAND_ERROR, error)
       }
     }
@@ -152,6 +169,7 @@ await yargs(hideBin(process.argv))
       addAzdoOrganizationNameOption(yargs)
       addInfrastructureToolOption(yargs)
       addAuthTokenOption(yargs, true)
+      addFormatOption(yargs)
     }
   )
   .command(

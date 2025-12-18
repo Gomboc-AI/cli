@@ -1,8 +1,10 @@
 import { Arguments } from "yargs"
 
-import { resolveOnSchedule, resolveOnPullRequest, zOnScheduleInputs, zAzdoOptions, zOnPullRequestInputs } from "../../resolvers/remediateRemote.js"
-import { Effect, InfrastructureTool } from "../../apiclient/gql/graphql.js"
-import { EffectCommand, EventCommand, IacOptions } from "../commands.js"
+import { resolveOnSchedule, resolveOnPullRequest, zOnScheduleInputs, zAzdoOptions, zOnPullRequestInputs } from "../../resolvers/remediateRemote"
+import { Effect, InfrastructureTool } from "../../apiclient/gql/graphql"
+import { EffectCommand, EventCommand, IacOptions } from "../commands"
+import { ClientError } from '../../apiclient/client'
+import { ExitCode } from '../exitCodes'
 
 const getValidEffectCommand = (effectArg: string) => {
   switch (effectArg) {
@@ -11,7 +13,7 @@ const getValidEffectCommand = (effectArg: string) => {
     case EffectCommand.SUBMIT_FOR_REVIEW:
       return Effect.SubmitForReview
     default:
-      throw new Error('Invalid effect command received')
+      throw new ClientError('Invalid effect command received', ExitCode.INVALID_ARGUMENTS)
   }
 }
 
@@ -26,20 +28,20 @@ const translateIacOption = (iacOptions: string[]) => {
         translatedIac.push(InfrastructureTool.Terraform)
         break;
       default:
-        throw new Error(`Invalid IAC tool provided: ${option}`)
+        throw new ClientError(`Invalid IAC tool provided: ${option}`, ExitCode.INVALID_ARGUMENTS)
     }
   }
   return translatedIac
 }
 export const handleOnScheduleCommand = async (argv: Arguments) => {
-  // argv._[0] -> EffectCommand (submit-for-review, preview)
+  // argv._[0] -> EffectCommand (submit-for-review, )
   // argv._[1] -> EventCommand (on-pull-request, on-schedule)
   const [effectCommand, eventCommand] = argv._
   if (
     eventCommand != EventCommand.ON_SCHEDULE ||
     typeof effectCommand != 'string'
   ) {
-    throw new Error('Improper use of the on_schedule command handler')
+    throw new ClientError('Improper use of the on_schedule command handler', ExitCode.INVALID_ARGUMENTS)
   }
 
   const effect = getValidEffectCommand(effectCommand)
@@ -51,6 +53,7 @@ export const handleOnScheduleCommand = async (argv: Arguments) => {
     recurse,
     azdoOrganizationName,
     azdoCollectionUri,
+    format
   } = argv
 
   const azdoOptions = zAzdoOptions.safeParse({
@@ -64,23 +67,24 @@ export const handleOnScheduleCommand = async (argv: Arguments) => {
     authToken,
     azdoOptions: azdoOptions.data,
     directory: targetDirectory,
-    recurse
+    recurse,
+    format
   })
 
   if (inputs.error) {
-    throw new Error('Invalid inputs received for "on-schedule" command')
+    throw new ClientError('Invalid inputs received for "on-schedule" command', ExitCode.INVALID_ARGUMENTS)
   }
 
   return await resolveOnSchedule(inputs.data)
 }
 
 export const handleOnPullRequestCommand = async (argv: Arguments) => {
-  // argv._[0] -> EffectCommand (submit-for-review, preview)
+  // argv._[0] -> EffectCommand (submit-for-review, )
   // argv._[1] -> EventCommand (on-pull-request, on-schedule)
   const [effectCommand, eventCommand] = argv._
   if (eventCommand != EventCommand.ON_PULL_REQUEST ||
     typeof effectCommand != 'string') {
-    throw new Error('Improper use of the on_pull_request command handler')
+    throw new ClientError('Improper use of the on_pull_request command handler', ExitCode.INVALID_ARGUMENTS)
   }
 
   const effect = getValidEffectCommand(effectCommand)
@@ -92,6 +96,7 @@ export const handleOnPullRequestCommand = async (argv: Arguments) => {
     pullRequest,
     azdoOrganizationName,
     azdoCollectionUri,
+    format
   } = argv
 
   const azdoOptions = zAzdoOptions.safeParse({
@@ -105,11 +110,12 @@ export const handleOnPullRequestCommand = async (argv: Arguments) => {
     effect,
     azdoOptions: azdoOptions.data,
     scenarioPaths: targetDirectories,
-    pullRequestIdentifier: pullRequest
+    pullRequestIdentifier: pullRequest,
+    format
   })
 
   if (inputs.error) {
-    throw new Error('Invalid inputs received for "on-pull-request" command')
+    throw new ClientError('Invalid inputs received for "on-pull-request" command', ExitCode.INVALID_ARGUMENTS)
   }
 
   return await resolveOnPullRequest(inputs.data)

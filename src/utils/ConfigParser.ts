@@ -2,7 +2,7 @@ import { parse } from 'yaml'
 import { extname } from 'path';
 import { readFileSync } from 'fs';
 
-import { hl } from './consoleUtils.js';
+import { hl } from './consoleUtils';
 
 export class ConfigParser {
   configData: any
@@ -19,33 +19,33 @@ export class ConfigParser {
 
   public getPolicies = () => {
     const policies = this.configData['policies']
-    if(policies == null){ throw new Error(`The config file is missing a ${hl('policies')} object`) }
+    if (policies == null) { throw new Error(`The config file is missing a ${hl('policies')} object`) }
     return policies
   }
 
   public getMustImplementCapabilities = () => {
     const mustImplementCapabilities = this.getPolicies()['must-implement']
-    if(mustImplementCapabilities == null) { throw new Error(`The ${hl('policies')} object is missing a ${hl('must-implement')} property`) }
-    if(mustImplementCapabilities.length == 0) { throw new Error(`The ${hl('must-implement')} array must contain at least one Capability`) }
+    if (mustImplementCapabilities == null) { throw new Error(`The ${hl('policies')} object is missing a ${hl('must-implement')} property`) }
+    if (mustImplementCapabilities.length == 0) { throw new Error(`The ${hl('must-implement')} array must contain at least one Capability`) }
     return mustImplementCapabilities
   }
 
   public getOptions = () => {
     const options = this.configData['options']
-    if(options == null){ throw new Error(`The config file is missing an ${hl('options')} object`) }
+    if (options == null) { throw new Error(`The config file is missing an ${hl('options')} object`) }
     return options
   }
 
   public getSearchPatterns = () => {
     const searchPatterns = this.getOptions()['search-pattern']
-    if(searchPatterns == null){ throw new Error(`The ${hl('options')} object is missing a ${hl('search-pattern')} property`) }
-    if(searchPatterns.length == 0) { throw new Error(`The ${hl('search-pattern')} array must contain at least one pattern`) }
+    if (searchPatterns == null) { throw new Error(`The ${hl('options')} object is missing a ${hl('search-pattern')} property`) }
+    if (searchPatterns.length == 0) { throw new Error(`The ${hl('search-pattern')} array must contain at least one pattern`) }
     return searchPatterns
   }
 
   public getIgnorePatterns = () => {
     const ignorePatterns = this.getOptions()['ignore-pattern']
-    if(ignorePatterns == null){ return [] }
+    if (ignorePatterns == null) { return [] }
     return ignorePatterns
   }
 }  
