@@ -26,16 +26,27 @@ export type Account = {
   hasFeatureString: Scalars['String']['output'];
   /** Returns a list of known IaC branches (from the account's workspace repositories) */
   iacBranches: Array<Scalars['String']['output']>;
-  /** Returns a list of known IaC repositories (from the account's workspaces) */
+  /**
+   * Returns a list of known IaC repositories (from the account's workspaces)
+   * @deprecated No longer supported
+   */
   iacRepositories: Array<ScmRepository>;
   id: Scalars['ID']['output'];
   license: AccountLicense;
+  policyName: Scalars['String']['output'];
   pullRequest: PullRequestResponse;
   pullRequests: PullRequestPage;
+  /** Returns a page of runs for the account */
+  runs: RunPage;
+  /** Returns a page of scan requests for the account */
+  scanRequests: ScanRequestPage;
+  /** Returns a single SCM integration by its ID, or an error if not found */
+  scmIntegration: ScmIntegrationResponse;
+  /** Returns a page of SCM integrations for the account */
+  scmIntegrations: ScmIntegrationPage;
+  scmRepositories: ScmRepositoriesPage;
   /** Returns a page of adopted security benchmark recommendations for the account */
   securityBenchmarkRecommendations: SecurityBenchmarkRecommendationPage;
-  /** @deprecated Use license instead */
-  type: AccountType;
   workspace: WorkspaceResponse;
   workspaceByName: WorkspaceResponse;
   workspaceScmTypes: Array<Maybe<ScmType>>;
@@ -96,6 +107,36 @@ export type AccountPullRequestsArgs = {
 
 
 /** A customer account */
+export type AccountRunsArgs = {
+  input: AccountRunsInput;
+};
+
+
+/** A customer account */
+export type AccountScanRequestsArgs = {
+  input: AccountScanRequestsInput;
+};
+
+
+/** A customer account */
+export type AccountScmIntegrationArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+/** A customer account */
+export type AccountScmIntegrationsArgs = {
+  input: AccountScmIntegrationsInput;
+};
+
+
+/** A customer account */
+export type AccountScmRepositoriesArgs = {
+  input: AccountScmRepositoriesInput;
+};
+
+
+/** A customer account */
 export type AccountSecurityBenchmarkRecommendationsArgs = {
   input: AccountSecurityBenchmarkRecommendationsInput;
 };
@@ -128,27 +169,69 @@ export type AccountPullRequestsInput = {
   size?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type AccountRunsInput = {
+  createdAfter?: InputMaybe<Scalars['String']['input']>;
+  createdBefore?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AccountScanRequestsInput = {
+  createdAfter?: InputMaybe<Scalars['String']['input']>;
+  createdBefore?: InputMaybe<Scalars['String']['input']>;
+  createdBy?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  requestOrigin?: InputMaybe<RequestOrigin>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AccountScmIntegrationsInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AccountScmRepositoriesInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type AccountSecurityBenchmarkRecommendationsInput = {
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export enum AccountType {
-  Community = 'COMMUNITY',
-  Enterprise = 'ENTERPRISE'
-}
-
 export type AccountWorkspacesInput = {
   branch?: InputMaybe<Scalars['String']['input']>;
   infrastructureTool?: InputMaybe<InfrastructureTool>;
   isArchived?: InputMaybe<Scalars['Boolean']['input']>;
+  latestScanResultConditionIn?: InputMaybe<Array<ScanResultCondition>>;
+  latestScanResultCreatedAfter?: InputMaybe<Scalars['String']['input']>;
+  latestScanResultCreatedBefore?: InputMaybe<Scalars['String']['input']>;
+  latestScanResultFixesGreaterThan?: InputMaybe<Scalars['Int']['input']>;
+  latestScanResultFixesLessThan?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Array<AccountWorkspacesOrderByInput>>;
   page?: InputMaybe<Scalars['Int']['input']>;
   prStatus?: InputMaybe<Array<PullRequestStatus>>;
   repositoryId?: InputMaybe<Scalars['ID']['input']>;
-  scanStatus?: InputMaybe<Array<ScanResultCondition>>;
   scmType?: InputMaybe<ScmType>;
   size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum AccountWorkspacesOrderByField {
+  Branch = 'BRANCH',
+  LatestScanResultCondition = 'LATEST_SCAN_RESULT_CONDITION',
+  LatestScanResultCreatedAt = 'LATEST_SCAN_RESULT_CREATED_AT',
+  LatestScanResultFixes = 'LATEST_SCAN_RESULT_FIXES',
+  Name = 'NAME',
+  Path = 'PATH',
+  RepositoryId = 'REPOSITORY_ID',
+  ScmRepositoryId = 'SCM_REPOSITORY_ID'
+}
+
+export type AccountWorkspacesOrderByInput = {
+  direction: OrderByDirection;
+  field: AccountWorkspacesOrderByField;
 };
 
 export type AssetInstanceLocation = {
@@ -959,6 +1042,7 @@ export type OnGitHubPullRequestEventInput = {
   pullRequestEvent: PullRequestEvent;
   pullRequestNumber: Scalars['String']['input'];
   repositoryId: Scalars['String']['input'];
+  repositoryOwnerId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type OntologicalSubgraph = {
@@ -974,6 +1058,11 @@ export enum OrcaRegion {
   India = 'INDIA',
   Israel = 'ISRAEL',
   Us = 'US'
+}
+
+export enum OrderByDirection {
+  Asc = 'ASC',
+  Desc = 'DESC'
 }
 
 /** A customer organization as represented in the system */
@@ -994,20 +1083,21 @@ export type Organization = {
   hasScmIntegrations: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  /** Return one Gomboc project by its slug, or an error if not found */
+  /**
+   * Return one Gomboc project by its slug, or an error if not found
+   * @deprecated Projects are deprecated
+   */
   project: ProjectResponse;
-  /** Returns all Gomboc projects for this organization */
+  /**
+   * Returns all Gomboc projects for this organization
+   * @deprecated Projects are deprecated
+   */
   projects: Array<Project>;
   /**
    * Open Pull Requests from remediations
    * @deprecated Use Account.pullRequests instead
    */
   pullRequests: PullRequestPage;
-  /**
-   * Returns recent scan requests for this organization
-   * @deprecated not implemented
-   */
-  scans: Array<ScanRequestResponse>;
   /** Returns one SCM integration by its ID, or an error if not found */
   scmIntegration: ScmIntegrationResponse;
   /** Returns SCM integrations for this organization */
@@ -1024,12 +1114,6 @@ export type OrganizationProjectArgs = {
 /** A customer organization as represented in the system */
 export type OrganizationPullRequestsArgs = {
   input: OrganizationPullRequestsInput;
-};
-
-
-/** A customer organization as represented in the system */
-export type OrganizationScansArgs = {
-  before?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1108,6 +1192,11 @@ export type Position = {
 export enum PresenceBasedRule {
   ImplementsIfAbsent = 'IMPLEMENTS_IF_ABSENT',
   ImplementsIfPresent = 'IMPLEMENTS_IF_PRESENT'
+}
+
+export enum ProcessorType {
+  ConfigOption = 'CONFIG_OPTION',
+  Orl = 'ORL'
 }
 
 export type Project = {
@@ -1202,6 +1291,7 @@ export type Query = {
   scanDirectory: ScanDirectoryResponse;
   /** Returns a single Scan Request by its ID, or an error if not found */
   scanRequest: ScanRequestResponse;
+  scmRunnerScan: ScmRunnerScanResponse;
 };
 
 
@@ -1217,6 +1307,11 @@ export type QueryScanDirectoryArgs = {
 
 export type QueryScanRequestArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryScmRunnerScanArgs = {
+  input: ScmRunnerScanInput;
 };
 
 export type RemediationComment = {
@@ -1256,6 +1351,88 @@ export enum RequestOrigin {
   ScmPullRequest = 'SCM_PULL_REQUEST',
   ScmSchedule = 'SCM_SCHEDULE',
   Workflow = 'WORKFLOW'
+}
+
+export type Run = {
+  __typename?: 'Run';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  request: ScanRequestNode;
+  results: ScanResultNodePage;
+  status: RunStatus;
+};
+
+
+export type RunResultsArgs = {
+  input: RunScanResultNodeInput;
+};
+
+export type RunLog = {
+  __typename?: 'RunLog';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  level: RunLogLevel;
+  message: Scalars['String']['output'];
+  /** @deprecated Use createdAt instead, for consistency */
+  timestamp: Scalars['String']['output'];
+};
+
+export enum RunLogLevel {
+  Critical = 'CRITICAL',
+  Debug = 'DEBUG',
+  Error = 'ERROR',
+  Info = 'INFO',
+  Warning = 'WARNING'
+}
+
+export type RunLogPage = {
+  __typename?: 'RunLogPage';
+  page: Scalars['Int']['output'];
+  results: Array<RunLog>;
+  size: Scalars['Int']['output'];
+  totalCount: Scalars['Int']['output'];
+};
+
+export type RunLogResponse = GombocError | RunLog;
+
+export type RunNode = {
+  __typename?: 'RunNode';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  logs: RunLogPage;
+  metadata: Scalars['JSON']['output'];
+  run: Run;
+  status: RunStatus;
+  type: RunNodeType;
+};
+
+export type RunNodeResponse = GombocError | RunNode;
+
+export enum RunNodeType {
+  ScanRequest = 'SCAN_REQUEST',
+  ScanResult = 'SCAN_RESULT'
+}
+
+export type RunPage = {
+  __typename?: 'RunPage';
+  page: Scalars['Int']['output'];
+  results: Array<Run>;
+  size: Scalars['Int']['output'];
+  totalCount: Scalars['Int']['output'];
+};
+
+export type RunResponse = GombocError | Run;
+
+export type RunScanResultNodeInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum RunStatus {
+  Failed = 'FAILED',
+  InProgress = 'IN_PROGRESS',
+  NotStarted = 'NOT_STARTED',
+  Success = 'SUCCESS'
 }
 
 export type RunTaskIntegration = {
@@ -1368,6 +1545,20 @@ export type ScanPage = {
   totalCount: Scalars['Int']['output'];
 };
 
+export type ScanReport = {
+  __typename?: 'ScanReport';
+  files: Array<ScanReportFile>;
+  footer: Scalars['String']['output'];
+  summary: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
+export type ScanReportFile = {
+  __typename?: 'ScanReportFile';
+  summary: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
 export type ScanRepository = {
   __typename?: 'ScanRepository';
   children: Array<ScanBranchResponse>;
@@ -1386,7 +1577,6 @@ export type ScanRequest = {
   __typename?: 'ScanRequest';
   id: Scalars['ID']['output'];
   scanResults: ScanResultPage;
-  scans: ScanPage;
   status: ScanRequestStatus;
 };
 
@@ -1396,10 +1586,27 @@ export type ScanRequestScanResultsArgs = {
   size?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type ScanRequestNode = {
+  __typename?: 'ScanRequestNode';
+  createdAt: Scalars['String']['output'];
+  /** The user who created the scan request */
+  createdBy: Scalars['String']['output'];
+  /** The mode in which the scan was requested */
+  effect?: Maybe<Effect>;
+  id: Scalars['ID']['output'];
+  logs: RunLogPage;
+  /** Indicates where the request came from */
+  requestOrigin?: Maybe<RequestOrigin>;
+  /** The status of the scan request node */
+  status: RunStatus;
+};
 
-export type ScanRequestScansArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
+export type ScanRequestPage = {
+  __typename?: 'ScanRequestPage';
+  page: Scalars['Int']['output'];
+  results: Array<ScanRequest>;
+  size: Scalars['Int']['output'];
+  totalCount: Scalars['Int']['output'];
 };
 
 export type ScanRequestResponse = FailedScan | GombocError | ScanRequest;
@@ -1455,6 +1662,47 @@ export enum ScanResultCondition {
   NoneFixed = 'NONE_FIXED',
   SomeFixed = 'SOME_FIXED'
 }
+
+export type ScanResultNode = {
+  __typename?: 'ScanResultNode';
+  /** The related repository branch name */
+  branch?: Maybe<Scalars['String']['output']>;
+  /** A general state of the scan result */
+  condition?: Maybe<ScanResultCondition>;
+  createdAt: Scalars['String']['output'];
+  /** The duration of the scan request */
+  duration?: Maybe<Scalars['String']['output']>;
+  /** The mode in which the scan was requested */
+  effect?: Maybe<Effect>;
+  /** The number of fixes found and applied during the scan */
+  fixesCount?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['ID']['output'];
+  /** The related infrastructure tool */
+  infrastructureTool?: Maybe<InfrastructureTool>;
+  logs: RunLogPage;
+  /** The related directory or file path */
+  path?: Maybe<Scalars['String']['output']>;
+  /** The Pull Request, if one was created */
+  pullRequest?: Maybe<PullRequest>;
+  /** Indicates where the request came from */
+  requestOrigin?: Maybe<RequestOrigin>;
+  /** The report obtained after a scan is complete, contains multiple sections. */
+  scanReport?: Maybe<ScanReport>;
+  /** The SCM type of the repository */
+  scmType?: Maybe<ScmType>;
+  /** The resulting status of the scan node */
+  status: RunStatus;
+  /** The workspace where this scan result took place, if one exists */
+  workspace?: Maybe<Workspace>;
+};
+
+export type ScanResultNodePage = {
+  __typename?: 'ScanResultNodePage';
+  page: Scalars['Int']['output'];
+  results: Array<ScanResultNode>;
+  size: Scalars['Int']['output'];
+  totalCount: Scalars['Int']['output'];
+};
 
 export type ScanResultPage = {
   __typename?: 'ScanResultPage';
@@ -1514,6 +1762,12 @@ export type ScanTargetInput = {
   path: Scalars['String']['input'];
 };
 
+export type ScanWorkspaceBatchInput = {
+  autoFormat?: InputMaybe<Scalars['Boolean']['input']>;
+  effect: Effect;
+  workspaceIds: Array<Scalars['ID']['input']>;
+};
+
 export type ScanWorkspaceInput = {
   autoFormat?: InputMaybe<Scalars['Boolean']['input']>;
   effect: Effect;
@@ -1537,7 +1791,7 @@ export type ScmIntegration = {
   createdBy: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   /** Use it to access nested repo owners. Might be null if wrong scope or integration expired */
-  repoOwner?: Maybe<ScmRepoOwner>;
+  repoOwner: ScmRepoOwnerResponse;
   scmType: ScmType;
 };
 
@@ -1547,6 +1801,14 @@ export type ScmIntegrationRepoOwnerArgs = {
   scope?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type ScmIntegrationPage = {
+  __typename?: 'ScmIntegrationPage';
+  page: Scalars['Int']['output'];
+  results: Array<ScmIntegration>;
+  size: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
 export type ScmIntegrationResponse = GombocError | ScmIntegration;
 
 export type ScmRepoOwner = {
@@ -1554,11 +1816,13 @@ export type ScmRepoOwner = {
   avatarUrl: Scalars['String']['output'];
   children: ScmRepoOwnersPage;
   htmlUrl: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   parentScope?: Maybe<Scalars['String']['output']>;
   path: Scalars['String']['output'];
   repositories: ScmRepositoriesPage;
-  scope: Scalars['String']['output'];
+  scmType: ScmType;
+  scope?: Maybe<Scalars['String']['output']>;
   searchRepositories: ScmRepositoriesPage;
   type: Scalars['String']['output'];
 };
@@ -1582,12 +1846,14 @@ export type ScmRepoOwnerSearchRepositoriesArgs = {
   size?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type ScmRepoOwnerResponse = GombocError | ScmRepoOwner | UnreachableRepoOwner;
+
 export type ScmRepoOwnersPage = {
   __typename?: 'ScmRepoOwnersPage';
   page: Scalars['Int']['output'];
   results: Array<ScmRepoOwner>;
   size: Scalars['Int']['output'];
-  total?: Maybe<Scalars['Int']['output']>;
+  total: Scalars['Int']['output'];
 };
 
 export type ScmRepositoriesPage = {
@@ -1595,7 +1861,7 @@ export type ScmRepositoriesPage = {
   page: Scalars['Int']['output'];
   results: Array<ScmRepository>;
   size: Scalars['Int']['output'];
-  total?: Maybe<Scalars['Int']['output']>;
+  total: Scalars['Int']['output'];
 };
 
 export type ScmRepository = {
@@ -1604,9 +1870,11 @@ export type ScmRepository = {
   htmlUrl: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   isPublic: Scalars['Boolean']['output'];
+  /** @deprecated This field will be removed soon */
   link?: Maybe<Link>;
   name: Scalars['String']['output'];
-  owner: ScmRepoOwner;
+  owner: ScmRepoOwnerResponse;
+  scmType: ScmType;
   workspaces: WorkspacePage;
 };
 
@@ -1621,6 +1889,8 @@ export type ScmRepositoryWorkspacesArgs = {
   input: ScmRepositoryWorkspacesInput;
 };
 
+export type ScmRepositoryResponse = GombocError | ScmRepository | UnreachableRepository;
+
 export type ScmRepositoryWorkspacesInput = {
   branch?: InputMaybe<Scalars['String']['input']>;
   infrastructureTool?: InputMaybe<InfrastructureTool>;
@@ -1628,6 +1898,51 @@ export type ScmRepositoryWorkspacesInput = {
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
 };
+
+export type ScmRunnerScan = {
+  __typename?: 'ScmRunnerScan';
+  id: Scalars['ID']['output'];
+  logs: Array<ScmRunnerScanLog>;
+  status: ScmRunnerScanStatus;
+};
+
+
+export type ScmRunnerScanLogsArgs = {
+  input: ScmRunnerScanLogsInput;
+};
+
+export type ScmRunnerScanInput = {
+  id: Scalars['ID']['input'];
+};
+
+export type ScmRunnerScanLog = {
+  __typename?: 'ScmRunnerScanLog';
+  createdAt: Scalars['String']['output'];
+  level: ScmRunnerScanLogLevel;
+  message: Scalars['String']['output'];
+};
+
+export enum ScmRunnerScanLogLevel {
+  Critical = 'CRITICAL',
+  Debug = 'DEBUG',
+  Error = 'ERROR',
+  Info = 'INFO',
+  Warning = 'WARNING'
+}
+
+/** Allow consumers to only fetch logs created after a certain time so that they can log as logs come - unix epoch milliseconds */
+export type ScmRunnerScanLogsInput = {
+  createdAfter?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ScmRunnerScanResponse = GombocError | ScmRunnerScan;
+
+export enum ScmRunnerScanStatus {
+  Failed = 'FAILED',
+  InProgress = 'IN_PROGRESS',
+  SucceededWithoutFixes = 'SUCCEEDED_WITHOUT_FIXES',
+  SucceededWithFixes = 'SUCCEEDED_WITH_FIXES'
+}
 
 export enum ScmType {
   Azdo = 'AZDO',
@@ -1802,10 +2117,20 @@ export type ToggleAdoptSecurityBenchmarkVersionInput = {
   value: Scalars['Boolean']['input'];
 };
 
+/** Represents a repository owner that was either deleted or is unreachable due to service or integration issues */
+export type UnreachableRepoOwner = {
+  __typename?: 'UnreachableRepoOwner';
+  id: Scalars['ID']['output'];
+  lastKnownName: Scalars['String']['output'];
+  scmType: ScmType;
+};
+
 /** Represents a repository that was either deleted or is unreachable due to service or integration issues */
 export type UnreachableRepository = {
   __typename?: 'UnreachableRepository';
   id: Scalars['ID']['output'];
+  lastKnownName: Scalars['String']['output'];
+  scmType: ScmType;
 };
 
 export type UpdateBranchReportsInput = {
@@ -1845,12 +2170,27 @@ export type Workspace = {
   /** Name of the workspace, defaults to reponame-branch-path, but is mutable by user */
   name?: Maybe<Scalars['String']['output']>;
   path: Scalars['String']['output'];
-  /** Use if repository is deleted or unreachable */
+  /**
+   * Use if repository is deleted or unreachable
+   * @deprecated Get it from scmRepository
+   */
   repositoryNameFallback: Scalars['String']['output'];
-  /** Use if repository is deleted or unreachable */
+  /**
+   * Use if repository is deleted or unreachable
+   * @deprecated Get it from scmRepository
+   */
   repositoryOwnerNameFallback: Scalars['String']['output'];
+  /** Get a page of run nodes for this workspace */
+  runNodes: ScanResultNodePage;
   /** Returns a page of Scan Results related to this workspace */
   scanResults: ScanResultPageResponse;
+  /** Get the parent SCM repository */
+  scmRepository: ScmRepositoryResponse;
+};
+
+
+export type WorkspaceRunNodesArgs = {
+  input: WorkspaceRunNodesInput;
 };
 
 
@@ -1869,6 +2209,15 @@ export type WorkspacePage = {
 
 export type WorkspaceResponse = GombocError | Workspace;
 
+export type WorkspaceRunNodesInput = {
+  createdAfter?: InputMaybe<Scalars['String']['input']>;
+  createdBefore?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<RunStatus>;
+  type?: InputMaybe<RunNodeType>;
+};
+
 export type ScanOnPullRequestMutationVariables = Exact<{
   input: ScanOnPullRequestInput;
 }>;
@@ -1883,21 +2232,13 @@ export type ScanOnScheduleMutationVariables = Exact<{
 
 export type ScanOnScheduleMutation = { __typename: 'Mutation', scanOnSchedule: { __typename: 'ScanRequestResponseType', scanRequestId: string, errors: Array<{ __typename: 'GombocError', message: string, code?: GombocErrorCode | null } | null> } };
 
-export type ScanRequestStatusQueryVariables = Exact<{
-  scanRequestId: Scalars['ID']['input'];
+export type ScmRunnerScanQueryVariables = Exact<{
+  scmRunnerScanInput: ScmRunnerScanInput;
+  scmRunnerScanLogsInput: ScmRunnerScanLogsInput;
 }>;
 
 
-export type ScanRequestStatusQuery = { __typename: 'Query', scanRequest: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanRequest', id: string, status: ScanRequestStatus } };
-
-export type ScanRequestScansQueryVariables = Exact<{
-  scanRequestId: Scalars['ID']['input'];
-  page: Scalars['Int']['input'];
-  size: Scalars['Int']['input'];
-}>;
-
-
-export type ScanRequestScansQuery = { __typename: 'Query', scanRequest: { __typename: 'FailedScan', id: string, message: string } | { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScanRequest', scanResults: { __typename: 'ScanResultPage', page: number, totalCount: number, size: number, results: Array<{ __typename: 'ScanResult', id: string, infrastructureTool: InfrastructureTool, policyObservations: { __typename: 'PolicyObservationsPage', page: number, size: number, totalCount: number, results: Array<{ __typename: 'PolicyObservation', filepath: string, lineNumber: number, resourceName: string, resourceType: string, disposition: Disposition, capabilityTitle?: string | null }> } }> } } };
+export type ScmRunnerScanQuery = { __typename: 'Query', scmRunnerScan: { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScmRunnerScan', id: string, status: ScmRunnerScanStatus, logs: Array<{ __typename: 'ScmRunnerScanLog', level: ScmRunnerScanLogLevel, message: string, createdAt: string }> } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -1942,72 +2283,22 @@ export const ScanOnScheduleDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ScanOnScheduleMutation, ScanOnScheduleMutationVariables>;
-export const ScanRequestStatusDocument = new TypedDocumentString(`
-    query scanRequestStatus($scanRequestId: ID!) {
+export const ScmRunnerScanDocument = new TypedDocumentString(`
+    query scmRunnerScan($scmRunnerScanInput: ScmRunnerScanInput!, $scmRunnerScanLogsInput: ScmRunnerScanLogsInput!) {
   __typename
-  scanRequest(id: $scanRequestId) {
+  scmRunnerScan(input: $scmRunnerScanInput) {
     __typename
-    ... on ScanRequest {
+    ... on ScmRunnerScan {
       __typename
       id
       status
-    }
-    ... on FailedScan {
-      __typename
-      id
-      message
-    }
-    ... on GombocError {
-      __typename
-      code
-      message
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<ScanRequestStatusQuery, ScanRequestStatusQueryVariables>;
-export const ScanRequestScansDocument = new TypedDocumentString(`
-    query scanRequestScans($scanRequestId: ID!, $page: Int!, $size: Int!) {
-  __typename
-  scanRequest(id: $scanRequestId) {
-    __typename
-    ... on ScanRequest {
-      __typename
-      scanResults(page: $page, size: $size) {
+      logs(input: $scmRunnerScanLogsInput) {
         __typename
-        results {
-          __typename
-          id
-          infrastructureTool
-          policyObservations(
-            exclude: [ALREADY_COMPLIANT, NOT_APPLICABLE, INSUFFICIENT_INFO_TO_REMEDIATE, CANNOT_REMEDIATE]
-            page: 1
-            size: $size
-          ) {
-            __typename
-            results {
-              __typename
-              filepath
-              lineNumber
-              resourceName
-              resourceType
-              disposition
-              capabilityTitle
-            }
-            page
-            size
-            totalCount
-          }
-        }
-        page
-        totalCount
-        size
+        level
+        message
+        createdAt
       }
     }
-    ... on FailedScan {
-      __typename
-      id
-      message
-    }
     ... on GombocError {
       __typename
       code
@@ -2015,4 +2306,4 @@ export const ScanRequestScansDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<ScanRequestScansQuery, ScanRequestScansQueryVariables>;
+    `) as unknown as TypedDocumentString<ScmRunnerScanQuery, ScmRunnerScanQueryVariables>;

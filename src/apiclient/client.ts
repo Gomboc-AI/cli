@@ -1,6 +1,6 @@
 import crossFetch from 'cross-fetch'
 // @ts-ignore
-import { ApolloClient, InMemoryCache, NormalizedCacheObject, HttpLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache, NormalizedCacheObject, HttpLink, ApolloQueryResult } from '@apollo/client';
 // @ts-ignore
 import { setContext } from '@apollo/client/link/context/context.cjs'
 
@@ -12,25 +12,21 @@ import {
   ScanOnPullRequestMutationVariables,
   ScanOnScheduleMutation,
   ScanOnScheduleMutationVariables,
-  ScanRequestScansQuery,
-  ScanRequestScansQueryVariables,
-  ScanRequestStatus,
-  ScanRequestStatusQuery,
-  ScanRequestStatusQueryVariables,
-  ScanResult
+  ScmRunnerScanQuery,
+  ScmRunnerScanQueryVariables,
+  ScmRunnerScanStatus,
+  ScmRunnerScanLogLevel,
 } from './gql/graphql';
 
 import { scanOnPullRequest } from './mutations/scanOnPullRequest';
 import { scanOnSchedule } from './mutations/scanOnSchedule';
+import { scmRunnerScanQuery } from './queries/scmRunnerScan';
 
 import { consoleDebugger } from '../utils/ConsoleDebugger';
 import { settings } from '../settings';
 import { ExitCode } from '../cli/exitCodes';
 import { ConsoleLogger } from '../utils/ConsoleLogger';
-import { scanRequestStatusQuery } from './queries/scanRequest';
-import { scanRequestScansQuery } from './queries/scanRequestScans';
 
-type ScanResultWithoutObservations = Omit<ScanResult, 'observations'>
 type AzdoOptions = {
   azdoBaseUrl: string,
   azdoOrganizationName: string
@@ -103,7 +99,7 @@ export class Client {
     this._listAllInputs('scanOnScheduleMutationCall', args)
 
     try {
-      const { data }= await this.client.mutate<ScanOnScheduleMutation, ScanOnScheduleMutationVariables>({
+      const { data } = await this.client.mutate<ScanOnScheduleMutation, ScanOnScheduleMutationVariables>({
         mutation: scanOnSchedule,
         variables: {
           input: {
@@ -156,7 +152,7 @@ export class Client {
     this._listAllInputs('scanOnPullRequestMutationCall', args)
 
     try {
-      const {data}  = await this.client.mutate<ScanOnPullRequestMutation, ScanOnPullRequestMutationVariables>({
+      const { data }  = await this.client.mutate<ScanOnPullRequestMutation, ScanOnPullRequestMutationVariables>({
         mutation: scanOnPullRequest,
         variables: {
           input: {
@@ -203,93 +199,88 @@ export class Client {
     }
   }
 
-  private async _getScanResults(scanRequestId: string): Promise<ScanResultWithoutObservations[]> {
-    const PAGE_SIZE = 20
-    const { data } = await this.client.query<ScanRequestScansQuery, ScanRequestScansQueryVariables>({
-      query: scanRequestScansQuery,
-      variables: {
-        scanRequestId,
-        page:1,
-        size:PAGE_SIZE,
-      },
-      fetchPolicy: 'no-cache'
-    })
-    const scanRequest = data.scanRequest
-    const typename = scanRequest.__typename
-    if(typename === 'FailedScan'){
-      throw new ClientError(`${scanRequest.message} (Scan ID: ${scanRequest.id})`, ExitCode.BUSINESS_ERROR)
-    }else if(typename === 'GombocError'){
-      throw new ClientError(scanRequest.message, ExitCode.SERVER_ERROR)
-    }
-    
-    return scanRequest.scanResults.results
-  }
+  public async getScmRunnerScan(args: { requestId: string }): Promise<ScmRunnerScanStatus> {
+    cl._log(`Request accepted by server: ${settings.SERVER_URL}\n`)
+    const { requestId } = args
 
-  private async _isScanAvailable(scanRequestId: string){
-    const { data }= await this.client.query<ScanRequestStatusQuery, ScanRequestStatusQueryVariables>({
-      query: scanRequestStatusQuery,
-      variables: {
-        scanRequestId,
-      },
-      fetchPolicy: 'no-cache'
-    })
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-    if(data.scanRequest.__typename === "FailedScan"){
-      throw new ClientError(`${data.scanRequest.message} (Scan ID: ${data.scanRequest.id})`, ExitCode.BUSINESS_ERROR)
-    }
-    if (data.scanRequest.__typename === 'GombocError') {
-      throw new ClientError(data.scanRequest.message, ExitCode.SERVER_ERROR)
-    }
-    return data.scanRequest.status !== ScanRequestStatus.Running
-  }
-
-  public async pollScanStatus(scanRequestId: string): Promise<Record<keyof typeof InfrastructureTool, ScanResultWithoutObservations[]>> {
-    cl._log(`Scan request accepted by server: ${settings.SERVER_URL} \n`)
-
-    // Temporal naive implementation of a polling mechanism. Will be replaced by a GraphQL subscription
-    // In the grand scheme of CI/CD pipeline times, this is not terrible
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    // Start polling mechanism
-    const INITIAL_INTERVAL = 60 * 1000 // wait 1 minute before first poll
-    const POLLING_INTERVAL = 60 * 1000 // check once a minute
+    const POLLING_INTERVAL = 10 * 1000 // check every 10 seconds
     const TIMEOUT_LIMIT = 60 * 60 * 1000 // timeout after 1 hour
 
-    // Initial call to check the status of the scan
-    let attempts = 1
+    let attempts = 0
+    let lastLogTimestamp: string | undefined = undefined
 
-    let results: ScanResultWithoutObservations[] = []
     cl.log('Retrieving scan status...')
-    // While there are still children scans being processed
-    do {
-      let isScanAvailable = false
-      try{
-        isScanAvailable= await this._isScanAvailable(scanRequestId)
-        if(isScanAvailable){
-            results = await this._getScanResults(scanRequestId)
-        }
-      }catch(e){
-        consoleDebugger.log('Failed polling:', { error:e })
-        break;
-      }
-      if (isScanAvailable) { break }
 
-      // Server is still working on the children scan
-      const totalAwaitedTime = INITIAL_INTERVAL + attempts * POLLING_INTERVAL
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      try {
+        const result: ApolloQueryResult<ScmRunnerScanQuery> = await this.client.query<ScmRunnerScanQuery, ScmRunnerScanQueryVariables>({
+          query: scmRunnerScanQuery,
+          variables: {
+            scmRunnerScanInput: { id: requestId },
+            scmRunnerScanLogsInput: { createdAfter: lastLogTimestamp },
+          },
+          fetchPolicy: 'no-cache',
+        })
+
+        const scmRunnerScan: ScmRunnerScanQuery['scmRunnerScan'] = result.data.scmRunnerScan
+
+        if (scmRunnerScan.__typename === 'GombocError') {
+          throw new ClientError(scmRunnerScan.message, ExitCode.SERVER_ERROR)
+        }
+
+        // Log any new logs received
+        for (const log of scmRunnerScan.logs) {
+          this._logScmRunnerScanLog(log.level, log.message)
+          // Track the latest timestamp for the next poll
+          if (!lastLogTimestamp || log.createdAt > lastLogTimestamp) {
+            lastLogTimestamp = log.createdAt
+          }
+        }
+
+        // Check if scan is complete
+        if (scmRunnerScan.status !== ScmRunnerScanStatus.InProgress) {
+          return scmRunnerScan.status
+        }
+      } catch (e) {
+        if (e instanceof ClientError) {
+          throw e
+        }
+        consoleDebugger.log('Failed polling', { error: e })
+        throw new ClientError('Failed to poll scan status', ExitCode.SERVER_ERROR)
+      }
+
+      // Check for timeout
+      const totalAwaitedTime = attempts * POLLING_INTERVAL
       if (totalAwaitedTime > TIMEOUT_LIMIT) {
         const timeoutMinutes = Math.floor(TIMEOUT_LIMIT / 60000)
         const errorMessage = `Scan timed out after ${timeoutMinutes} min. Please try again later`
-        cl.err(ExitCode.SERVER_TIMEOUT_ERROR, `Scan timed out after ${timeoutMinutes} min. Please try again later`)
+        cl.err(ExitCode.SERVER_TIMEOUT_ERROR, errorMessage)
         throw new ClientError(errorMessage, ExitCode.SERVER_TIMEOUT_ERROR)
       }
 
       attempts++
       await sleep(POLLING_INTERVAL)
-      // eslint-disable-next-line no-constant-condition
-    } while (true)
+    }
+  }
 
-    return {
-      Cloudformation: results.filter(result=>result.infrastructureTool===InfrastructureTool.Cloudformation),
-      Terraform: results.filter(result=>result.infrastructureTool===InfrastructureTool.Terraform)
+  private _logScmRunnerScanLog(level: ScmRunnerScanLogLevel, message: string): void {
+    switch (level) {
+      case ScmRunnerScanLogLevel.Critical:
+      case ScmRunnerScanLogLevel.Error:
+        cl.err(ExitCode.SERVER_ERROR, `[${level}] ${message}`)
+        break
+      case ScmRunnerScanLogLevel.Warning:
+        cl.log(`[${level}] ${message}`)
+        break
+      case ScmRunnerScanLogLevel.Info:
+        cl.log(`[${level}] ${message}`)
+        break
+      case ScmRunnerScanLogLevel.Debug:
+        consoleDebugger.log(`[${level}]`, message)
+        break
     }
   }
 }
