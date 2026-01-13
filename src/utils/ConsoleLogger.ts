@@ -7,6 +7,8 @@ export class ConsoleLogger {
   private spinnerInterval: ReturnType<typeof setInterval> | null = null
   private spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
   private spinnerIndex = 0
+  private isTTY = process.stdout.isTTY ?? false
+  private spinnerStarted = false
 
   constructor(isSilenced = false) {
     this.isSilenced = isSilenced;
@@ -29,24 +31,44 @@ export class ConsoleLogger {
 
   public startSpinner = (message: string) => {
     if (this.isSilenced || this.spinnerInterval) return
-    
-    this.spinnerIndex = 0
-    process.stdout.write(`${this.spinnerFrames[this.spinnerIndex]} ${message}`)
-    
-    this.spinnerInterval = setInterval(() => {
-      this.spinnerIndex = (this.spinnerIndex + 1) % this.spinnerFrames.length
-      process.stdout.write(`\r${this.spinnerFrames[this.spinnerIndex]} ${message}`)
-    }, 80)
+
+    if (this.isTTY) {
+      // Interactive terminal: use animated spinner
+      this.spinnerIndex = 0
+      process.stdout.write(`${this.spinnerFrames[this.spinnerIndex]} ${message}`)
+      
+      this.spinnerInterval = setInterval(() => {
+        this.spinnerIndex = (this.spinnerIndex + 1) % this.spinnerFrames.length
+        process.stdout.write(`\r${this.spinnerFrames[this.spinnerIndex]} ${message}`)
+      }, 80)
+    } else {
+      // CI environment: print message once, then dots periodically
+      if (!this.spinnerStarted) {
+        process.stdout.write(`${message}`)
+        this.spinnerStarted = true
+      }
+      this.spinnerInterval = setInterval(() => {
+        process.stdout.write('.')
+      }, 5000)
+    }
   }
 
   public stopSpinner = (finalMessage?: string) => {
     if (this.spinnerInterval) {
       clearInterval(this.spinnerInterval)
       this.spinnerInterval = null
+    }
+    
+    if (this.isTTY) {
       process.stdout.write('\r\x1b[K') // Clear the line
-      if (finalMessage) {
-        this.log(finalMessage)
-      }
+    } else if (this.spinnerStarted) {
+      process.stdout.write('\n') // End the dots line
+    }
+    
+    this.spinnerStarted = false
+    
+    if (finalMessage) {
+      this.log(finalMessage)
     }
   }
 }  
