@@ -8,7 +8,7 @@ class ConsoleDebugger {
   constructor() {
     this.isSilenced = !settings.DEBUG_MODE;
     if (!this.isSilenced) {
-      console.log(hlDebug(`..:: DEBUG IS ON`))
+      console.log(hlDebug(`[DEBUG IS ON]`))
       console.log(hlDebug(`Applied environment: ${JSON.stringify({ env: process.env })}`))
       console.log(hlDebug(`Applied settings: ${JSON.stringify({ settings })}`))
     }
@@ -17,7 +17,7 @@ class ConsoleDebugger {
   public log = (title: string, content: unknown) => {
     if (!this.isSilenced) {
       const contentStr = typeof content === 'string' ? content : JSON.stringify(content)
-      console.log(hlDebug(`..:: DEBUG ${title} ${contentStr}`))
+      console.log(hlDebug(`[DEBUG] ${title} ${contentStr}`))
     }
   }
 }
