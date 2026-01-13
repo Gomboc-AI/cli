@@ -212,7 +212,7 @@ export class Client {
     let attempts = 0
     let lastLogTimestamp: string | undefined = undefined
 
-    cl.startSpinner('Retrieving scan status')
+    cl.log('Retrieving scan status...')
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -229,15 +229,12 @@ export class Client {
         const scmRunnerScan: ScmRunnerScanQuery['scmRunnerScan'] = result.data.scmRunnerScan
 
         if (scmRunnerScan.__typename === 'GombocError') {
-          cl.stopSpinner()
           throw new ClientError(scmRunnerScan.message, ExitCode.SERVER_ERROR)
         }
 
         // Log any new logs received
         for (const log of scmRunnerScan.logs) {
-          cl.stopSpinner()
           this._logScmRunnerScanLog(log.level, log.message)
-          cl.startSpinner('Retrieving scan status')
           // Track the latest timestamp for the next poll
           if (!lastLogTimestamp || log.createdAt > lastLogTimestamp) {
             lastLogTimestamp = log.createdAt
@@ -246,11 +243,10 @@ export class Client {
 
         // Check if scan is complete
         if (scmRunnerScan.status !== ScmRunnerScanStatus.InProgress) {
-          cl.stopSpinner(`Scan completed with status: ${scmRunnerScan.status}${scmRunnerScan.status === ScmRunnerScanStatus.SucceededWithFixes ? `, fixes count: ${scmRunnerScan.fixesCount}` : ''}`)
+          cl.log(`Scan completed with status: ${scmRunnerScan.status}${scmRunnerScan.status === ScmRunnerScanStatus.SucceededWithFixes ? `, fixes count: ${scmRunnerScan.fixesCount}` : ''}`)
           return scmRunnerScan.status
         }
       } catch (e) {
-        cl.stopSpinner()
         if (e instanceof ClientError) {
           throw e
         }
@@ -261,7 +257,6 @@ export class Client {
       // Check for timeout
       const totalAwaitedTime = attempts * POLLING_INTERVAL
       if (totalAwaitedTime > TIMEOUT_LIMIT) {
-        cl.stopSpinner()
         const timeoutMinutes = Math.floor(TIMEOUT_LIMIT / 60000)
         const errorMessage = `Scan timed out after ${timeoutMinutes} min. Please try again later`
         cl.err(ExitCode.SERVER_TIMEOUT_ERROR, errorMessage)
