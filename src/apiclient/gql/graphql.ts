@@ -1291,6 +1291,7 @@ export type Query = {
   scanDirectory: ScanDirectoryResponse;
   /** Returns a single Scan Request by its ID, or an error if not found */
   scanRequest: ScanRequestResponse;
+  /** Internal use only */
   scmRunnerScan: ScmRunnerScanResponse;
 };
 
@@ -1360,6 +1361,7 @@ export type Run = {
   request: ScanRequestNode;
   results: ScanResultNodePage;
   status: RunStatus;
+  totalFixes: Scalars['Int']['output'];
 };
 
 
@@ -1590,7 +1592,7 @@ export type ScanRequestNode = {
   __typename?: 'ScanRequestNode';
   createdAt: Scalars['String']['output'];
   /** The user who created the scan request */
-  createdBy: Scalars['String']['output'];
+  createdBy?: Maybe<Scalars['String']['output']>;
   /** The mode in which the scan was requested */
   effect?: Maybe<Effect>;
   id: Scalars['ID']['output'];
@@ -1670,8 +1672,10 @@ export type ScanResultNode = {
   /** A general state of the scan result */
   condition?: Maybe<ScanResultCondition>;
   createdAt: Scalars['String']['output'];
+  /** The user who created the scan result */
+  createdBy?: Maybe<Scalars['String']['output']>;
   /** The duration of the scan request */
-  duration?: Maybe<Scalars['String']['output']>;
+  duration?: Maybe<Scalars['Int']['output']>;
   /** The mode in which the scan was requested */
   effect?: Maybe<Effect>;
   /** The number of fixes found and applied during the scan */
@@ -1688,6 +1692,8 @@ export type ScanResultNode = {
   requestOrigin?: Maybe<RequestOrigin>;
   /** The report obtained after a scan is complete, contains multiple sections. */
   scanReport?: Maybe<ScanReport>;
+  /** Repository associated with the scanresult */
+  scmRepository?: Maybe<ScmRepository>;
   /** The SCM type of the repository */
   scmType?: Maybe<ScmType>;
   /** The resulting status of the scan node */
@@ -1703,6 +1709,8 @@ export type ScanResultNodePage = {
   size: Scalars['Int']['output'];
   totalCount: Scalars['Int']['output'];
 };
+
+export type ScanResultNodeResponse = GombocError | ScanResultNode;
 
 export type ScanResultPage = {
   __typename?: 'ScanResultPage';
@@ -1901,6 +1909,7 @@ export type ScmRepositoryWorkspacesInput = {
 
 export type ScmRunnerScan = {
   __typename?: 'ScmRunnerScan';
+  fixesCount: Scalars['Int']['output'];
   id: Scalars['ID']['output'];
   logs: Array<ScmRunnerScanLog>;
   status: ScmRunnerScanStatus;
@@ -2238,7 +2247,7 @@ export type ScmRunnerScanQueryVariables = Exact<{
 }>;
 
 
-export type ScmRunnerScanQuery = { __typename: 'Query', scmRunnerScan: { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScmRunnerScan', id: string, status: ScmRunnerScanStatus, logs: Array<{ __typename: 'ScmRunnerScanLog', level: ScmRunnerScanLogLevel, message: string, createdAt: string }> } };
+export type ScmRunnerScanQuery = { __typename: 'Query', scmRunnerScan: { __typename: 'GombocError', code?: GombocErrorCode | null, message: string } | { __typename: 'ScmRunnerScan', id: string, status: ScmRunnerScanStatus, fixesCount: number, logs: Array<{ __typename: 'ScmRunnerScanLog', level: ScmRunnerScanLogLevel, message: string, createdAt: string }> } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -2292,6 +2301,7 @@ export const ScmRunnerScanDocument = new TypedDocumentString(`
       __typename
       id
       status
+      fixesCount
       logs(input: $scmRunnerScanLogsInput) {
         __typename
         level

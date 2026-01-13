@@ -199,9 +199,9 @@ export class Client {
     }
   }
 
-  public async getScmRunnerScan(args: { requestId: string }): Promise<ScmRunnerScanStatus> {
+  public async getScmRunnerScan(args: { scmRunnerScanId: string }): Promise<ScmRunnerScanStatus> {
     cl._log(`Request accepted by server: ${settings.SERVER_URL}\n`)
-    const { requestId } = args
+    const { scmRunnerScanId } = args
 
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -219,7 +219,7 @@ export class Client {
         const result: ApolloQueryResult<ScmRunnerScanQuery> = await this.client.query<ScmRunnerScanQuery, ScmRunnerScanQueryVariables>({
           query: scmRunnerScanQuery,
           variables: {
-            scmRunnerScanInput: { id: requestId },
+            scmRunnerScanInput: { id: scmRunnerScanId },
             scmRunnerScanLogsInput: { createdAfter: lastLogTimestamp },
           },
           fetchPolicy: 'no-cache',
@@ -242,6 +242,7 @@ export class Client {
 
         // Check if scan is complete
         if (scmRunnerScan.status !== ScmRunnerScanStatus.InProgress) {
+          cl.log(`Scan completed with status: ${scmRunnerScan.status}${scmRunnerScan.status === ScmRunnerScanStatus.SucceededWithFixes ? `, fixes count: ${scmRunnerScan.fixesCount}` : ''}`)
           return scmRunnerScan.status
         }
       } catch (e) {

@@ -6,6 +6,7 @@ export const scmRunnerScanQuery = gql`
       ... on ScmRunnerScan {
         id
         status
+        fixesCount
         logs (input:$scmRunnerScanLogsInput) {
           level
           message

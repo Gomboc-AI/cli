@@ -47,7 +47,8 @@ const handleScanResult = (status: ScmRunnerScanStatus) => {
       cl.log(hlSuccess(`Scan completed - no fixes needed`))
       return
     case ScmRunnerScanStatus.Failed:
-      throw new ClientError('Scan failed', ExitCode.FAILED_SCAN)
+      cl.log(`Scan failed - please check the logs above for details`)
+      return
   }
 }
 
@@ -78,9 +79,9 @@ export const resolveOnSchedule = async (inputs: OnScheduleInputs) => {
   }
 
   const scanResult = await client.scanOnScheduleMutationCall(inputs)
-  const { scanRequestId } = scanResult.scanOnSchedule
+  const { scanRequestId: scmRunnerScanId } = scanResult.scanOnSchedule
 
-  const status = await client.getScmRunnerScan({ requestId: scanRequestId })
+  const status = await client.getScmRunnerScan({ scmRunnerScanId })
   handleScanResult(status)
 }
 
@@ -111,8 +112,8 @@ export const resolveOnPullRequest = async (inputs: OnPullRequestInputs) => {
   }
 
   const scanResult = await client.scanOnPullRequestMutationCall(inputs)
-  const { scanRequestId } = scanResult.scanOnPullRequest
+  const { scanRequestId: scmRunnerScanId } = scanResult.scanOnPullRequest
 
-  const status = await client.getScmRunnerScan({ requestId: scanRequestId })
+  const status = await client.getScmRunnerScan({ scmRunnerScanId })
   handleScanResult(status)
 }

@@ -1,5 +1,5 @@
 import { settings } from '../settings';
-import { hl } from './consoleUtils';
+import { hlDebug } from './consoleUtils';
 
 
 class ConsoleDebugger {
@@ -8,16 +8,16 @@ class ConsoleDebugger {
   constructor() {
     this.isSilenced = !settings.DEBUG_MODE;
     if (!this.isSilenced) {
-      console.log(hl(`..:: DEBUG IS ON`))
-      console.log("Applied environment:", { env: process.env })
-      console.log("Applied settings:", { settings })
-
+      console.log(hlDebug(`..:: DEBUG IS ON`))
+      console.log(hlDebug(`Applied environment: ${JSON.stringify({ env: process.env })}`))
+      console.log(hlDebug(`Applied settings: ${JSON.stringify({ settings })}`))
     }
   }
 
   public log = (title: string, content: any) => {
     if (!this.isSilenced) {
-      console.log(hl(`..:: DEBUG ${title}`), content)
+      const contentStr = typeof content === 'string' ? content : JSON.stringify(content)
+      console.log(hlDebug(`..:: DEBUG ${title} ${contentStr}`))
     }
   }
 }
