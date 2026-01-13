@@ -14,7 +14,7 @@ class ConsoleDebugger {
     }
   }
 
-  public log = (title: string, content: any) => {
+  public log = (title: string, content: unknown) => {
     if (!this.isSilenced) {
       const contentStr = typeof content === 'string' ? content : JSON.stringify(content)
       console.log(hlDebug(`..:: DEBUG ${title} ${contentStr}`))

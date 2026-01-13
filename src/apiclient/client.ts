@@ -120,14 +120,15 @@ export class Client {
       consoleDebugger.log(`scanOnScheduleMutationCall -- success on attempt #${_attempts}:`, JSON.stringify(data))
 
       return data
-    } catch (e: any) {
+    } catch (e) {
       consoleDebugger.log(`scanOnScheduleMutationCall -- error on attempt #${_attempts}:`, JSON.stringify(e))
 
       const RETRY_ATTEMPTS = 3
       const RETRY_DELAY_MILLISECONDS = 5000
 
       if (_attempts > RETRY_ATTEMPTS) {
-        throw new ClientError(`${e.message}`, ExitCode.SERVER_ERROR)
+        const message = e instanceof Error ? e.message : 'An unexpected error occurred'
+        throw new ClientError(message, ExitCode.SERVER_ERROR)
       }
 
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
@@ -179,7 +180,7 @@ export class Client {
         throw new ClientError('Scan request was rejected by the server.', ExitCode.SERVER_ERROR)
       }
       return data
-    } catch (e: any) {
+    } catch (e) {
       consoleDebugger.log(`scanOnPullRequestMutationCall -- error on attempt #${_attempts}:`, JSON.stringify(e))
 
       const RETRY_ATTEMPTS = 3

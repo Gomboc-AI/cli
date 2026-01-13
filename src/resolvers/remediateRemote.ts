@@ -42,7 +42,7 @@ const handleScanResult = (status: ScmRunnerScanStatus) => {
   switch (status) {
     case ScmRunnerScanStatus.SucceededWithFixes:
       cl.log(hlSuccess(`Scan completed - some fixes require your attention`))
-      throw new ClientError('Scan completed with fixes', ExitCode.SUCCEEDED_WITH_FIXES)
+      throw new ClientError('Please review PR(s) with fixes and retry', ExitCode.SUCCEEDED_WITH_FIXES)
     case ScmRunnerScanStatus.SucceededWithoutFixes:
       cl.log(hlSuccess(`Scan completed - no fixes needed`))
       return

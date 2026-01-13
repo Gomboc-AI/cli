@@ -7,6 +7,7 @@ import { RECURSE_DEFAULT, TARGET_DIRECTORIES_DEFAULT, TARGET_DIRECTORY_DEFAULT }
 import { handleOnPullRequestCommand, handleOnScheduleCommand } from './cli/interfaces/remediate'
 import { ConsoleLogger } from './utils/ConsoleLogger'
 import { ExitCode } from './cli/exitCodes'
+import { ClientError } from './apiclient/client'
 import { hl } from './utils/consoleUtils'
 
 const addFormatOption =  (argv: Argv) => {
@@ -105,20 +106,23 @@ const onPullRequestCommand = (yargs: YargType) => {
       const suppressError = args.$0 === EffectCommand.AUDIT
       try {
         await handleOnPullRequestCommand(args)
-      } catch (error: any) {
+      } catch (error) {
         const cl = new ConsoleLogger()
-        cl.err(ExitCode.COMMAND_ERROR, error.message)
+        const err = error instanceof ClientError ? error : null
+        const message = err?.message ?? 'An unexpected error occurred'
+        const code = err?.code ?? ExitCode.COMMAND_ERROR
+        cl.err(code, message)
         if (suppressError) {
           return yargs.exit(ExitCode.SUCCESS, new Error(
-            `${hl('SUPPRESSED ERROR')}:  ${error.message}`
+            `${hl('SUPPRESSED ERROR')}:  ${message}`
           ))
         }
-        if (error.code !== ExitCode.SUCCEEDED_WITH_FIXES && error.code !== ExitCode.INVALID_ARGUMENTS && error.code !== ExitCode.FAILED_SCAN) {
+        if (code !== ExitCode.SUCCEEDED_WITH_FIXES && code !== ExitCode.INVALID_ARGUMENTS && code !== ExitCode.FAILED_SCAN) {
           return yargs.exit(ExitCode.SUCCESS, new Error(
-            `${hl('INTERNAL SERVER ERROR')}:  ${error.message}`
+            `${hl('INTERNAL SERVER ERROR')}:  ${message}`
           ))
         }
-        return yargs.exit(error?.code ?? ExitCode.COMMAND_ERROR, error)
+        return yargs.exit(code, err ?? new Error(message))
       }
     }
   )
@@ -136,20 +140,23 @@ const onScheduleCommand = (yargs: YargType) => {
       const suppressError = args.$0 === EffectCommand.AUDIT
       try {
         await handleOnScheduleCommand(args)
-      } catch (error: any) {
+      } catch (error) {
         const cl = new ConsoleLogger()
-        cl.err(ExitCode.COMMAND_ERROR, error.message)
+        const err = error instanceof ClientError ? error : null
+        const message = err?.message ?? 'An unexpected error occurred'
+        const code = err?.code ?? ExitCode.COMMAND_ERROR
+        cl.err(code, message)
         if (suppressError) {
           yargs.exit(ExitCode.SUCCESS, new Error(
-            `${hl('SUPPRESSED ERROR')}:  ${error.message}`
+            `${hl('SUPPRESSED ERROR')}:  ${message}`
           ))
         }
-        if (error.code !== ExitCode.SUCCEEDED_WITH_FIXES && error.code !== ExitCode.INVALID_ARGUMENTS && error.code !== ExitCode.FAILED_SCAN) {
+        if (code !== ExitCode.SUCCEEDED_WITH_FIXES && code !== ExitCode.INVALID_ARGUMENTS && code !== ExitCode.FAILED_SCAN) {
           return yargs.exit(ExitCode.SUCCESS, new Error(
-            `${hl('INTERNAL SERVER ERROR')}:  ${error.message}`
+            `${hl('INTERNAL SERVER ERROR')}:  ${message}`
           ))
         }
-        yargs.exit(error?.code ?? ExitCode.COMMAND_ERROR, error)
+        yargs.exit(code, err ?? new Error(message))
       }
     }
   )

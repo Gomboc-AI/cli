@@ -21,6 +21,6 @@ export class ConsoleLogger {
   public ___log = (message: string) => { this.logIndented(message, 3) }
 
   public err = (_code: ExitCode, message: string) => {
-    this.log(`\n${chalk.red.bold(`Error`)}: ${message}`)
+    this.log(`\n${chalk.red.bold('Blocked')}: ${message}`)
   }
 }  
