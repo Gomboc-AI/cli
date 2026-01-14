@@ -217,6 +217,8 @@ export class Client {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       try {
+        consoleDebugger.log(`Polling scan (attempt #${attempts})`, { scmRunnerScanId, lastLogTimestamp })
+
         const result: ApolloQueryResult<ScmRunnerScanQuery> = await this.client.query<ScmRunnerScanQuery, ScmRunnerScanQueryVariables>({
           query: scmRunnerScanQuery,
           variables: {
