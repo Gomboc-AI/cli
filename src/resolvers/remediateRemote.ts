@@ -1,10 +1,9 @@
-import { Client, ClientError, POLICY_OBSERVATIONS_PAGE_SIZE } from '../apiclient/client'
+import { Client, ClientError } from '../apiclient/client'
 import { ConsoleLogger } from '../utils/ConsoleLogger'
 import { ExitCode } from '../cli/exitCodes'
-import { hl, checkMark, formatTitle, hlSuccess, hlError } from '../utils/consoleUtils'
+import { hl, checkMark, formatTitle, hlSuccess } from '../utils/consoleUtils'
 import { CLI_VERSION } from '../cli/version'
-import { Effect, InfrastructureTool } from '../apiclient/gql/graphql'
-import { settings } from '../settings'
+import { Effect, InfrastructureTool, ScmRunnerScanStatus } from '../apiclient/gql/graphql'
 import { z } from 'zod'
 
 
@@ -39,46 +38,18 @@ type OnScheduleInputs = z.infer<typeof zOnScheduleInputs>
 type OnPullRequestInputs = z.infer<typeof zOnPullRequestInputs>
 
 
-const resolveActionResult = async (scanRequestId: string, client: Client) => {
-  const actionResults = await client.pollScanStatus(scanRequestId)
-  // Keep track of whether there are any violations or failed scans to prevent or not deployment
-  let atLeastOneViolation = false
-
-  for (const iac in actionResults) {
-    // If its not part of the IaC tools included ignore the section
-    if (!client.iacTools.includes(InfrastructureTool[iac as keyof typeof InfrastructureTool])) { continue }
-    const results = actionResults[iac as keyof typeof actionResults]
-    cl._log(`${hl(iac)} scan results:\n`)
-    if (results.length === 0) {
-      cl.log('\tNo violations found\n')
-    }
-    results.forEach((result) => {
-      if (result.policyObservations.results.length === 0) {
-        cl.log('\tNo violations found\n') 
-        return
-      }
-      result.policyObservations.results.forEach((obs: any) => {
-        const location = `${obs.filepath}, line ${obs.lineNumber}`
-        cl.__log(`Policy observation at ${hl(location)}:`)
-        cl.___log(`Resource: ${hl(obs.resourceName)} (${obs.resourceType})`)
-        cl.___log(`Policy: All resources must implement ${hl(obs.capabilityTitle)}`)
-        const dispositionHighlight = obs.disposition === 'AUTO_REMEDIATED' ? hlSuccess : hlError
-        cl.___log(`Status: ${dispositionHighlight(obs.disposition)}`)
-        atLeastOneViolation = true
-      })
-      if (result.policyObservations.results.length === POLICY_OBSERVATIONS_PAGE_SIZE) {
-        cl.__log(`...and possibly more`)
-      }
-      cl._log('\n')
-      cl.__log(`Find the details at ${settings.CLIENT_URL}/scans/${result.id}\n`)
-    })
+const handleScanResult = (status: ScmRunnerScanStatus) => {
+  switch (status) {
+    case ScmRunnerScanStatus.SucceededWithFixes:
+      cl.log(hlSuccess(`Scan completed - some fixes require your attention`))
+      throw new ClientError('Please review PR(s) with fixes and retry', ExitCode.SUCCEEDED_WITH_FIXES)
+    case ScmRunnerScanStatus.SucceededWithoutFixes:
+      cl.log(hlSuccess(`Scan completed - no fixes needed`))
+      return
+    case ScmRunnerScanStatus.Failed:
+      cl.log(`Scan failed - please check the logs above for details`)
+      return
   }
-
-  if (atLeastOneViolation) {
-    throw new ClientError('At least one violation or error was found', ExitCode.VIOLATIONS_FOUND)
-  }
-
-  cl.log(hlSuccess(`No violations or errors found`))
 }
 
 
@@ -108,9 +79,10 @@ export const resolveOnSchedule = async (inputs: OnScheduleInputs) => {
   }
 
   const scanResult = await client.scanOnScheduleMutationCall(inputs)
-  const { scanRequestId } = scanResult.scanOnSchedule
+  const { scanRequestId: scmRunnerScanId } = scanResult.scanOnSchedule
 
-  return await resolveActionResult(scanRequestId, client)
+  const status = await client.getScmRunnerScan({ scmRunnerScanId })
+  handleScanResult(status)
 }
 
 export const resolveOnPullRequest = async (inputs: OnPullRequestInputs) => {
@@ -140,7 +112,8 @@ export const resolveOnPullRequest = async (inputs: OnPullRequestInputs) => {
   }
 
   const scanResult = await client.scanOnPullRequestMutationCall(inputs)
-  const { scanRequestId } = scanResult.scanOnPullRequest
+  const { scanRequestId: scmRunnerScanId } = scanResult.scanOnPullRequest
 
-  await resolveActionResult(scanRequestId, client)
+  const status = await client.getScmRunnerScan({ scmRunnerScanId })
+  handleScanResult(status)
 }

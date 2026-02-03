@@ -20,7 +20,7 @@ export class ConsoleLogger {
   public __log = (message: string) => { this.logIndented(message, 2) }
   public ___log = (message: string) => { this.logIndented(message, 3) }
 
-  public err = (code: ExitCode, message: string) => {
-    this.log(`\n${chalk.red.bold(`Error ${code as number}`)}: ${message}`)
+  public err = (_code: ExitCode, message: string) => {
+    this.log(`\n${chalk.red.bold('Blocked')}: ${message}`)
   }
 }  
