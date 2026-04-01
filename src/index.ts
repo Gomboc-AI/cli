@@ -2,7 +2,8 @@
 
 import yargs, { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { EffectCommand, EventCommand, IacOptions } from './cli/commands'
+import { EffectCommand, EventCommand } from './cli/commands'
+import { Language } from './apiclient/gql/graphql'
 import { RECURSE_DEFAULT, TARGET_DIRECTORIES_DEFAULT, TARGET_DIRECTORY_DEFAULT } from './default'
 import { handleOnPullRequestCommand, handleOnScheduleCommand } from './cli/interfaces/remediate'
 import { ConsoleLogger } from './utils/ConsoleLogger'
@@ -82,13 +83,14 @@ const addAzdoOrganizationNameOption = (argv: Argv) => {
   })
 }
 
-const addInfrastructureToolOption = (argv: Argv) => {
-  argv.option("iac", {
+const addLanguagesOption = (argv: Argv) => {
+  argv.option("languages", {
+    alias: "iac",
     array: true,
-    describe: "A list of the IaC we should remediate",
+    describe: "Languages to remediate (lowercase API Language enum values)",
     type: "array",
     demandOption: true,
-    choices: [IacOptions.CLOUDFORMATION, IacOptions.TERRAFORM]
+    choices: Object.values(Language).map((l) => l.toLowerCase())
   })
 }
 
@@ -174,7 +176,7 @@ await yargs(hideBin(process.argv))
 
       addAzdoCollectionUriOption(yargs)
       addAzdoOrganizationNameOption(yargs)
-      addInfrastructureToolOption(yargs)
+      addLanguagesOption(yargs)
       addAuthTokenOption(yargs, true)
       addFormatOption(yargs)
     }
@@ -189,7 +191,7 @@ await yargs(hideBin(process.argv))
 
       addAzdoCollectionUriOption(yargs)
       addAzdoOrganizationNameOption(yargs)
-      addInfrastructureToolOption(yargs)
+      addLanguagesOption(yargs)
       addAuthTokenOption(yargs, true)
     }
   )
