@@ -47,7 +47,7 @@ export const handleOnScheduleCommand = async (argv: Arguments) => {
   const effect = getValidEffectCommand(effectCommand)
 
   const {
-    iac,
+    languages,
     authToken,
     targetDirectory,
     recurse,
@@ -62,7 +62,7 @@ export const handleOnScheduleCommand = async (argv: Arguments) => {
   })
 
   const inputs = zOnScheduleInputs.safeParse({
-    iacTools: translateIacOption(iac as string[]),
+    languages,
     effect,
     authToken,
     azdoOptions: azdoOptions.data,
@@ -90,7 +90,7 @@ export const handleOnPullRequestCommand = async (argv: Arguments) => {
   const effect = getValidEffectCommand(effectCommand)
 
   const {
-    iac,
+    languages,
     authToken,
     targetDirectories,
     pullRequest,
@@ -105,7 +105,7 @@ export const handleOnPullRequestCommand = async (argv: Arguments) => {
   })
 
   const inputs = zOnPullRequestInputs.safeParse({
-    iacTools: translateIacOption(iac as string[]),
+    languages,
     authToken,
     effect,
     azdoOptions: azdoOptions.data,

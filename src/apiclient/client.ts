@@ -7,7 +7,6 @@ import { setContext } from '@apollo/client/link/context/context.cjs'
 import { CLI_VERSION } from '../cli/version';
 import {
   Effect,
-  InfrastructureTool,
   ScanOnPullRequestMutation,
   ScanOnPullRequestMutationVariables,
   ScanOnScheduleMutation,
@@ -16,6 +15,7 @@ import {
   ScmRunnerScanQueryVariables,
   ScmRunnerScanStatus,
   ScmRunnerScanLogLevel,
+  Language,
 } from './gql/graphql';
 
 import { scanOnPullRequest } from './mutations/scanOnPullRequest';
@@ -47,12 +47,12 @@ const cl = new ConsoleLogger()
 export const POLICY_OBSERVATIONS_PAGE_SIZE = 10
 
 export class Client {
-  iacTools: InfrastructureTool[];
+  languages: Language[];
   authToken?: string
   client: ApolloClient<NormalizedCacheObject>
 
-  constructor(iacTools: InfrastructureTool[], authToken?: string, azdoOptions?: AzdoOptions) {
-    this.iacTools = iacTools
+  constructor(languages: Language[], authToken?: string, azdoOptions?: AzdoOptions) {
+    this.languages = languages
     this.authToken = authToken
     const httpLink = new HttpLink({ uri: settings.SERVER_URL, fetch: crossFetch })
     const authLink = setContext((_: any, { headers }: any) => {
@@ -90,11 +90,11 @@ export class Client {
     directory: string,
     recurse: boolean,
     effect: Effect,
-    iacTools: InfrastructureTool[],
+    languages: Language[],
     format?: boolean,
     _attempts?: number
   }): Promise<ScanOnScheduleMutation> {
-    const { directory, effect, iacTools, recurse, _attempts = 1, format=false } = args
+    const { directory, effect, languages, recurse, _attempts = 1, format=false } = args
 
     this._listAllInputs('scanOnScheduleMutationCall', args)
 
@@ -106,7 +106,7 @@ export class Client {
             directory,
             recurse,
             effect,
-            iacTools,
+            languages,
             autoFormat:format
           }
         }
@@ -144,11 +144,11 @@ export class Client {
     scenarioPaths: string[],
     pullRequestIdentifier: string,
     effect: Effect,
-    iacTools: InfrastructureTool[],
+    languages: Language[],
     format?: boolean
     _attempts?: number
   }): Promise<ScanOnPullRequestMutation> {
-    const { scenarioPaths, effect, iacTools, pullRequestIdentifier, _attempts = 1, format = false } = args
+    const { scenarioPaths, effect, languages, pullRequestIdentifier, _attempts = 1, format = false } = args
 
     this._listAllInputs('scanOnPullRequestMutationCall', args)
 
@@ -160,7 +160,7 @@ export class Client {
             scenarioPaths,
             pullRequestIdentifier,
             effect,
-            iacTools,
+            languages,
             autoFormat:format
           }
         }

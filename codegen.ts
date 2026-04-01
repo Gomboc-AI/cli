@@ -15,6 +15,7 @@ const config: CodegenConfig = {
       preset: 'client',
       config: {
         documentMode: 'string',
+        inputValueDeprecation: true,
       },
       documentTransforms: [addTypenameSelectionDocumentTransform],
     },
