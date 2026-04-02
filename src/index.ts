@@ -88,7 +88,7 @@ const addLanguagesOption = (argv: Argv) => {
   argv.option("languages", {
     alias: "iac",
     array: true,
-    describe: "Languages to remediate (lowercase API Language enum values)",
+    describe: "Languages to remediate",
     type: "array",
     demandOption: true,
     choices: languageCliEnumValues
