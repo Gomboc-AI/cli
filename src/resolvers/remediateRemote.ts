@@ -9,7 +9,7 @@ import { z } from 'zod'
 
 const cl = new ConsoleLogger()
 
-const languageCliEnumValues = Object.values(Language).map((l) =>
+export const languageCliEnumValues = Object.values(Language).map((l) =>
   l.toLowerCase()
 ) as [string, ...string[]]
 

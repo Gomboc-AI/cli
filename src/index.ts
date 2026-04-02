@@ -10,6 +10,7 @@ import { ConsoleLogger } from './utils/ConsoleLogger'
 import { ExitCode } from './cli/exitCodes'
 import { ClientError } from './apiclient/client'
 import { hl } from './utils/consoleUtils'
+import { languageCliEnumValues } from './resolvers/remediateRemote'
 
 const addFormatOption =  (argv: Argv) => {
   argv.option("format", {
@@ -90,7 +91,7 @@ const addLanguagesOption = (argv: Argv) => {
     describe: "Languages to remediate (lowercase API Language enum values)",
     type: "array",
     demandOption: true,
-    choices: Object.values(Language).map((l) => l.toLowerCase())
+    choices: languageCliEnumValues
   })
 }
 

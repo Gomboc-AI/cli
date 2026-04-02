@@ -17,22 +17,6 @@ const getValidEffectCommand = (effectArg: string) => {
   }
 }
 
-const translateIacOption = (iacOptions: string[]) => {
-  const translatedIac: InfrastructureTool[] = []
-  for (const option of iacOptions) {
-    switch (option) {
-      case IacOptions.CLOUDFORMATION:
-        translatedIac.push(InfrastructureTool.Cloudformation)
-        break;
-      case IacOptions.TERRAFORM:
-        translatedIac.push(InfrastructureTool.Terraform)
-        break;
-      default:
-        throw new ClientError(`Invalid IAC tool provided: ${option}`, ExitCode.INVALID_ARGUMENTS)
-    }
-  }
-  return translatedIac
-}
 export const handleOnScheduleCommand = async (argv: Arguments) => {
   // argv._[0] -> EffectCommand (submit-for-review, )
   // argv._[1] -> EventCommand (on-pull-request, on-schedule)
