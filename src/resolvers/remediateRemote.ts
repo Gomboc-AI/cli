@@ -3,11 +3,30 @@ import { ConsoleLogger } from '../utils/ConsoleLogger'
 import { ExitCode } from '../cli/exitCodes'
 import { hl, checkMark, formatTitle, hlSuccess } from '../utils/consoleUtils'
 import { CLI_VERSION } from '../cli/version'
-import { Effect, InfrastructureTool, ScmRunnerScanStatus } from '../apiclient/gql/graphql'
+import { Effect, Language, ScmRunnerScanStatus } from '../apiclient/gql/graphql'
 import { z } from 'zod'
 
 
 const cl = new ConsoleLogger()
+
+export const languageCliEnumValues = Object.values(Language).map((l) =>
+  l.toLowerCase()
+) as [string, ...string[]]
+
+const cliLanguageToCustomerApiLanguage = new Map<string, Language>(
+  Object.values(Language).map((l) => [l.toLowerCase(), l])
+)
+
+const translateCliLanguagesToCustomerApiLanguages = (
+  cliLanguages: readonly string[]
+): Language[] =>
+  cliLanguages.map((cli) => {
+    const lang = cliLanguageToCustomerApiLanguage.get(cli)
+    if (lang === undefined) {
+      throw new Error(`Unknown CLI language: ${cli}`)
+    }
+    return lang
+  })
 
 export const zAzdoOptions = z.object({
   azdoBaseUrl: z.string(),
@@ -15,7 +34,7 @@ export const zAzdoOptions = z.object({
 })
 
 export const zBaseInputs = z.object({
-  iacTools: z.array(z.enum([InfrastructureTool.Cloudformation, InfrastructureTool.Terraform])),
+  languages: z.array(z.enum(languageCliEnumValues)),
   authToken: z.string(),
   effect: z.enum([Effect.Preview, Effect.SubmitForReview]),
   azdoOptions: zAzdoOptions.optional(),
@@ -55,13 +74,14 @@ const handleScanResult = (status: ScmRunnerScanStatus) => {
 
 export const resolveOnSchedule = async (inputs: OnScheduleInputs) => {
   const {
-    iacTools,
+    languages,
     authToken,
     effect,
     azdoOptions,
     recurse,
   } = inputs
-  const client = new Client(iacTools, authToken, azdoOptions)
+  const apiLanguages = translateCliLanguagesToCustomerApiLanguages(languages)
+  const client = new Client(apiLanguages, authToken, azdoOptions)
 
   cl.log(formatTitle(`Running Gomboc.AI Remediate (v${CLI_VERSION})`))
 
@@ -78,7 +98,10 @@ export const resolveOnSchedule = async (inputs: OnScheduleInputs) => {
     cl.__log(`Remediations will be committed in a new PR for your review\n`)
   }
 
-  const scanResult = await client.scanOnScheduleMutationCall(inputs)
+  const scanResult = await client.scanOnScheduleMutationCall({
+    ...inputs,
+    languages: apiLanguages,
+  })
   const { scanRequestId: scmRunnerScanId } = scanResult.scanOnSchedule
 
   const status = await client.getScmRunnerScan({ scmRunnerScanId })
@@ -87,13 +110,14 @@ export const resolveOnSchedule = async (inputs: OnScheduleInputs) => {
 
 export const resolveOnPullRequest = async (inputs: OnPullRequestInputs) => {
   const {
-    iacTools,
+    languages,
     authToken,
     azdoOptions,
     scenarioPaths,
   } = inputs
 
-  const client = new Client(iacTools, authToken, azdoOptions)
+  const apiLanguages = translateCliLanguagesToCustomerApiLanguages(languages)
+  const client = new Client(apiLanguages, authToken, azdoOptions)
   const cl = new ConsoleLogger()
 
   cl.log(formatTitle(`Running Gomboc.AI Remediate (v${CLI_VERSION})`))
@@ -111,7 +135,10 @@ export const resolveOnPullRequest = async (inputs: OnPullRequestInputs) => {
     cl.__log(`Remediations will be committed in a new PR for your review\n`)
   }
 
-  const scanResult = await client.scanOnPullRequestMutationCall(inputs)
+  const scanResult = await client.scanOnPullRequestMutationCall({
+    ...inputs,
+    languages: apiLanguages,
+  })
   const { scanRequestId: scmRunnerScanId } = scanResult.scanOnPullRequest
 
   const status = await client.getScmRunnerScan({ scmRunnerScanId })

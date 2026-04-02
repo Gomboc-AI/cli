@@ -17,22 +17,6 @@ const getValidEffectCommand = (effectArg: string) => {
   }
 }
 
-const translateIacOption = (iacOptions: string[]) => {
-  const translatedIac: InfrastructureTool[] = []
-  for (const option of iacOptions) {
-    switch (option) {
-      case IacOptions.CLOUDFORMATION:
-        translatedIac.push(InfrastructureTool.Cloudformation)
-        break;
-      case IacOptions.TERRAFORM:
-        translatedIac.push(InfrastructureTool.Terraform)
-        break;
-      default:
-        throw new ClientError(`Invalid IAC tool provided: ${option}`, ExitCode.INVALID_ARGUMENTS)
-    }
-  }
-  return translatedIac
-}
 export const handleOnScheduleCommand = async (argv: Arguments) => {
   // argv._[0] -> EffectCommand (submit-for-review, )
   // argv._[1] -> EventCommand (on-pull-request, on-schedule)
@@ -47,7 +31,7 @@ export const handleOnScheduleCommand = async (argv: Arguments) => {
   const effect = getValidEffectCommand(effectCommand)
 
   const {
-    iac,
+    languages,
     authToken,
     targetDirectory,
     recurse,
@@ -62,7 +46,7 @@ export const handleOnScheduleCommand = async (argv: Arguments) => {
   })
 
   const inputs = zOnScheduleInputs.safeParse({
-    iacTools: translateIacOption(iac as string[]),
+    languages,
     effect,
     authToken,
     azdoOptions: azdoOptions.data,
@@ -90,7 +74,7 @@ export const handleOnPullRequestCommand = async (argv: Arguments) => {
   const effect = getValidEffectCommand(effectCommand)
 
   const {
-    iac,
+    languages,
     authToken,
     targetDirectories,
     pullRequest,
@@ -105,7 +89,7 @@ export const handleOnPullRequestCommand = async (argv: Arguments) => {
   })
 
   const inputs = zOnPullRequestInputs.safeParse({
-    iacTools: translateIacOption(iac as string[]),
+    languages,
     authToken,
     effect,
     azdoOptions: azdoOptions.data,
